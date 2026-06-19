@@ -25,6 +25,8 @@ docs/
 | `reviews/` | レビュー結果、指摘事項、修正判断 |
 | `presentation/` | 3分発表資料、デモ手順、発表メモ |
 
+WebアプリケーションのソースコードはこのDocs配下ではなく、リポジトリのルートまたはサブディレクトリ(例: `frontend/`, `backend/`)に配置します。具体的な構成は技術スタック決定([Issue #23](https://github.com/97kuek/HRS/issues/23))後に確定します。
+
 ## Naming Rules
 
 - ファイル名は内容が分かる名前にする
