@@ -1,8 +1,8 @@
-# docs
+# Docs
 
 HRSチーム開発の資料と成果物を管理します。
 
-## Suggested Layout
+## Where to Put Files
 
 ```text
 docs/
@@ -14,20 +14,38 @@ docs/
 └── presentation/
 ```
 
+| Directory | Purpose |
+| --- | --- |
+| `domain-analysis/` | 問題領域のクラス図、オブジェクト図、用語整理 |
+| `requirements-analysis/` | ユースケース図、ユースケース記述、アクティビティ図 |
+| `system-analysis/` | コラボレーション図、分析クラス図 |
+| `reviews/` | レビュー結果、指摘事項、修正判断 |
+| `presentation/` | 3分発表資料、デモ手順、発表メモ |
+
 ## Naming Rules
 
 - ファイル名は内容が分かる名前にする
 - 日付を入れる場合は `YYYY-MM-DD` 形式にする
 - レビュー後の版は同じファイルを更新し、必要ならPRで差分を確認する
+- 図の元ファイルと画像を書き出す場合は同じ名前にする
 
 Examples:
 
 ```text
 domain-analysis/class-diagram.md
+domain-analysis/class-diagram.png
 requirements-analysis/usecase-description-reservation.md
 reviews/domain-analysis-review-2026-06-19.md
 presentation/2026-07-03-demo.md
 ```
+
+## Work Order
+
+1. `domain-analysis/` で問題領域の用語と関係を整理する
+2. `requirements-analysis/` で利用者・フロント係のユースケースを整理する
+3. `system-analysis/` でバウンダリ、コントロール、エンティティを整理する
+4. `reviews/` にレビュー結果を残す
+5. `presentation/` に発表資料とデモ手順を置く
 
 ## Review
 
