@@ -22,59 +22,48 @@ git config --global user.name "<your-name>"
 git config --global user.email "<your-email>"
 ```
 
-代表者がリポジトリを作成・初期設定する場合だけ、以下の手順を使います。
-
-初回だけGitHub CLIでログインします。
-
-```powershell
-gh auth login -h github.com
-```
-
-代表者の個人アカウント配下にPublicリポジトリを作成し、ローカルの `main` をpushします。
-
-```powershell
-gh repo create HRS --public --source . --remote origin --push
-```
-
-リポジトリを作成済みの場合は、remoteだけ設定してpushします。
-
-```powershell
-git remote add origin https://github.com/97kuek/HRS.git
-git push -u origin main
-```
-
-Gitのユーザー情報が未設定の場合は、自分の名前とメールアドレスを設定します。
-
-代表者:
-
-```powershell
-git config --global user.name "Keitaro Ueki"
-git config --global user.email "keitaro.ueki@icloud.com"
-```
-
-他のメンバー:
-
-```powershell
-git config --global user.name "<your-name>"
-git config --global user.email "<your-email>"
-```
-
 ## Daily Workflow
 
 1. GitHub Projectsで担当Issueを決める
 2. Issueを `Doing` に移す
-3. `main` を最新化する
+3. `main` を最新化する（**作業開始前に必ず `git pull` する**）
 4. Issue番号付きのブランチを作る
 5. 変更してコミットする
 6. Pull Requestを作る
 7. レビュー後に `main` へマージする
 8. Issueを `Done` に移す
 
+> **作業を始める前に必ず `main` を最新化してからブランチを作る**こと。古い `main` から始めると、あとで競合（コンフリクト）が起きやすくなります。
+
 ```powershell
 git checkout main
 git pull
 git checkout -b docs/<issue-number>-<short-name>
 ```
+
+## コンフリクト（競合）の解決
+
+複数人が同じファイルを編集すると、マージ時に競合が起きることがあります。
+
+**予防（いちばん大事）**: 作業を始める前と再開するときに、必ず `main` を最新化する。
+
+作業中に `main` が他の人の変更で進んだら、自分のブランチに最新の `main` を取り込みます。
+
+```powershell
+git checkout <your-branch>
+git fetch origin
+git merge origin/main
+```
+
+競合が出たときの手順:
+
+1. `git status` で競合しているファイルを確認する
+2. ファイルを開き、`<<<<<<<` / `=======` / `>>>>>>>` のマーカーで挟まれた部分を、正しい内容に手で直す
+3. マーカー行（`<<<<<<<` など）を消したら、`git add <file>` で解決済みにする
+4. すべて解決したら `git commit`（マージコミット）で確定する
+5. 内容に自信がないときは、勝手に上書きせず変更した本人に確認する
+
+途中でやめて元に戻したいときは `git merge --abort` で中断できます。
 
 ## Branch Rules
 
@@ -148,23 +137,6 @@ Issueは技術レイヤー別ではなく、ユースケースや成果物単位
 Issueは技術レイヤー別ではなく、ユースケースや成果物単位で作成しています。ラベルは`分析` / `設計・実装` / `発表` / `レビュー`、フェーズは`分析フェーズ完了` / `設計・実装フェーズ完了`のマイルストーンで管理します。
 
 新しいIssueを作る場合は、`.github/ISSUE_TEMPLATE/`のテンプレートを利用してください。
-
-## GitHub Project Creation
-
-```powershell
-gh project create --owner 97kuek --title "HRS Team Development"
-```
-
-作成後、GitHubの画面で `Todo`, `Doing`, `Review`, `Done` のBoard列を用意します。
-
-## Recommended Repository Settings
-
-GitHubの画面で以下を設定します。
-
-- `Settings` > `Collaborators and teams` からチームメンバーを招待する
-- `Settings` > `Branches` で `main` のBranch protection ruleを作る
-- `Require a pull request before merging` を有効にする
-- `Require approvals` を1にする
 
 ## Review Focus
 
