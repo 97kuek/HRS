@@ -2,11 +2,14 @@
 
 HRSチーム開発の資料と成果物を管理します。
 
+GitやGitHubの基本操作は[git-beginner-guide.md](git-beginner-guide.md)を確認してください。
+
 ## Where to Put Files
 
 ```text
 docs/
 ├── チーム開発1.pdf
+├── git-beginner-guide.md
 ├── domain-analysis/
 ├── requirements-analysis/
 ├── system-analysis/
