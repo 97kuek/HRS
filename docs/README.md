@@ -13,6 +13,7 @@ docs/
 ├── domain-analysis/
 ├── requirements-analysis/
 ├── system-analysis/
+├── tech-stack/
 ├── reviews/
 └── presentation/
 ```
@@ -22,6 +23,7 @@ docs/
 | `domain-analysis/` | 問題領域のクラス図、オブジェクト図、用語整理 |
 | `requirements-analysis/` | ユースケース図、ユースケース記述、アクティビティ図 |
 | `system-analysis/` | コラボレーション図、分析クラス図 |
+| `tech-stack/` | 技術選定の記録 ([Issue #23](https://github.com/97kuek/HRS/issues/23)) |
 | `reviews/` | レビュー結果、指摘事項、修正判断 |
 | `presentation/` | 3分発表資料、デモ手順、発表メモ |
 
