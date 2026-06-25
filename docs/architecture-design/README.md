@@ -14,6 +14,13 @@ HRS (ホテル予約システム) を Next.js (App Router) / TypeScript / Prisma
 - 予約番号の発行、予約状態の遷移、空室確認、料金計算などの業務ルールはアプリケーション層またはドメイン層に閉じ込める。
 - 文書上の用語はドメイン分析の日本語名を正とし、実装名は対応表で固定する。
 
+## 詳細設計
+
+| ドキュメント | 内容 |
+| --- | --- |
+| [API設計](api-design.md) | REST風APIの共通方針、エンドポイント、リクエスト/レスポンス、エラー |
+| [DB設計](db-design.md) | ER構造、テーブル定義、制約、Prismaモデル案 |
+
 ## コンポーネント図
 
 ```mermaid
@@ -91,18 +98,11 @@ flowchart LR
 
 実装開始時に Next.js の `src/` 配置を採用する場合は、上記の `app/`, `components/`, `features/`, `lib/` を `src/` 配下に移す。どちらにしてもレイヤー責務は変えない。
 
-## 主要API
+## API設計概要
 
-| メソッド | パス | 対応ユースケース | 概要 |
-| --- | --- | --- | --- |
-| `GET` | `/api/room-types` | 部屋を予約する | 予約時に選択できる部屋タイプを取得する |
-| `GET` | `/api/availability` | 部屋を予約する | 宿泊日、泊数、人数、部屋タイプから予約可能数と料金候補を取得する |
-| `POST` | `/api/reservations` | 部屋を予約する | 利用者情報と予約条件から予約を作成し、予約番号を発行する |
-| `GET` | `/api/reservations/{reservationNumber}` | 予約を確認する | 予約番号から予約内容と予約状態を取得する |
-| `POST` | `/api/reservations/{reservationNumber}/check-in` | チェックインする | 予約をチェックイン済みにし、部屋を割り当てる |
-| `POST` | `/api/stays/{stayId}/check-out` | チェックアウトする | 宿泊を終了し、宿泊料金と支払い情報を記録する |
+予約、予約確認、チェックイン、チェックアウトを REST 風 API として提供する。Route Handler は HTTP と JSON の境界に限定し、空室確認や状態遷移などの業務ルールはユースケースサービスに委譲する。
 
-予約はドメイン分析に合わせて「部屋タイプ」に対して作成し、具体的な「部屋」はチェックイン時に割り当てる。空室検索では、対象期間に割り当て可能な部屋数を部屋タイプ単位で確認する。
+詳細は [API設計](api-design.md) に記載する。
 
 ## ドメイン概念と実装名
 
@@ -132,19 +132,11 @@ flowchart LR
 | `CheckInForm` | Boundary | 予約番号を入力しチェックインを開始する画面部品 |
 | `CheckOutForm` | Boundary | 宿泊終了と支払い情報を入力する画面部品 |
 
-## DB設計方針
+## DB設計概要
 
-| テーブル | 対応概念 | 主なカラム |
-| --- | --- | --- |
-| `guests` | 利用者 | `id`, `name`, `contact` |
-| `room_types` | 部屋タイプ | `id`, `name`, `capacity`, `base_rate` |
-| `rooms` | 部屋 | `id`, `room_number`, `room_type_id` |
-| `reservations` | 予約 | `id`, `reservation_number`, `guest_id`, `room_type_id`, `check_in_date`, `check_out_date`, `guest_count`, `status` |
-| `stays` | 宿泊 | `id`, `reservation_id`, `room_id`, `checked_in_at`, `checked_out_at` |
-| `lodging_charges` | 宿泊料金 | `id`, `stay_id`, `amount` |
-| `payments` | 支払い | `id`, `lodging_charge_id`, `amount`, `paid_at`, `method` |
+ドメイン分析の Entity を Postgres のテーブルに対応させ、Prisma でスキーマとリレーションを管理する。予約は部屋タイプに対して作成し、具体的な部屋はチェックイン時に宿泊へ割り当てる。
 
-制約として、`reservation_number` は一意、`room_number` は一意、`guest_count` は部屋タイプの定員以下、予約期間は `check_in_date < check_out_date` とする。期間重複による同一部屋の二重割当は、チェックイン時のトランザクション内で検証する。
+詳細は [DB設計](db-design.md) に記載する。
 
 ## 実装との対応
 
@@ -156,5 +148,5 @@ flowchart LR
 ## 未確定・レビュー事項
 
 - #14 が未完了のため、システム分析レビューで Control / Entity の粒度が変わった場合はモジュール責務を見直す。
-- 要求分析で「予約を取消する」「料金を支払う」を独立ユースケースにする場合は、APIとサービスを追加する。
+- 要求分析で「予約を取消する」「料金を支払う」を独立ユースケースにする場合は、[API設計](api-design.md) とサービスを追加する。
 - `src/` 配下に配置するかルート直下に配置するかは、実装開始時の Next.js 初期化設定に合わせて決定する。
