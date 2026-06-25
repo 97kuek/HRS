@@ -20,6 +20,7 @@ HRS (ホテル予約システム) を Next.js (App Router) / TypeScript / Prisma
 | --- | --- |
 | [API設計](api-design.md) | REST風APIの共通方針、エンドポイント、リクエスト/レスポンス、エラー |
 | [DB設計](db-design.md) | ER構造、テーブル定義、制約、Prismaモデル案 |
+| [認証・認可設計](auth-design.md) | 利用者本人確認、予約単位の認可、将来のログイン/ロール設計方針 |
 
 ## コンポーネント図
 
@@ -34,6 +35,7 @@ flowchart LR
 
     subgraph next[Next.js アプリケーション]
         routes["Route Handlers<br/>app/api/**/route.ts"]
+        auth["本人確認 / 認可"]
         services["ユースケースサービス"]
         domain["ドメインモデル / 業務ルール"]
         repos[Repository]
@@ -46,7 +48,8 @@ flowchart LR
     pages --> forms
     forms --> routes
     pages --> routes
-    routes --> services
+    routes --> auth
+    auth --> services
     services --> domain
     services --> repos
     repos --> prisma
@@ -77,11 +80,10 @@ flowchart LR
 │       ├── room-types/route.ts
 │       ├── availability/route.ts
 │       ├── reservations/route.ts
+│       ├── reservations/lookup/route.ts
 │       ├── reservations/[reservationNumber]/
-│       │   ├── route.ts
-│       │   └── check-in/route.ts
-│       └── stays/[stayId]/
-│           └── check-out/route.ts
+│       │   ├── check-in/route.ts
+│       │   └── check-out/route.ts
 ├── components/
 ├── features/
 │   ├── reservation/
@@ -122,6 +124,7 @@ flowchart LR
 | モジュール | 分析上の対応 | 責務 |
 | --- | --- | --- |
 | `ReservationService` | Control | 空室確認、予約作成、予約番号発行、予約確認を制御する |
+| `ReservationAccessService` | Control | 予約番号と連絡先による本人確認、予約単位のアクセス可否を制御する |
 | `CheckInService` | Control | 予約状態の確認、部屋割当、宿泊作成、状態更新を制御する |
 | `CheckOutService` | Control | 宿泊終了、料金確定、支払い記録、状態更新を制御する |
 | `ReservationRepository` | Entity永続化 | 予約の保存、検索、状態更新をDBに反映する |
@@ -149,4 +152,5 @@ flowchart LR
 
 - #14 が未完了のため、システム分析レビューで Control / Entity の粒度が変わった場合はモジュール責務を見直す。
 - 要求分析で「予約を取消する」「料金を支払う」を独立ユースケースにする場合は、[API設計](api-design.md) とサービスを追加する。
+- 利用者アカウント、管理者、受付係を正式ユースケースに追加する場合は、[認証・認可設計](auth-design.md) を見直す。
 - `src/` 配下に配置するかルート直下に配置するかは、実装開始時の Next.js 初期化設定に合わせて決定する。

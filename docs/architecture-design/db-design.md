@@ -2,10 +2,11 @@
 
 - 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
 - 前提: [技術選定の記録](../tech-stack/README.md)
-- 関連: [アーキテクチャ設計](README.md), [API設計](api-design.md)
+- 関連: [アーキテクチャ設計](README.md), [API設計](api-design.md), [認証・認可設計](auth-design.md)
 - 状態: **ドラフト**（[#14 システム分析レビュー](https://github.com/97kuek/HRS/issues/14) 後に見直す）
 
-HRS のドメイン概念を Postgres のテーブルとして整理する。実装では Prisma を使い、`schema.prisma` を DB スキーマの正とする。
+- 本ドキュメントでは、HRS のドメイン概念を Postgres のテーブルとして整理する。
+- 実装では `Prisma` を使い、`schema.prisma` を DB スキーマの正とする。
 
 ## ER構造
 
@@ -282,4 +283,4 @@ model Payment {
 
 - Postgres の CHECK 制約は Prisma の標準スキーマだけでは表現しにくいため、実装時にマイグレーションSQLで追加するか、アプリケーション層の検証に寄せるかを決める。
 - 支払い方法を列挙型にするか、文字列のままにするかは実装時に決める。
-- 利用者アカウントや認証を追加する場合は、`guests` とログインユーザーを分けるか統合するか再設計する。
+- 初期実装の認証・認可では `guests.contact` を予約本人確認に使い、`users` や `sessions` は追加しない。利用者アカウントや管理者アカウントを追加する場合は、[認証・認可設計](auth-design.md) に従って `guests` とログインユーザーの関係を再設計する。
