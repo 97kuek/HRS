@@ -13,6 +13,7 @@ docs/
 ├── domain-analysis/
 ├── requirements-analysis/
 ├── system-analysis/
+├── architecture-design/
 ├── tech-stack/
 ├── reviews/
 └── presentation/
@@ -23,6 +24,7 @@ docs/
 | `domain-analysis/` | 問題領域のクラス図、オブジェクト図、用語整理 |
 | `requirements-analysis/` | ユースケース図、ユースケース記述、アクティビティ図 |
 | `system-analysis/` | コラボレーション図、分析クラス図 |
+| `architecture-design/` | アーキテクチャ設計図、レイヤー責務、実装モジュール設計 |
 | `tech-stack/` | 技術選定の記録 ([Issue #23](https://github.com/97kuek/HRS/issues/23)) |
 | `reviews/` | レビュー結果、指摘事項、修正判断 |
 | `presentation/` | 3分発表資料、デモ手順、発表メモ |
@@ -49,10 +51,11 @@ presentation/2026-07-03-demo.md
 ## Work Order
 
 1. `domain-analysis/` で問題領域の用語と関係を整理する
-2. `requirements-analysis/` で利用者・フロント係のユースケースを整理する
+2. `requirements-analysis/` で利用者のユースケースを整理する
 3. `system-analysis/` でバウンダリ、コントロール、エンティティを整理する
-4. `reviews/` にレビュー結果を残す
-5. `presentation/` に発表資料とデモ手順を置く
+4. `architecture-design/` でWebアプリケーションの構成と実装モジュールを整理する
+5. `reviews/` にレビュー結果を残す
+6. `presentation/` に発表資料とデモ手順を置く
 
 ## Review
 
