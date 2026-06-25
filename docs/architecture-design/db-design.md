@@ -1,10 +1,5 @@
 # DB設計
 
-- 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
-- 前提: [技術選定の記録](../tech-stack/README.md)
-- 関連: [アーキテクチャ設計](README.md), [API設計](api-design.md), [認証・認可設計](auth-design.md), [トランザクション・競合制御設計](transaction-concurrency-design.md)
-- 状態: **ドラフト**（[#14 システム分析レビュー](https://github.com/97kuek/HRS/issues/14) 後に見直す）
-
 - 本ドキュメントでは、HRS のドメイン概念を Postgres のテーブルとして整理する。
 - 実装では `Prisma` を使い、`schema.prisma` を DB スキーマの正とする。
 
@@ -24,6 +19,8 @@ erDiagram
 予約は「部屋タイプ」に対して作成する。具体的な「部屋」はチェックイン時に `stays` に割り当てる。
 
 ## テーブル一覧
+
+[ドメイン分析](../domain-analysis/class-diagram.md)で抽出した主要な`Entity`をDBテーブルの出発点にし、ユースケースを実現できるようにリレーションと制約を調整した
 
 | テーブル | 対応概念 | 説明 |
 | --- | --- | --- |
@@ -45,6 +42,8 @@ erDiagram
 
 ## `guests`
 
+- 利用者アカウントは扱わず、予約ごとに入力された予約者情報を保存する方針
+
 | カラム | 型 | 制約 | 説明 |
 | --- | --- | --- | --- |
 | `id` | string | PK | 内部ID |
@@ -53,7 +52,6 @@ erDiagram
 | `created_at` | datetime | not null | 作成日時 |
 | `updated_at` | datetime | not null | 更新日時 |
 
-利用者アカウントは扱わず、予約ごとに入力された予約者情報を保存する。
 
 ## `room_types`
 
@@ -66,7 +64,7 @@ erDiagram
 | `created_at` | datetime | not null | 作成日時 |
 | `updated_at` | datetime | not null | 更新日時 |
 
-`capacity > 0`、`base_rate >= 0` を制約とする。
+- `capacity > 0`、`base_rate >= 0` を制約とする。
 
 ## `rooms`
 
@@ -78,9 +76,12 @@ erDiagram
 | `created_at` | datetime | not null | 作成日時 |
 | `updated_at` | datetime | not null | 更新日時 |
 
-チェックイン時には、予約の部屋タイプに属し、対象期間に他の宿泊へ割り当てられていない部屋を選ぶ。
+- チェックイン時には、予約の部屋タイプに属し、対象期間に他の宿泊へ割り当てられていない部屋を選ぶ。
 
 ## `reservations`
+
+- 予約番号は `HRS-YYYYMMDD-連番` のように、人が読める形式で発行する。
+- 連番採番の衝突は DB の一意制約と再試行で防ぐ。
 
 | カラム | 型 | 制約 | 説明 |
 | --- | --- | --- | --- |
@@ -94,8 +95,6 @@ erDiagram
 | `status` | enum | not null | 予約状態 |
 | `created_at` | datetime | not null | 作成日時 |
 | `updated_at` | datetime | not null | 更新日時 |
-
-予約番号は `HRS-YYYYMMDD-連番` のように、人が読める形式で発行する。連番採番の衝突は DB の一意制約と再試行で防ぐ。
 
 ## `stays`
 
