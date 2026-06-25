@@ -2,7 +2,7 @@
 
 - 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
 - 前提: [技術選定の記録](../tech-stack/README.md)
-- 関連: [アーキテクチャ設計](README.md), [DB設計](db-design.md), [認証・認可設計](auth-design.md), [バリデーション・エラー設計](validation-error-design.md)
+- 関連: [アーキテクチャ設計](README.md), [DB設計](db-design.md), [バリデーション・エラー設計](validation-error-design.md)
 - 状態: **ドラフト**（[#14 システム分析レビュー](https://github.com/97kuek/HRS/issues/14) 後に見直す）
 
 - 本ドキュメントでは、HRS の画面から利用する REST 風 API を定義する
@@ -16,6 +16,8 @@
 - パス中の予約識別子には、内部IDではなく利用者に提示する `reservationNumber` を使う
 - 入力値の構文チェックは Route Handler、業務ルールの検証はユースケースサービスで行う
 - 正常レスポンスは必要な表示データだけを返し、DB内部のIDは画面に不要な限り返さない
+- 初期実装ではログイン、セッション、ロールによる認証・認可は扱わない
+- 予約番号と連絡先の照合は、認証基盤ではなく予約照会・状態変更時の業務ルールとして扱う
 
 ## エラー形式
 
@@ -39,9 +41,7 @@
 | ステータス | 用途 |
 | --- | --- |
 | `400 Bad Request` | JSON形式不正、型不正、必須項目不足 |
-| `401 Unauthorized` | 予約番号と連絡先による本人確認に失敗 |
-| `403 Forbidden` | 本人確認済みだが対象予約への操作権限がない |
-| `404 Not Found` | 予約番号、宿泊、部屋タイプが存在しない |
+| `404 Not Found` | 予約番号と連絡先の組み合わせ、宿泊、部屋タイプが存在しない |
 | `409 Conflict` | 予約済みでない予約のチェックイン、空室不足、二重チェックアウトなど状態競合 |
 | `422 Unprocessable Entity` | 日付逆転、定員超過など業務ルール違反 |
 | `500 Internal Server Error` | 想定外のサーバーエラー |
@@ -56,6 +56,18 @@
 | `POST` | `/api/reservations/lookup` | 予約を確認する | 予約番号と連絡先から予約内容と状態を取得する |
 | `POST` | `/api/reservations/{reservationNumber}/check-in` | チェックインする | 予約をチェックイン済みにし、部屋を割り当てる |
 | `POST` | `/api/reservations/{reservationNumber}/check-out` | チェックアウトする | 宿泊を終了し、料金と支払いを記録する |
+| `POST` | `/api/reservations/{reservationNumber}/cancel` | 予約をキャンセルする | 予約をキャンセル済みにする |
+
+## エンドポイント設計の理由
+
+| 判断 | 理由 |
+| --- | --- |
+| REST風APIにする | 小規模なCRUDと状態変更が中心であり、GraphQLより設計と実装が単純になるため |
+| Route Handlerに置く | Next.js App Routerだけで画面とAPIを同じリポジトリに置けるため |
+| 内部IDではなく予約番号をパスに使う | 利用者が実際に控える識別子が予約番号であり、DB内部IDを画面へ漏らす必要がないため |
+| 予約確認を `POST /api/reservations/lookup` にする | 連絡先をURLやアクセスログに残しにくくするため |
+| チェックイン/チェックアウト/キャンセルを `POST` にする | 予約状態を変更する操作であり、冪等な取得ではないため |
+| チェックアウトで `stayId` を指定させない | 利用者は宿泊IDを知らない。予約番号から現在の宿泊をアプリケーション層で特定するほうが画面とドメインに合うため |
 
 ## `GET /api/room-types`
 
@@ -206,7 +218,7 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `401` | `RESERVATION_AUTH_FAILED` |
+| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
 
 ## `POST /api/reservations/{reservationNumber}/check-in`
 
@@ -242,7 +254,7 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `401` | `RESERVATION_AUTH_FAILED` |
+| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
 | 予約状態が `RESERVED` ではない | `409` | `INVALID_RESERVATION_STATUS` |
 | 割り当て可能な部屋がない | `409` | `NO_ASSIGNABLE_ROOM` |
 
@@ -250,7 +262,7 @@
 
 - 宿泊を終了し、宿泊料金と支払い情報を記録する。
 - 予約状態は `CHECKED_OUT` にする。
-- 利用者に内部IDである `stayId` を直接指定させず、予約番号と連絡先で本人確認する。
+- 利用者に内部IDである `stayId` を直接指定させず、予約番号から現在の宿泊を特定する。
 
 ### リクエスト
 
@@ -293,22 +305,54 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `401` | `RESERVATION_AUTH_FAILED` |
+| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
 | 対応する宿泊が存在しない | `404` | `STAY_NOT_FOUND` |
 | すでにチェックアウト済み | `409` | `ALREADY_CHECKED_OUT` |
 | 支払金額が請求金額と一致しない | `422` | `PAYMENT_AMOUNT_MISMATCH` |
+
+## `POST /api/reservations/{reservationNumber}/cancel`
+
+- 予約済みの予約をキャンセル済みにする。
+- チェックイン済み、チェックアウト済み、すでにキャンセル済みの予約はキャンセルできない。
+- 初期実装ではキャンセル料は扱わない。
+
+### リクエスト
+
+```json
+{
+  "contact": "taro@example.com"
+}
+```
+
+### レスポンス
+
+```json
+{
+  "reservation": {
+    "reservationNumber": "HRS-20260703-0001",
+    "status": "CANCELLED"
+  }
+}
+```
+
+### 主なエラー
+
+| 条件 | ステータス | `code` |
+| --- | --- | --- |
+| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
+| 予約状態が `RESERVED` ではない | `409` | `INVALID_RESERVATION_STATUS` |
 
 ## ユースケースとの対応
 
 | ユースケース | API | 備考 |
 | --- | --- | --- |
 | 部屋を予約する | `GET /api/room-types`, `GET /api/availability`, `POST /api/reservations` | 空室検索、候補表示、予約確定に分ける |
-| 予約を確認する | `POST /api/reservations/lookup` | 予約番号と連絡先で本人確認する |
+| 予約を確認する | `POST /api/reservations/lookup` | 予約番号と連絡先を照合する |
 | チェックインする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/check-in` | 状態確認後に部屋を割り当てる |
-| チェックアウトする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/check-out` | 予約番号と連絡先で本人確認し、宿泊IDは画面へ不要な限り返さない |
+| チェックアウトする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/check-out` | 予約番号と連絡先を照合し、宿泊IDは画面へ不要な限り返さない |
+| 予約をキャンセルする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/cancel` | 予約済み状態だけキャンセルできる |
 
 ## 未確定事項
 
-- 「予約を取消する」を正式ユースケースにする場合は `POST /api/reservations/{reservationNumber}/cancel` を追加する。
 - 支払いを独立ユースケースにする場合は、チェックアウトAPIから支払い記録を分離する。
-- 認証・認可の初期方針は [認証・認可設計](auth-design.md) に従い、予約番号だけでなく予約時の連絡先による本人確認を行う。
+- 利用者アカウントや管理者機能を追加する場合は、認証・認可の専用設計を追加し、ステータスコードに `401` / `403` を導入する。
