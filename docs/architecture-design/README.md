@@ -12,6 +12,7 @@ HRS (ホテル予約システム) を Next.js (App Router) / TypeScript / Prisma
 - UI、API、ユースケース処理、ドメインモデル、DBアクセスを分け、分析クラスの Boundary / Control / Entity に対応させる。
 - Prisma は DBアクセスの実装詳細として扱い、画面やユースケース処理から直接呼び出さない。
 - 予約番号の発行、予約状態の遷移、空室確認、料金計算などの業務ルールはアプリケーション層またはドメイン層に閉じ込める。
+- 入力検証、認証・認可、トランザクション境界、エラー変換はアプリケーション層の責務として明確に分ける。
 - 文書上の用語はドメイン分析の日本語名を正とし、実装名は対応表で固定する。
 
 ## 詳細設計
@@ -21,6 +22,10 @@ HRS (ホテル予約システム) を Next.js (App Router) / TypeScript / Prisma
 | [API設計](api-design.md) | REST風APIの共通方針、エンドポイント、リクエスト/レスポンス、エラー |
 | [DB設計](db-design.md) | ER構造、テーブル定義、制約、Prismaモデル案 |
 | [認証・認可設計](auth-design.md) | 利用者本人確認、予約単位の認可、将来のログイン/ロール設計方針 |
+| [バリデーション・エラー設計](validation-error-design.md) | 入力検証の責務分担、エラー形式、エラーコード |
+| [トランザクション・競合制御設計](transaction-concurrency-design.md) | 予約作成、チェックイン、チェックアウトのトランザクション境界と競合時の扱い |
+| [画面構成・ルーティング設計](ui-routing-design.md) | 利用者向け画面、画面遷移、API呼び出し対応 |
+| [環境変数・デプロイ設計](deployment-environment-design.md) | 環境変数、環境分離、Prisma migration、デプロイ方針 |
 
 ## コンポーネント図
 
@@ -127,6 +132,7 @@ flowchart LR
 | `ReservationAccessService` | Control | 予約番号と連絡先による本人確認、予約単位のアクセス可否を制御する |
 | `CheckInService` | Control | 予約状態の確認、部屋割当、宿泊作成、状態更新を制御する |
 | `CheckOutService` | Control | 宿泊終了、料金確定、支払い記録、状態更新を制御する |
+| `Validation` / `ErrorMapper` | API境界 / Control | 入力検証結果と業務エラーを共通エラー形式へ変換する |
 | `ReservationRepository` | Entity永続化 | 予約の保存、検索、状態更新をDBに反映する |
 | `RoomRepository` | Entity永続化 | 部屋タイプ、部屋、空室状況の検索を行う |
 | `StayRepository` | Entity永続化 | 宿泊、宿泊料金、支払いの保存と検索を行う |

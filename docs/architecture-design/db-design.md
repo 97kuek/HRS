@@ -2,7 +2,7 @@
 
 - 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
 - 前提: [技術選定の記録](../tech-stack/README.md)
-- 関連: [アーキテクチャ設計](README.md), [API設計](api-design.md), [認証・認可設計](auth-design.md)
+- 関連: [アーキテクチャ設計](README.md), [API設計](api-design.md), [認証・認可設計](auth-design.md), [トランザクション・競合制御設計](transaction-concurrency-design.md)
 - 状態: **ドラフト**（[#14 システム分析レビュー](https://github.com/97kuek/HRS/issues/14) 後に見直す）
 
 - 本ドキュメントでは、HRS のドメイン概念を Postgres のテーブルとして整理する。
@@ -165,6 +165,8 @@ erDiagram
 空室検索では `reservations(room_type_id, check_in_date, check_out_date, status)` と `stays(room_id, checked_in_at, checked_out_at)` にインデックスを置く。
 
 ## トランザクションが必要な処理
+
+トランザクション境界と競合時の扱いの詳細は [トランザクション・競合制御設計](transaction-concurrency-design.md) に従う。
 
 | 処理 | 理由 |
 | --- | --- |
