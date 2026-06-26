@@ -1,12 +1,15 @@
 :root {
   color-scheme: light;
-  --background: #f7f8fa;
-  --foreground: #17202a;
-  --muted: #5d6876;
+  --background: #f6f6f3;
+  --foreground: #3a3a38;
+  --muted: #7a7a72;
+  --placeholder: #9a9a93;
   --surface: #ffffff;
-  --border: #d8dee7;
-  --accent: #126a65;
-  --accent-strong: #0d4f4c;
+  --border: #e6e6e1;
+  --border-input: #d6d6d0;
+  --accent: #4f6d7a;
+  --accent-strong: #3a525c;
+  --accent-soft: #dfe7ea;
 }
 
 * {
@@ -24,12 +27,55 @@ a {
   color: inherit;
 }
 
+/* ── Site header ── */
+.site-header {
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.site-header-inner {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-logo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  gap: 20px;
+  font-size: 0.8125rem;
+}
+
+.site-nav a {
+  color: var(--placeholder);
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  color: var(--foreground);
+}
+
+/* ── Page shell ── */
 .page-shell {
   width: min(960px, calc(100% - 32px));
   margin: 0 auto;
   padding: 48px 0;
 }
 
+/* ── Home hero ── */
 .hero {
   padding: 32px 0 24px;
 }
@@ -54,6 +100,7 @@ h1 {
   line-height: 1.8;
 }
 
+/* ── Action grid (home menu) ── */
 .action-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -79,4 +126,173 @@ h1 {
 .action-link:hover {
   border-color: var(--accent);
   outline: 2px solid transparent;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 5px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: opacity 0.1s;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-input);
+  color: var(--muted);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.btn-lg {
+  height: 46px;
+  padding: 0 24px;
+  font-size: 0.9375rem;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* ── Form fields ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.field-required::after {
+  content: " 必須";
+  color: var(--muted);
+}
+
+.field-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  background: #fafaf8;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  width: 100%;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.field-input::placeholder {
+  color: var(--placeholder);
+}
+
+.field-textarea {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: #dc2626;
+}
+
+/* ── Error box ── */
+.error-box {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+/* ── Step progress rail ── */
+.step-rail {
+  display: flex;
+  align-items: center;
+  font-size: 0.6875rem;
+}
+
+.step-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--placeholder);
+  white-space: nowrap;
+}
+
+.step-rail-item.active {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.step-rail-item.done {
+  color: var(--muted);
+}
+
+.step-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ededea;
+  color: var(--placeholder);
+  flex-shrink: 0;
+}
+
+.step-rail-item.active .step-dot {
+  background: var(--accent);
+  color: #fff;
+}
+
+.step-rail-item.done .step-dot {
+  background: #cfcfc8;
+  color: #fff;
+}
+
+.step-rail-line {
+  flex: 1;
+  height: 1px;
+  background: #e0e0db;
+  min-width: 16px;
 }
