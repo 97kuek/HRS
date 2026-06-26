@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const actions = [
   { href: "/reservations/new", label: "部屋を予約する" },
   { href: "/reservations/lookup", label: "予約を確認する" },
@@ -19,9 +21,9 @@ export default function Home() {
 
       <nav className="action-grid" aria-label="主要機能">
         {actions.map((action) => (
-          <a className="action-link" href={action.href} key={action.href}>
+          <Link className="action-link" href={action.href} key={action.href}>
             {action.label}
-          </a>
+          </Link>
         ))}
       </nav>
     </main>
