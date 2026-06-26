@@ -70,6 +70,7 @@ DBスキーマを変更した場合は、必要に応じて次も実行します
 
 ```powershell
 npm run prisma:migrate
+npm run prisma:seed
 ```
 
 ## Team
