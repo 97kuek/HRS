@@ -1,10 +1,5 @@
 # API設計
 
-- 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
-- 前提: [技術選定の記録](../tech-stack/README.md)
-- 関連: [アーキテクチャ設計](README.md), [DB設計](db-design.md), [バリデーション・エラー設計](validation-error-design.md)
-- 状態: **ドラフト**（[#14 システム分析レビュー](https://github.com/97kuek/HRS/issues/14) 後に見直す）
-
 - 本ドキュメントでは、HRS の画面から利用する REST 風 API を定義する
 - 実装では `Next.js App Router` の `Route Handler` (`app/api/**/route.ts`) に配置し、`HTTP` と `JSON` の境界処理に責務を限定する
 
@@ -22,7 +17,7 @@
 
 ## エラー形式
 
-エラー形式とエラーコードの詳細は [バリデーション・エラー設計](validation-error-design.md) に従う。
+- エラー形式とエラーコードの詳細は [バリデーション・エラー設計](validation-error-design.md) に従う。
 
 ```json
 {
