@@ -16,6 +16,7 @@
 - パス中の予約識別子には、内部IDではなく利用者に提示する `reservationNumber` を使う
 - 入力値の構文チェックは Route Handler、業務ルールの検証はユースケースサービスで行う
 - 正常レスポンスは必要な表示データだけを返し、DB内部のIDは画面に不要な限り返さない
+- 連絡先は照合用の入力として扱い、レスポンスには原則含めない
 - 初期実装ではログイン、セッション、ロールによる認証・認可は扱わない
 - 予約番号と連絡先の照合は、認証基盤ではなく予約照会・状態変更時の業務ルールとして扱う
 
@@ -163,7 +164,6 @@
     "reservationNumber": "HRS-20260703-0001",
     "status": "RESERVED",
     "guestName": "山田太郎",
-    "contact": "taro@example.com",
     "roomTypeName": "ツイン",
     "checkInDate": "2026-07-03",
     "checkOutDate": "2026-07-05",
@@ -204,7 +204,6 @@
     "reservationNumber": "HRS-20260703-0001",
     "status": "RESERVED",
     "guestName": "山田太郎",
-    "contact": "taro@example.com",
     "roomTypeName": "ツイン",
     "roomNumber": null,
     "checkInDate": "2026-07-03",
