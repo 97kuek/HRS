@@ -29,7 +29,7 @@ function StepRail({ current }: { current: number }) {
           <React.Fragment key={label}>
             <div className={`step-rail-item ${cls}`}>
               <span className="step-dot">{n}</span>
-              {label}
+              <span className="step-rail-label">{label}</span>
             </div>
             {i < STEP_LABELS.length - 1 && <div className="step-rail-line" />}
           </React.Fragment>
@@ -74,7 +74,7 @@ function Step2({ onNext, onBack }: { onNext: (room: RoomType) => void; onBack: (
         <button className="btn btn-secondary" style={{ height: 28, padding: '0 10px', fontSize: '0.75rem' }}>変更</button>
         <span style={{ marginLeft: 'auto', color: 'var(--placeholder)', fontSize: '0.8125rem' }}>空室 8件</span>
       </div>
-      <div style={{ display: 'flex', gap: 20 }}>
+      <div className="search-body">
         <div className="filter-panel">
           <p className="filter-section-title">料金</p>
           <div style={{ height: 4, background: '#e0e0db', borderRadius: 3, marginBottom: 14, position: 'relative' }}>
