@@ -296,3 +296,144 @@ h1 {
   background: #e0e0db;
   min-width: 16px;
 }
+
+/* ── Form layout ── */
+.form-stack { display: flex; flex-direction: column; gap: 14px; }
+.form-row { display: flex; gap: 12px; }
+.form-row > .field { flex: 1; }
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+/* ── Sidebar layout ── */
+.layout-with-sidebar { display: flex; gap: 24px; align-items: flex-start; }
+.layout-main { flex: 1; min-width: 0; }
+.layout-aside { width: 200px; flex-shrink: 0; }
+
+/* ── Summary panel ── */
+.summary-panel {
+  background: #fafaf8;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.summary-panel-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.summary-photo {
+  height: 56px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(45deg, #ececec, #ececec 6px, #f6f6f3 6px, #f6f6f3 12px);
+  margin-bottom: 10px;
+}
+
+/* ── Room list ── */
+.room-list { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+.room-card {
+  display: flex;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  background: var(--surface);
+}
+
+.room-card.sold-out { opacity: 0.55; }
+
+.room-photo {
+  width: 96px;
+  height: 72px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: repeating-linear-gradient(45deg, #ececec, #ececec 6px, #f6f6f3 6px, #f6f6f3 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  color: var(--placeholder);
+}
+
+.room-info { flex: 1; min-width: 0; }
+.room-name { font-size: 0.875rem; font-weight: 700; margin: 0 0 4px; color: var(--foreground); }
+.room-meta { font-size: 0.6875rem; color: var(--placeholder); margin: 0 0 10px; }
+.room-footer { display: flex; align-items: flex-end; justify-content: space-between; }
+.room-price { font-size: 0.9375rem; font-weight: 700; }
+.room-price-unit { font-size: 0.6875rem; font-weight: 400; color: var(--placeholder); }
+
+/* ── Filter panel ── */
+.filter-panel { width: 150px; flex-shrink: 0; border-right: 1px solid var(--border); padding-right: 16px; }
+.filter-section-title { font-size: 0.6875rem; font-weight: 600; color: var(--muted); margin: 0 0 8px; }
+.filter-option { display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: var(--placeholder); margin-bottom: 6px; cursor: pointer; }
+
+/* ── Search summary bar ── */
+.search-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f6f6f3;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 20px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+/* ── Confirm table ── */
+.confirm-table { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+.confirm-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f2f2ee; font-size: 0.875rem; }
+.confirm-row:last-child { border-bottom: none; }
+.confirm-label { color: var(--muted); }
+.confirm-value { font-weight: 600; color: var(--foreground); }
+
+/* ── Price breakdown ── */
+.price-breakdown { border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; margin-bottom: 16px; }
+.price-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.875rem; color: var(--muted); }
+.price-row-total { display: flex; justify-content: space-between; padding: 10px 0 2px; border-top: 1px solid var(--border); margin-top: 8px; font-weight: 700; font-size: 1rem; color: var(--foreground); }
+
+/* ── Payment options ── */
+.payment-option { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 5px; border: 1px solid var(--border-input); cursor: pointer; font-size: 0.875rem; color: var(--foreground); margin-bottom: 8px; user-select: none; }
+.payment-option.selected { border-color: var(--accent); background: var(--accent-soft); }
+.payment-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-input); flex-shrink: 0; }
+.payment-option.selected .payment-radio { border: 4px solid var(--accent); }
+
+/* ── Reservation number display ── */
+.reservation-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: ui-monospace, monospace;
+  text-align: center;
+  padding: 14px;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  margin: 16px 0;
+}
+
+/* ── Status chip ── */
+.status-chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; background: #f0f0ec; color: var(--muted); border: 1px solid #e0e0db; }
+
+/* ── Front desk badge ── */
+.front-desk-badge { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 4px; background: var(--accent-soft); color: var(--accent-strong); font-size: 0.75rem; font-weight: 700; margin-bottom: 16px; }
+
+/* ── Section heading ── */
+.section-heading { font-size: 0.75rem; font-weight: 600; color: var(--muted); margin: 16px 0 8px; }
+
+/* ── Completion mark ── */
+.complete-mark { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--accent); font-size: 1.5rem; }
+
+/* ── Info / warning box ── */
+.info-box { padding: 12px 16px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; font-size: 0.875rem; color: #92400e; }
