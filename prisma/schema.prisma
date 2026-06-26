@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ReservationStatus {
+  RESERVED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELLED
+}
+
+model Guest {
+  id           String        @id @default(cuid())
+  name         String
+  contact      String
+  reservations Reservation[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("guests")
+}
+
+model RoomType {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  capacity     Int
+  baseRate     Int           @map("base_rate")
+  rooms        Room[]
+  reservations Reservation[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("room_types")
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  roomNumber String   @unique @map("room_number")
+  roomTypeId String   @map("room_type_id")
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+  stays      Stay[]
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("rooms")
+}
+
+model Reservation {
+  id                String            @id @default(cuid())
+  reservationNumber String            @unique @map("reservation_number")
+  guestId           String            @map("guest_id")
+  guest             Guest             @relation(fields: [guestId], references: [id])
+  roomTypeId        String            @map("room_type_id")
+  roomType          RoomType          @relation(fields: [roomTypeId], references: [id])
+  checkInDate       DateTime          @map("check_in_date") @db.Date
+  checkOutDate      DateTime          @map("check_out_date") @db.Date
+  guestCount        Int               @map("guest_count")
+  status            ReservationStatus @default(RESERVED)
+  stay              Stay?
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  @@index([roomTypeId, checkInDate, checkOutDate, status])
+  @@map("reservations")
+}
+
+model Stay {
+  id            String         @id @default(cuid())
+  reservationId String         @unique @map("reservation_id")
+  reservation   Reservation    @relation(fields: [reservationId], references: [id])
+  roomId        String         @map("room_id")
+  room          Room           @relation(fields: [roomId], references: [id])
+  checkedInAt   DateTime       @map("checked_in_at")
+  checkedOutAt  DateTime?      @map("checked_out_at")
+  charge        LodgingCharge?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  @@index([roomId, checkedInAt, checkedOutAt])
+  @@map("stays")
+}
+
+model LodgingCharge {
+  id        String    @id @default(cuid())
+  stayId    String    @unique @map("stay_id")
+  stay      Stay      @relation(fields: [stayId], references: [id])
+  amount    Int
+  payments  Payment[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("lodging_charges")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  lodgingChargeId String        @map("lodging_charge_id")
+  lodgingCharge   LodgingCharge @relation(fields: [lodgingChargeId], references: [id])
+  amount          Int
+  paidAt          DateTime      @map("paid_at")
+  method          String
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@map("payments")
+}

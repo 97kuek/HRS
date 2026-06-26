@@ -16,7 +16,7 @@
 - ソフトウェア工学Aのチーム開発課題。題材はホテル予約システム (HRS)。
 - UMLを用いたオブジェクト指向分析設計 (ドメイン分析 → 要求分析 → システム分析) を行う。
 - 実装はWebアプリケーションとして行う (実装形態は自由)。
-- 技術スタック (言語・フレームワーク・API設計・DB設計) は未定。決定は Issue #23 で管理する。
+- 技術スタックは Issue #23 で決定済み。TypeScript / Next.js App Router / Prisma / Postgres を使う。
 - リポジトリはPublic運用。
 
 ## 最重要ルール
@@ -24,8 +24,8 @@
 1. **Publicリポジトリである。** 授業の提供コード、配布資料の再配布、個人情報、提出条件に関わる
    非公開情報をコミットしない。`docs/チーム開発1.pdf` 以外の授業配布物を追加しないこと。
 2. **1 Issue / 1 成果物 = 1 ブランチ = 1 PR。** `main` へ直接コミットしない。
-3. **勝手にスタックを決めない。** 技術スタックが未確定の作業 (#23 が未完了) では、特定の言語・
-   フレームワークに依存するコードや設定ファイルを新規追加しない。判断が必要なら人間に確認する。
+3. **決定済みスタックから逸脱しない。** 実装は TypeScript / Next.js App Router / Prisma / Postgres
+   を前提にする。別のフレームワーク、ORM、DB、認証基盤などを追加する場合は人間に確認する。
 4. **成果物の用語を一貫させる。** UML図・ユースケース記述・コード・READMEで同じ概念には同じ名前を使う。
 
 ## リポジトリ構成
@@ -47,10 +47,16 @@
 │   ├── system-analysis/       # システム分析 (コラボレーション図・分析クラス図)
 │   ├── reviews/               # レビュー記録
 │   └── presentation/          # 発表資料
-└── (実装コード)               # スタック決定後に配置 (例: src/, app/, frontend/, backend/)
+├── prisma/
+│   └── schema.prisma          # Prisma DB スキーマ
+├── src/
+│   ├── app/                   # Next.js App Router 画面 / Route Handler
+│   └── lib/                   # 共通ライブラリ
+├── package.json               # npm scripts / dependencies
+└── .env.example               # 環境変数サンプル
 ```
 
-実装コードのディレクトリ構成は技術スタック決定 (#23) 後に確定する。
+実装コードは `src/`、DBスキーマは `prisma/` に配置する。Next.js の Route Handler は `src/app/api/**/route.ts` に置く。
 
 ## ブランチ / コミット規約
 
@@ -77,11 +83,29 @@
 
 - `main` への直接 push / force push。
 - 授業配布物や非公開情報の追加。
-- 未確定スタックを既成事実化する依存ファイル (package.json, requirements.txt, pom.xml 等) の独断追加。
+- 決定済みスタックと無関係な依存ファイルやライブラリの独断追加。
 - レビューチェックリスト (各 docs サブディレクトリ・`.github/ISSUE_TEMPLATE/review.md`) を無視した成果物の完了。
 - 大量の自動生成ファイルや秘密情報 (`.env` 等) のコミット。
 
 ## 検証
 
-スタック未定のため、現時点では自動テスト・ビルドコマンドは未整備。
-実装着手後 (スタック決定後) に、ビルド・テスト・起動コマンドをこのセクションへ追記すること。
+依存関係をインストールした後、次のコマンドを基本の検証とする。
+
+```powershell
+npm run lint
+npm run build
+```
+
+Prisma Client を生成する場合:
+
+```powershell
+npm run prisma:generate
+```
+
+ローカル起動:
+
+```powershell
+npm run dev
+```
+
+DB接続文字列、APIキー、実在する個人情報を含む `.env.local` などはコミットしない。
