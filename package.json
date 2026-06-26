@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:format": "prisma format",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "node prisma/seed.mjs",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
