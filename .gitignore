@@ -68,3 +68,4 @@ reports/
 
 # Astah lock files
 *.asta.lock
+tsconfig.tsbuildinfo
