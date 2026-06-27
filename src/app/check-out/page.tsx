@@ -24,14 +24,13 @@ export default function CheckOutPage() {
   if (view === 'complete') {
     return (
       <main className="page-shell">
-        <div className="front-desk-badge">フロント業務</div>
         <div style={{ maxWidth: 480, textAlign: 'center' }}>
           <div className="complete-mark">✓</div>
           <h2 style={{ margin: '0 0 20px' }}>チェックアウト完了</h2>
           <div className="confirm-table" style={{ textAlign: 'left' }}>
             {[
               ['予約番号', MOCK.number],
-              ['宿泊客', MOCK.name],
+              ['お名前', MOCK.name],
               ['客室', MOCK.room],
               ['合計（税込）', `¥${MOCK.total.toLocaleString()}`],
               ['支払い方法', payment === 'credit' ? 'クレジットカード' : '現地払い'],
@@ -45,7 +44,7 @@ export default function CheckOutPage() {
           </div>
           <button className="btn btn-secondary btn-full" style={{ marginTop: 20 }}>領収書を発行する</button>
           <div style={{ marginTop: 12 }}>
-            <Link href="/check-out" className="btn btn-primary">次の精算を処理する</Link>
+            <Link href="/" className="btn btn-primary">トップへ戻る</Link>
           </div>
         </div>
       </main>
@@ -55,13 +54,12 @@ export default function CheckOutPage() {
   if (view === 'billing') {
     return (
       <main className="page-shell">
-        <div className="front-desk-badge">フロント業務</div>
         <div style={{ maxWidth: 540 }}>
           <h2 style={{ margin: '0 0 20px', fontSize: '1.125rem', fontWeight: 700 }}>精算・請求確認</h2>
           <div className="confirm-table">
             {[
               ['予約番号', MOCK.number],
-              ['宿泊客', MOCK.name],
+              ['お名前', MOCK.name],
               ['客室', MOCK.room],
               ['宿泊日', `${MOCK.checkIn} → ${MOCK.checkOut}`],
             ].map(([label, value]) => (
@@ -106,20 +104,15 @@ export default function CheckOutPage() {
 
   return (
     <main className="page-shell">
-      <div className="front-desk-badge">フロント業務</div>
       <div style={{ maxWidth: 440 }}>
         <h1 style={{ fontSize: '1.5rem', margin: '0 0 8px' }}>チェックアウトする</h1>
         <p style={{ color: 'var(--muted)', fontSize: '0.875rem', margin: '0 0 28px' }}>
-          予約番号と代表者氏名を入力してください。
+          部屋番号を入力してください。
         </p>
         <div className="form-stack">
           <div className="field">
-            <label className="field-label field-required">予約番号</label>
-            <input className="field-input" type="text" placeholder="HRS-YYYYMMDD-NNNN" />
-          </div>
-          <div className="field">
-            <label className="field-label field-required">代表者氏名</label>
-            <input className="field-input" type="text" placeholder="山田 太郎" />
+            <label className="field-label field-required">部屋番号</label>
+            <input className="field-input" type="text" placeholder="0805号室" />
           </div>
         </div>
         <button className="btn btn-primary btn-full btn-lg" style={{ marginTop: 20 }} onClick={() => setView('billing')}>
