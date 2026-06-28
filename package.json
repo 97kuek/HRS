@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.{js,mjs,ts,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.{js,mjs,ts,json}\"",

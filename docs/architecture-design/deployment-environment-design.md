@@ -72,6 +72,14 @@ APP_BASE_URL="http://localhost:3000"
 
 マイグレーションを本番DBへ適用するタイミングは、デプロイ先の仕組みに合わせて決める。自動実行にする場合でも、失敗時にデプロイを止められる構成にする。
 
+### 実構成（#62）
+
+- デプロイ先は **Vercel**、本番DBは **Neon**。
+- `vercel.json` の `buildCommand` を `prisma migrate deploy && next build` とし、本番DBへ migration を適用してからビルドする。migration が失敗するとビルドも止まりデプロイされない。
+- `package.json` の `postinstall: prisma generate` で、Vercel の依存キャッシュ時も Prisma Client を確実に生成する。
+- `DATABASE_URL`（本番）は Vercel の環境変数に登録し、リポジトリには置かない。
+- 具体的な手順は [README の Deployment](../../README.md#deployment) を参照。
+
 ## Prisma migration 方針
 
 - `schema.prisma` をDBスキーマの正とする。
