@@ -1,0 +1,29 @@
+# 任意: ローカルで Postgres を立てたい人向けの代替手段。
+# 既定の開発DBは Neon（クラウド）。Docker を使う場合のみ利用する。
+#   起動: docker compose up -d
+#   停止: docker compose down       （データ保持）
+#   破棄: docker compose down -v     （ボリュームごと削除）
+# このとき .env の DATABASE_URL を下記サービスに合わせる:
+#   DATABASE_URL="postgresql://hrs_user:hrs_password@localhost:5432/hrs_dev"
+
+services:
+  db:
+    image: postgres:16
+    container_name: hrs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hrs_user
+      POSTGRES_PASSWORD: hrs_password
+      POSTGRES_DB: hrs_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - hrs-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hrs_user -d hrs_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hrs-db-data:
