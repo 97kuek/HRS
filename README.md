@@ -88,6 +88,31 @@ npm run prisma:migrate   # 変更内容の migration を作成・適用（prisma
 npm run prisma:seed      # 必要に応じて再投入
 ```
 
+## Deployment
+
+本番は **Vercel（アプリ）+ Neon（本番Postgres）** にデプロイします。ビルド時に `prisma migrate deploy` で本番DBへ migration を適用してから `next build` します（`vercel.json`）。
+
+> 接続URL・秘密情報は Vercel の環境変数にだけ登録し、コミット/Issue/PR に貼らないでください。
+
+### 初回セットアップ（一度だけ）
+
+1. **Neon 本番プロジェクトを作成**し、`Direct connection` の接続URLを取得する（開発用とは別プロジェクト）。
+2. **Vercel にこのリポジトリを Import** する（Framework は Next.js が自動検出される）。
+3. Vercel の **Settings → Environment Variables** で `DATABASE_URL` に 1. のURLを登録する（Production。必要なら Preview にも）。
+4. **Deploy** を実行する。ビルドで初回 migration が本番DBへ適用される。
+5. 本番DBへ初期データを一度だけ投入する（ローカルから本番URLを指定して seed）。
+
+   ```powershell
+   $env:DATABASE_URL="<Neon本番のURL>"; npm run prisma:seed
+   ```
+
+6. 公開URLで予約フローが動くことを確認する。
+
+### 以降の運用
+
+- `main` への push で Vercel が自動ビルド・デプロイする。
+- スキーマ変更時は migration を作成（`npm run prisma:migrate`）してコミットすれば、デプロイ時に本番へ自動適用される。
+
 ## Team
 
 | Role | Name | GitHub | Contact |
