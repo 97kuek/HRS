@@ -50,13 +50,13 @@ APP_BASE_URL="http://localhost:3000"
 
 ## ローカル開発手順
 
-実装開始後、README または本ドキュメントに実コマンドを追記する。想定手順は次の通り。
+実コマンドは [README の Development](../../README.md#development) に記載する（#60 で整備）。開発用DBは **Neon（クラウド）を既定**とし、Docker (`docker-compose.yml`) を任意の代替として併記する。手順の流れは次の通り。
 
 1. 依存関係をインストールする。
-2. `.env.example` を参考に `.env.local` を作る。
-3. 開発用 Postgres を用意する。
-4. Prisma migration を適用する。
-5. 初期データが必要な場合は seed を実行する。
+2. 開発用 Postgres を用意する（Neon プロジェクト作成、または `docker compose up -d`）。
+3. `.env.example` をコピーして `.env` を作り、`DATABASE_URL` を接続URLに書き換える。
+4. Prisma migration を適用する（`prisma/migrations/` に初回 migration を用意済み）。
+5. seed を実行して部屋タイプ・部屋を投入する。
 6. Next.js の開発サーバーを起動する。
 
 ## デプロイ手順
@@ -89,7 +89,7 @@ APP_BASE_URL="http://localhost:3000"
 ## 未確定事項
 
 - デプロイ先を Vercel に固定するか、別サービスも許容するか。
-- Postgres の提供元をどこにするか。
+- 本番 Postgres の提供元をどこにするか（開発用は Neon を既定に決定。#60）。
 - seed データの内容と投入コマンド。
 - CI で build、lint、test、migration check をどこまで実行するか。
 - 将来ログインや管理者機能を導入する場合の認証用環境変数。
