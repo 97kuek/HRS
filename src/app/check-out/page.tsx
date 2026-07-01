@@ -1,124 +1,177 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
+import { useState } from "react";
+import Link from "next/link";
 
-const MOCK = {
-  number: 'HRS-20260710-0042',
-  room: 'デラックスツイン（0805号室）',
-  checkIn: '2026年7月10日',
-  checkOut: '2026年7月12日',
-  nights: 2,
-  name: '山田 太郎',
-  roomTotal: 48000,
-  service: 2400,
-  total: 50400,
+interface Quote {
+  roomNumber: string;
+  reservationNumber: string;
+  roomTypeName: string;
+  checkInDate: string;
+  checkOutDate: string;
+  nights: number;
+  amount: number;
 }
 
-type View = 'form' | 'billing' | 'complete'
+interface CheckOutResult {
+  roomNumber: string;
+  reservationNumber: string;
+  roomTypeName: string;
+  amount: number;
+  method: string;
+  paidAt: string;
+  checkedOutAt: string | null;
+}
+
+interface ApiError {
+  error: { code: string; message: string };
+}
+
+const yen = (n: number) => `¥${n.toLocaleString()}`;
 
 export default function CheckOutPage() {
-  const [view, setView] = useState<View>('form')
-  const [payment, setPayment] = useState<'credit' | 'onsite'>('credit')
+  const [roomNumber, setRoomNumber] = useState("");
+  const [method, setMethod] = useState("現金");
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [result, setResult] = useState<CheckOutResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  if (view === 'complete') {
-    return (
-      <main className="page-shell">
-        <div style={{ maxWidth: 480, textAlign: 'center' }}>
-          <div className="complete-mark">✓</div>
-          <h2 style={{ margin: '0 0 20px' }}>チェックアウト完了</h2>
-          <div className="confirm-table" style={{ textAlign: 'left' }}>
-            {[
-              ['予約番号', MOCK.number],
-              ['お名前', MOCK.name],
-              ['客室', MOCK.room],
-              ['合計（税込）', `¥${MOCK.total.toLocaleString()}`],
-              ['支払い方法', payment === 'credit' ? 'クレジットカード' : '現地払い'],
-              ['退室時刻', '11:15'],
-            ].map(([label, value]) => (
-              <div key={label} className="confirm-row">
-                <span className="confirm-label">{label}</span>
-                <span className="confirm-value">{value}</span>
-              </div>
-            ))}
-          </div>
-          <button className="btn btn-secondary btn-full" style={{ marginTop: 20 }}>領収書を発行する</button>
-          <div style={{ marginTop: 12 }}>
-            <Link href="/" className="btn btn-primary">トップへ戻る</Link>
-          </div>
-        </div>
-      </main>
-    )
+  // msg3-6: 部屋番号 → 宿泊特定 → 料金計算・表示（未確定）
+  async function fetchQuote() {
+    const number = roomNumber.trim();
+    if (!number) {
+      setError("部屋番号を入力してください。");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/rooms/${encodeURIComponent(number)}/check-out/quote`);
+      const data = (await res.json()) as { quote: Quote } | ApiError;
+      if (!res.ok) {
+        setError((data as ApiError).error?.message ?? "料金の照会に失敗しました。");
+        return;
+      }
+      setQuote((data as { quote: Quote }).quote);
+    } catch {
+      setError("通信エラーが発生しました。時間をおいて再度お試しください。");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  if (view === 'billing') {
+  // msg7-8: 支払いを処理する → チェックアウト確定
+  async function confirmCheckOut() {
+    if (!quote) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/rooms/${encodeURIComponent(quote.roomNumber)}/check-out`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: quote.amount, method }),
+      });
+      const data = (await res.json()) as { checkOut: CheckOutResult } | ApiError;
+      if (!res.ok) {
+        setError((data as ApiError).error?.message ?? "チェックアウトに失敗しました。");
+        return;
+      }
+      setResult((data as { checkOut: CheckOutResult }).checkOut);
+    } catch {
+      setError("通信エラーが発生しました。時間をおいて再度お試しください。");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // A1: 支払いを取りやめる（サーバー状態は変更しない）
+  function cancel() {
+    setQuote(null);
+    setError(null);
+  }
+
+  // msg11: 結果画面（完了と支払い内容を表示する）
+  if (result) {
     return (
-      <main className="page-shell">
-        <div style={{ maxWidth: 540 }}>
-          <h2 style={{ margin: '0 0 20px', fontSize: '1.125rem', fontWeight: 700 }}>精算・請求確認</h2>
-          <div className="confirm-table">
-            {[
-              ['予約番号', MOCK.number],
-              ['お名前', MOCK.name],
-              ['客室', MOCK.room],
-              ['宿泊日', `${MOCK.checkIn} → ${MOCK.checkOut}`],
-            ].map(([label, value]) => (
-              <div key={label} className="confirm-row">
-                <span className="confirm-label">{label}</span>
-                <span className="confirm-value">{value}</span>
-              </div>
-            ))}
-          </div>
-          <p className="section-heading">料金内訳</p>
-          <div className="price-breakdown">
-            <div className="price-row">
-              <span>室料 ¥{(MOCK.roomTotal / MOCK.nights).toLocaleString()} × {MOCK.nights}泊</span>
-              <span>¥{MOCK.roomTotal.toLocaleString()}</span>
-            </div>
-            <div className="price-row">
-              <span>サービス料（5%）</span>
-              <span>¥{MOCK.service.toLocaleString()}</span>
-            </div>
-            <div className="price-row-total">
-              <span>合計（税込）</span>
-              <span>¥{MOCK.total.toLocaleString()}</span>
-            </div>
-          </div>
-          <p className="section-heading">お支払い方法</p>
-          {(['credit', 'onsite'] as const).map((m) => (
-            <div key={m} className={`payment-option${payment === m ? ' selected' : ''}`} onClick={() => setPayment(m)}>
-              <span className="payment-radio" />
-              {m === 'credit' ? 'クレジットカード' : '現地払い'}
-            </div>
-          ))}
-          <button className="btn btn-primary btn-full btn-lg" style={{ marginTop: 20 }} onClick={() => setView('complete')}>
-            チェックアウトを確定する
+      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
+        <h1>チェックアウト完了</h1>
+        <p>ご利用ありがとうございました。</p>
+        <dl>
+          <dt>部屋番号</dt>
+          <dd style={{ fontSize: 28, fontWeight: 700 }}>{result.roomNumber}</dd>
+          <dt>予約番号</dt>
+          <dd>{result.reservationNumber}</dd>
+          <dt>お支払い金額</dt>
+          <dd>{yen(result.amount)}</dd>
+          <dt>お支払い方法</dt>
+          <dd>{result.method}</dd>
+        </dl>
+        <Link href="/">トップへ戻る</Link>
+      </main>
+    );
+  }
+
+  // msg3-6 の結果：料金表示 → 支払う / やめる
+  if (quote) {
+    return (
+      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
+        <h1>お支払い</h1>
+        <dl>
+          <dt>部屋番号</dt>
+          <dd>{quote.roomNumber}</dd>
+          <dt>部屋タイプ</dt>
+          <dd>{quote.roomTypeName}</dd>
+          <dt>宿泊期間</dt>
+          <dd>
+            {quote.checkInDate} 〜 {quote.checkOutDate}（{quote.nights}泊）
+          </dd>
+          <dt>ご請求金額</dt>
+          <dd style={{ fontSize: 28, fontWeight: 700 }}>{yen(quote.amount)}</dd>
+        </dl>
+        <label style={{ display: "block", margin: "12px 0" }}>
+          お支払い方法
+          <select
+            value={method}
+            onChange={(e) => setMethod(e.target.value)}
+            style={{ display: "block", marginTop: 4, padding: 8 }}
+          >
+            <option value="現金">現金</option>
+            <option value="クレジットカード">クレジットカード</option>
+          </select>
+        </label>
+        {error && <p style={{ color: "#c00" }}>{error}</p>}
+        <div style={{ display: "flex", gap: 12 }}>
+          <button onClick={confirmCheckOut} disabled={loading} style={{ padding: "8px 16px" }}>
+            {loading ? "処理中…" : "支払う"}
           </button>
-          <div style={{ marginTop: 12 }}>
-            <button className="btn btn-secondary" onClick={() => setView('form')}>戻る</button>
-          </div>
+          <button onClick={cancel} disabled={loading} style={{ padding: "8px 16px" }}>
+            やめる
+          </button>
         </div>
       </main>
-    )
+    );
   }
 
+  // msg1: 部屋番号を入力する
   return (
-    <main className="page-shell">
-      <div style={{ maxWidth: 440 }}>
-        <h1 style={{ fontSize: '1.5rem', margin: '0 0 8px' }}>チェックアウトする</h1>
-        <p style={{ color: 'var(--muted)', fontSize: '0.875rem', margin: '0 0 28px' }}>
-          部屋番号を入力してください。
-        </p>
-        <div className="form-stack">
-          <div className="field">
-            <label className="field-label field-required">部屋番号</label>
-            <input className="field-input" type="text" placeholder="0805号室" />
-          </div>
-        </div>
-        <button className="btn btn-primary btn-full btn-lg" style={{ marginTop: 20 }} onClick={() => setView('billing')}>
-          宿泊内容を確認する
-        </button>
-      </div>
+    <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
+      <h1>チェックアウト</h1>
+      <p>ご滞在中のお部屋の番号を入力してください。</p>
+      <label style={{ display: "block", marginBottom: 12 }}>
+        部屋番号
+        <input
+          type="text"
+          value={roomNumber}
+          onChange={(e) => setRoomNumber(e.target.value)}
+          placeholder="0805"
+          style={{ display: "block", width: "100%", padding: 8, marginTop: 4 }}
+        />
+      </label>
+      {error && <p style={{ color: "#c00" }}>{error}</p>}
+      <button onClick={fetchQuote} disabled={loading} style={{ padding: "8px 16px" }}>
+        {loading ? "照会中…" : "料金を確認する"}
+      </button>
     </main>
-  )
+  );
 }
