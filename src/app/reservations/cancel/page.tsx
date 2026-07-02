@@ -34,7 +34,6 @@ export default function CancelReservationPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // 予約内容の表示（照会・未確定）
   async function fetchQuote() {
     const number = reservationNumber.trim();
     if (!number) {
@@ -58,7 +57,6 @@ export default function CancelReservationPage() {
     }
   }
 
-  // キャンセル確定
   async function confirmCancel() {
     if (!quote) return;
     setError(null);
@@ -66,9 +64,7 @@ export default function CancelReservationPage() {
     try {
       const res = await fetch(
         `/api/reservations/${encodeURIComponent(quote.reservationNumber)}/cancel`,
-        {
-          method: "POST",
-        },
+        { method: "POST" },
       );
       const data = (await res.json()) as { cancellation: CancelResult } | ApiError;
       if (!res.ok) {
@@ -83,92 +79,130 @@ export default function CancelReservationPage() {
     }
   }
 
-  // 入力に戻る
   function reset() {
     setQuote(null);
     setError(null);
   }
 
-  // 完了画面
   if (result) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-        <h1>キャンセル完了</h1>
-        <p>ご予約をキャンセルしました。</p>
-        <dl>
-          <dt>予約番号</dt>
-          <dd>{result.reservationNumber}</dd>
-          <dt>部屋タイプ</dt>
-          <dd>{result.roomTypeName}</dd>
-          <dt>宿泊期間</dt>
-          <dd>
-            {result.checkInDate} 〜 {result.checkOutDate}（{result.guestCount}名）
-          </dd>
-        </dl>
-        <Link href="/">トップへ戻る</Link>
+      <main className="page-shell">
+        <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
+          <div className="complete-mark">✓</div>
+          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>キャンセル完了</h1>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 16px" }}>
+            ご予約をキャンセルしました。
+          </p>
+          <div className="confirm-table" style={{ textAlign: "left" }}>
+            {[
+              ["予約番号", result.reservationNumber],
+              ["部屋タイプ", result.roomTypeName],
+              [
+                "宿泊期間",
+                `${result.checkInDate} 〜 ${result.checkOutDate}（${result.guestCount}名）`,
+              ],
+            ].map(([label, value]) => (
+              <div key={label} className="confirm-row">
+                <span className="confirm-label">{label}</span>
+                <span className="confirm-value">{value}</span>
+              </div>
+            ))}
+          </div>
+          <Link href="/" className="btn btn-secondary btn-full" style={{ marginTop: 16 }}>
+            トップへ戻る
+          </Link>
+        </div>
       </main>
     );
   }
 
-  // 予約内容の表示 → キャンセル確認
   if (quote) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-        <h1>予約内容の確認</h1>
-        <dl>
-          <dt>予約番号</dt>
-          <dd>{quote.reservationNumber}</dd>
-          <dt>部屋タイプ</dt>
-          <dd>{quote.roomTypeName}</dd>
-          <dt>宿泊期間</dt>
-          <dd>
-            {quote.checkInDate} 〜 {quote.checkOutDate}（{quote.guestCount}名）
-          </dd>
-        </dl>
-        {quote.cancelable ? (
-          <>
-            <p>この予約をキャンセルしますか？</p>
-            {error && <p style={{ color: "#c00" }}>{error}</p>}
-            <div style={{ display: "flex", gap: 12 }}>
-              <button onClick={confirmCancel} disabled={loading} style={{ padding: "8px 16px" }}>
-                {loading ? "処理中…" : "キャンセルする"}
+      <main className="page-shell">
+        <div style={{ maxWidth: 440 }}>
+          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>予約内容の確認</h1>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 20px" }}>
+            以下のご予約をキャンセルしますか？
+          </p>
+          <div className="confirm-table">
+            {[
+              ["予約番号", quote.reservationNumber],
+              ["部屋タイプ", quote.roomTypeName],
+              [
+                "宿泊期間",
+                `${quote.checkInDate} 〜 ${quote.checkOutDate}（${quote.guestCount}名）`,
+              ],
+            ].map(([label, value]) => (
+              <div key={label} className="confirm-row">
+                <span className="confirm-label">{label}</span>
+                <span className="confirm-value">{value}</span>
+              </div>
+            ))}
+          </div>
+          {quote.cancelable ? (
+            <>
+              {error && (
+                <div className="error-box" style={{ marginBottom: 12 }}>
+                  {error}
+                </div>
+              )}
+              <div className="form-actions">
+                <button className="btn btn-secondary" onClick={reset} disabled={loading}>
+                  やめる
+                </button>
+                <button
+                  className="btn btn-primary btn-lg"
+                  onClick={confirmCancel}
+                  disabled={loading}
+                >
+                  {loading ? "処理中…" : "キャンセルする"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="error-box" style={{ marginBottom: 16 }}>
+                {quote.reason}
+              </div>
+              <button className="btn btn-secondary btn-full" onClick={reset}>
+                戻る
               </button>
-              <button onClick={reset} disabled={loading} style={{ padding: "8px 16px" }}>
-                やめる
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p style={{ color: "#c00" }}>{quote.reason}</p>
-            <button onClick={reset} style={{ padding: "8px 16px" }}>
-              戻る
-            </button>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </main>
     );
   }
 
-  // 予約番号の入力
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-      <h1>予約のキャンセル</h1>
-      <p>キャンセルするご予約の予約番号を入力してください。</p>
-      <label style={{ display: "block", marginBottom: 12 }}>
-        予約番号
-        <input
-          type="text"
-          value={reservationNumber}
-          onChange={(e) => setReservationNumber(e.target.value)}
-          placeholder="HRS-YYYYMMDD-XXXX"
-          style={{ display: "block", width: "100%", padding: 8, marginTop: 4 }}
-        />
-      </label>
-      {error && <p style={{ color: "#c00" }}>{error}</p>}
-      <button onClick={fetchQuote} disabled={loading} style={{ padding: "8px 16px" }}>
-        {loading ? "照会中…" : "予約を照会する"}
-      </button>
+    <main className="page-shell">
+      <div style={{ maxWidth: 440 }}>
+        <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>予約のキャンセル</h1>
+        <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
+          キャンセルするご予約の予約番号を入力してください。
+        </p>
+        <div className="form-stack">
+          <div className="field">
+            <label className="field-label field-required">予約番号</label>
+            <input
+              className="field-input"
+              type="text"
+              value={reservationNumber}
+              onChange={(e) => setReservationNumber(e.target.value)}
+              placeholder="HRS-YYYYMMDD-NNNN"
+            />
+          </div>
+          {error && <div className="error-box">{error}</div>}
+        </div>
+        <button
+          className="btn btn-primary btn-full btn-lg"
+          style={{ marginTop: 20 }}
+          onClick={fetchQuote}
+          disabled={loading}
+        >
+          {loading ? "照会中…" : "予約を照会する"}
+        </button>
+      </div>
     </main>
   );
 }
