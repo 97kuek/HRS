@@ -37,7 +37,6 @@ export default function CheckOutPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // msg3-6: 部屋番号 → 宿泊特定 → 料金計算・表示（未確定）
   async function fetchQuote() {
     const number = roomNumber.trim();
     if (!number) {
@@ -61,7 +60,6 @@ export default function CheckOutPage() {
     }
   }
 
-  // msg7-8: 支払いを処理する → チェックアウト確定
   async function confirmCheckOut() {
     if (!quote) return;
     setError(null);
@@ -85,93 +83,125 @@ export default function CheckOutPage() {
     }
   }
 
-  // A1: 支払いを取りやめる（サーバー状態は変更しない）
   function cancel() {
     setQuote(null);
     setError(null);
   }
 
-  // msg11: 結果画面（完了と支払い内容を表示する）
   if (result) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-        <h1>チェックアウト完了</h1>
-        <p>ご利用ありがとうございました。</p>
-        <dl>
-          <dt>部屋番号</dt>
-          <dd style={{ fontSize: 28, fontWeight: 700 }}>{result.roomNumber}</dd>
-          <dt>予約番号</dt>
-          <dd>{result.reservationNumber}</dd>
-          <dt>お支払い金額</dt>
-          <dd>{yen(result.amount)}</dd>
-          <dt>お支払い方法</dt>
-          <dd>{result.method}</dd>
-        </dl>
-        <Link href="/">トップへ戻る</Link>
-      </main>
-    );
-  }
-
-  // msg3-6 の結果：料金表示 → 支払う / やめる
-  if (quote) {
-    return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-        <h1>お支払い</h1>
-        <dl>
-          <dt>部屋番号</dt>
-          <dd>{quote.roomNumber}</dd>
-          <dt>部屋タイプ</dt>
-          <dd>{quote.roomTypeName}</dd>
-          <dt>宿泊期間</dt>
-          <dd>
-            {quote.checkInDate} 〜 {quote.checkOutDate}（{quote.nights}泊）
-          </dd>
-          <dt>ご請求金額</dt>
-          <dd style={{ fontSize: 28, fontWeight: 700 }}>{yen(quote.amount)}</dd>
-        </dl>
-        <label style={{ display: "block", margin: "12px 0" }}>
-          お支払い方法
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            style={{ display: "block", marginTop: 4, padding: 8 }}
-          >
-            <option value="現金">現金</option>
-            <option value="クレジットカード">クレジットカード</option>
-          </select>
-        </label>
-        {error && <p style={{ color: "#c00" }}>{error}</p>}
-        <div style={{ display: "flex", gap: 12 }}>
-          <button onClick={confirmCheckOut} disabled={loading} style={{ padding: "8px 16px" }}>
-            {loading ? "処理中…" : "支払う"}
-          </button>
-          <button onClick={cancel} disabled={loading} style={{ padding: "8px 16px" }}>
-            やめる
-          </button>
+      <main className="page-shell">
+        <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
+          <div className="complete-mark">✓</div>
+          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>チェックアウト完了</h1>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 16px" }}>
+            ご利用ありがとうございました。
+          </p>
+          <div className="confirm-table" style={{ textAlign: "left" }}>
+            {[
+              ["部屋番号", result.roomNumber],
+              ["予約番号", result.reservationNumber],
+              ["お支払い金額", yen(result.amount)],
+              ["お支払い方法", result.method],
+            ].map(([label, value]) => (
+              <div key={label} className="confirm-row">
+                <span className="confirm-label">{label}</span>
+                <span className="confirm-value">{value}</span>
+              </div>
+            ))}
+          </div>
+          <Link href="/" className="btn btn-secondary btn-full" style={{ marginTop: 16 }}>
+            トップへ戻る
+          </Link>
         </div>
       </main>
     );
   }
 
-  // msg1: 部屋番号を入力する
+  if (quote) {
+    return (
+      <main className="page-shell">
+        <div style={{ maxWidth: 440 }}>
+          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>お支払い</h1>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 20px" }}>
+            ご請求内容をご確認のうえ、お支払い方法を選択してください。
+          </p>
+          <div className="confirm-table">
+            {[
+              ["部屋番号", quote.roomNumber],
+              ["部屋タイプ", quote.roomTypeName],
+              ["宿泊期間", `${quote.checkInDate} 〜 ${quote.checkOutDate}（${quote.nights}泊）`],
+            ].map(([label, value]) => (
+              <div key={label} className="confirm-row">
+                <span className="confirm-label">{label}</span>
+                <span className="confirm-value">{value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="price-breakdown">
+            <div className="price-row-total">
+              <span>ご請求金額</span>
+              <span>{yen(quote.amount)}</span>
+            </div>
+          </div>
+          <p className="section-heading">お支払い方法</p>
+          {["現金", "クレジットカード"].map((m) => (
+            <div
+              key={m}
+              className={`payment-option${method === m ? " selected" : ""}`}
+              onClick={() => setMethod(m)}
+            >
+              <span className="payment-radio" />
+              {m}
+            </div>
+          ))}
+          {error && (
+            <div className="error-box" style={{ marginTop: 12 }}>
+              {error}
+            </div>
+          )}
+          <div className="form-actions">
+            <button className="btn btn-secondary" onClick={cancel} disabled={loading}>
+              やめる
+            </button>
+            <button className="btn btn-primary btn-lg" onClick={confirmCheckOut} disabled={loading}>
+              {loading ? "処理中…" : "支払ってチェックアウトする"}
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-      <h1>チェックアウト</h1>
-      <p>ご滞在中のお部屋の番号を入力してください。</p>
-      <label style={{ display: "block", marginBottom: 12 }}>
-        部屋番号
-        <input
-          type="text"
-          value={roomNumber}
-          onChange={(e) => setRoomNumber(e.target.value)}
-          placeholder="0805"
-          style={{ display: "block", width: "100%", padding: 8, marginTop: 4 }}
-        />
-      </label>
-      {error && <p style={{ color: "#c00" }}>{error}</p>}
-      <button onClick={fetchQuote} disabled={loading} style={{ padding: "8px 16px" }}>
-        {loading ? "照会中…" : "料金を確認する"}
-      </button>
+    <main className="page-shell">
+      <div style={{ maxWidth: 440 }}>
+        <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>チェックアウト</h1>
+        <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
+          ご滞在中のお部屋の番号を入力してください。
+        </p>
+        <div className="form-stack">
+          <div className="field">
+            <label className="field-label field-required">部屋番号</label>
+            <input
+              className="field-input"
+              type="text"
+              value={roomNumber}
+              onChange={(e) => setRoomNumber(e.target.value)}
+              placeholder="0805"
+            />
+          </div>
+          {error && <div className="error-box">{error}</div>}
+        </div>
+        <button
+          className="btn btn-primary btn-full btn-lg"
+          style={{ marginTop: 20 }}
+          onClick={fetchQuote}
+          disabled={loading}
+        >
+          {loading ? "照会中…" : "料金を確認する"}
+        </button>
+      </div>
     </main>
   );
 }
