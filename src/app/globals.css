@@ -10,6 +10,8 @@
   --accent: #4f6d7a;
   --accent-strong: #3a525c;
   --accent-soft: #dfe7ea;
+  --gold: #b08d57;
+  --serif: "Hiragino Mincho ProN", "Yu Mincho", YuMincho, Georgia, "Times New Roman", serif;
 }
 
 * {
@@ -98,69 +100,208 @@ a {
   padding: 48px 0;
 }
 
-/* ── Home hero ── */
-.hero {
-  padding: 32px 0 24px;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--accent);
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
 h1 {
   margin: 0;
   font-size: clamp(2.5rem, 8vw, 4.5rem);
   line-height: 1;
 }
 
-.lead {
-  max-width: 640px;
-  margin: 16px 0 0;
-  color: var(--muted);
-  line-height: 1.8;
+/* ── Home ── */
+.home {
+  flex: 1;
 }
 
-/* ── Action grid (home menu) ── */
-.action-grid {
+/* Hero (full-bleed) */
+.home-hero {
+  color: #f6f4ef;
+  background:
+    radial-gradient(130% 120% at 82% -10%, rgba(176, 141, 87, 0.4), rgba(176, 141, 87, 0) 46%),
+    linear-gradient(158deg, #223036 0%, #33474f 48%, #52707c 100%);
+}
+
+.home-hero-inner {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(64px, 12vw, 124px) 0 clamp(56px, 10vw, 100px);
+}
+
+.home-kicker {
+  margin: 0 0 20px;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #d8b982;
+  font-weight: 700;
+}
+
+.home-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 6vw, 3.5rem);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.home-tagline {
+  max-width: 560px;
+  margin: 22px 0 0;
+  color: #d9d4c9;
+  line-height: 1.9;
+  font-size: 0.95rem;
+}
+
+.home-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.btn-gold {
+  background: var(--gold);
+  color: #241d12;
+}
+
+.btn-gold:hover:not(:disabled) {
+  background: #c2a06a;
+}
+
+.btn-hero-ghost {
+  background: transparent;
+  border: 1px solid rgba(246, 244, 239, 0.55);
+  color: #f6f4ef;
+}
+
+.btn-hero-ghost:hover:not(:disabled) {
+  border-color: #f6f4ef;
+}
+
+/* Body sections */
+.home-body {
+  width: min(960px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 56px 0 8px;
+}
+
+.home-section + .home-section {
+  margin-top: 56px;
+}
+
+.home-section-kicker {
+  margin: 0 0 6px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.home-h2 {
+  margin: 0 0 24px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.4rem;
+  padding-bottom: 12px;
+  position: relative;
+}
+
+.home-h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--gold);
+}
+
+/* ご利用の流れ */
+.home-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.home-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.home-step-num {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.home-step-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.home-step-desc {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* 各種お手続き */
+.home-services {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
-  margin-top: 24px;
 }
 
-.action-link {
+.service-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 96px;
-  justify-content: center;
-  padding: 16px 18px;
+  padding: 18px 40px 18px 20px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
-  color: var(--accent-strong);
+  color: var(--foreground);
   text-decoration: none;
+  transition:
+    border-color 0.12s,
+    transform 0.12s;
 }
 
-.action-link:focus-visible,
-.action-link:hover {
+.service-card:hover,
+.service-card:focus-visible {
   border-color: var(--accent);
+  transform: translateY(-2px);
   outline: 2px solid transparent;
 }
 
-.action-link-label {
+.service-card-title {
   font-weight: 700;
   font-size: 0.9375rem;
+  color: var(--accent-strong);
 }
 
-.action-link-desc {
+.service-card-desc {
   font-size: 0.75rem;
   color: var(--muted);
   line-height: 1.5;
-  font-weight: 400;
+}
+
+.service-card-arrow {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--gold);
+  font-weight: 700;
 }
 
 /* ── Site footer ── */
