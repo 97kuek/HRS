@@ -154,7 +154,7 @@ function Step1({
 
   return (
     <div style={{ maxWidth: 480 }}>
-      <h2 style={{ margin: "0 0 20px", fontSize: "1.125rem", fontWeight: 700 }}>宿泊日を選択</h2>
+      <h2 className="section-title">宿泊日を選択</h2>
       <CompletionMeter completed={completed} total={2} />
       {error && (
         <div className="error-box" style={{ marginBottom: 16 }}>
@@ -473,9 +473,7 @@ function Step3({
   return (
     <div className="layout-with-sidebar">
       <div className="layout-main">
-        <h2 style={{ margin: "0 0 20px", fontSize: "1.125rem", fontWeight: 700 }}>
-          宿泊代表者の情報
-        </h2>
+        <h2 className="section-title">宿泊代表者の情報</h2>
         <CompletionMeter completed={completed} total={2} />
         <div className="form-stack">
           <div className="field">
@@ -643,9 +641,7 @@ function Step4({
 
   return (
     <div style={{ maxWidth: 540 }}>
-      <h2 style={{ margin: "0 0 20px", fontSize: "1.125rem", fontWeight: 700 }}>
-        ご予約内容の確認
-      </h2>
+      <h2 className="section-title">ご予約内容の確認</h2>
       {error && (
         <div className="error-box" style={{ marginBottom: 16 }}>
           {error}
@@ -732,7 +728,7 @@ function Step5({ result }: { result: ReservationResult }) {
   return (
     <div style={{ maxWidth: 480, textAlign: "center" }}>
       <div className="complete-mark">✓</div>
-      <h2 style={{ margin: "0 0 8px" }}>予約が完了しました</h2>
+      <h2 className="page-title">予約が完了しました</h2>
       <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 4px" }}>ご予約番号</p>
       <div className="reservation-number">{result.reservationNumber}</div>
       <button

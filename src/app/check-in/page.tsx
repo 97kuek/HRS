@@ -56,7 +56,7 @@ export default function CheckInPage() {
       <main className="page-shell">
         <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
           <div className="complete-mark">✓</div>
-          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>チェックイン完了</h1>
+          <h1 className="page-title">チェックイン完了</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 8px" }}>
             お部屋の準備ができました。
           </p>
@@ -88,7 +88,8 @@ export default function CheckInPage() {
   return (
     <main className="page-shell">
       <div style={{ maxWidth: 440 }}>
-        <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>チェックイン</h1>
+        <p className="page-kicker">CHECK-IN</p>
+        <h1 className="page-title">チェックイン</h1>
         <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
           ご予約時に発行された予約番号を入力してください。
         </p>

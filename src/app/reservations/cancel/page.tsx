@@ -92,7 +92,7 @@ export default function CancelReservationPage() {
       <main className="page-shell">
         <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
           <div className="complete-mark">✓</div>
-          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>キャンセル完了</h1>
+          <h1 className="page-title">キャンセル完了</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 16px" }}>
             ご予約をキャンセルしました。
           </p>
@@ -123,7 +123,7 @@ export default function CancelReservationPage() {
     return (
       <main className="page-shell">
         <div style={{ maxWidth: 440 }}>
-          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>予約内容の確認</h1>
+          <h1 className="page-title">予約内容の確認</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 20px" }}>
             以下のご予約をキャンセルしますか？
           </p>
@@ -191,7 +191,8 @@ export default function CancelReservationPage() {
   return (
     <main className="page-shell">
       <div style={{ maxWidth: 440 }}>
-        <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>予約のキャンセル</h1>
+        <p className="page-kicker">CANCELLATION</p>
+        <h1 className="page-title">予約のキャンセル</h1>
         <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
           キャンセルするご予約の予約番号を入力してください。
         </p>
