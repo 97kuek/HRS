@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
+import { useEffect } from "react";
 
 /**
  * 重要な入力途中でブラウザのタブを閉じる／リロードしようとした際に
@@ -8,14 +8,14 @@ import { useEffect } from "react"
  */
 export function useBeforeUnloadGuard(enabled: boolean) {
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) return;
     const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault()
-      e.returnValue = ""
-    }
-    window.addEventListener("beforeunload", handler)
-    return () => window.removeEventListener("beforeunload", handler)
-  }, [enabled])
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [enabled]);
 }
 
 /**
@@ -29,20 +29,20 @@ export function LeaveConfirmModal({
   onConfirm,
   onCancel,
 }: {
-  title: string
-  body: string
-  confirmLabel?: string
-  cancelLabel?: string
-  onConfirm: () => void
-  onCancel: () => void
+  title: string;
+  body: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onCancel])
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
 
   return (
     <div
@@ -65,5 +65,5 @@ export function LeaveConfirmModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

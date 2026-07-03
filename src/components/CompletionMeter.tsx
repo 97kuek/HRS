@@ -6,12 +6,12 @@ export function CompletionMeter({
   total,
   label = "入力状況",
 }: {
-  completed: number
-  total: number
-  label?: string
+  completed: number;
+  total: number;
+  label?: string;
 }) {
-  const pct = total === 0 ? 0 : Math.round((completed / total) * 100)
-  const done = completed >= total && total > 0
+  const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const done = completed >= total && total > 0;
 
   return (
     <div className="completion-meter">
@@ -25,9 +25,7 @@ export function CompletionMeter({
       >
         <div className="completion-fill" style={{ width: `${pct}%` }} />
       </div>
-      <span className="completion-label">
-        {done ? "入力完了" : `${completed}/${total} 項目`}
-      </span>
+      <span className="completion-label">{done ? "入力完了" : `${completed}/${total} 項目`}</span>
     </div>
-  )
+  );
 }

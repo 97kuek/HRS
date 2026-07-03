@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LoadingIndicator } from "@/components/LoadingIndicator";
+import { LongWaitBar } from "@/components/LoadingIndicator";
 import { validateRoomNumber } from "@/lib/validation";
 
 interface Quote {
@@ -163,18 +163,29 @@ export default function CheckOutPage() {
               {error}
             </div>
           )}
-          {loading ? (
-            <LoadingIndicator label="お支払いを処理しています…" />
-          ) : (
-            <div className="form-actions">
-              <button className="btn btn-secondary" onClick={cancel}>
-                やめる
-              </button>
-              <button className="btn btn-primary btn-lg" onClick={confirmCheckOut}>
-                支払ってチェックアウトする
-              </button>
-            </div>
-          )}
+          <div className="form-actions">
+            <button className="btn btn-secondary" onClick={cancel} disabled={loading}>
+              やめる
+            </button>
+            <button
+              className="btn btn-primary btn-lg"
+              onClick={confirmCheckOut}
+              disabled={loading}
+              aria-busy={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner" aria-hidden="true" /> 処理中…
+                </>
+              ) : (
+                "支払ってチェックアウトする"
+              )}
+            </button>
+          </div>
+          <LongWaitBar
+            loading={loading}
+            message="お支払いを処理しています。そのままお待ちください…"
+          />
         </div>
       </main>
     );
@@ -189,8 +200,11 @@ export default function CheckOutPage() {
         </p>
         <div className="form-stack">
           <div className="field">
-            <label className="field-label field-required">部屋番号</label>
+            <label className="field-label field-required" htmlFor="roomNumber">
+              部屋番号
+            </label>
             <input
+              id="roomNumber"
               className={
                 !touched || roomNumber.trim() === ""
                   ? "field-input"
@@ -201,26 +215,44 @@ export default function CheckOutPage() {
               type="text"
               inputMode="numeric"
               value={roomNumber}
+              aria-describedby={
+                touched && fieldError ? "roomNumber-hint roomNumber-error" : "roomNumber-hint"
+              }
+              aria-invalid={touched && Boolean(fieldError)}
               onBlur={() => setTouched(true)}
               onChange={(e) => setRoomNumber(e.target.value)}
               placeholder="101"
             />
-            <span className="field-hint">ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。</span>
-            {touched && fieldError && <span className="field-error">{fieldError}</span>}
+            <span className="field-hint" id="roomNumber-hint">
+              ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。
+            </span>
+            {touched && fieldError && (
+              <span className="field-error" id="roomNumber-error">
+                {fieldError}
+              </span>
+            )}
           </div>
           {error && <div className="error-box">{error}</div>}
         </div>
-        {loading ? (
-          <LoadingIndicator label="ご請求内容を照会しています…" />
-        ) : (
-          <button
-            className="btn btn-primary btn-full btn-lg"
-            style={{ marginTop: 20 }}
-            onClick={fetchQuote}
-          >
-            料金を確認する
-          </button>
-        )}
+        <button
+          className="btn btn-primary btn-full btn-lg"
+          style={{ marginTop: 20 }}
+          onClick={fetchQuote}
+          disabled={loading}
+          aria-busy={loading}
+        >
+          {loading ? (
+            <>
+              <span className="spinner" aria-hidden="true" /> 照会中…
+            </>
+          ) : (
+            "料金を確認する"
+          )}
+        </button>
+        <LongWaitBar
+          loading={loading}
+          message="ご請求内容を照会しています。そのままお待ちください…"
+        />
       </div>
     </main>
   );
