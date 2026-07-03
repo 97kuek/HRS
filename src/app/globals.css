@@ -198,8 +198,34 @@ h1 {
 }
 
 .field-required::after {
-  content: " 必須";
-  color: var(--muted);
+  content: "必須";
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  background: #fdecec;
+  color: #c0392b;
+  vertical-align: middle;
+}
+
+.field-optional::after {
+  content: "任意";
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  background: #eef0ef;
+  color: var(--placeholder);
+  vertical-align: middle;
+}
+
+/* 入力例・注意事項などの補助テキスト（フォーム内に表示） */
+.field-hint {
+  font-size: 0.6875rem;
+  color: var(--placeholder);
+  line-height: 1.5;
 }
 
 .field-input {
@@ -222,6 +248,17 @@ h1 {
   color: var(--placeholder);
 }
 
+/* 即時フィードバックの検証状態 */
+.field-input.is-invalid {
+  border-color: #e0a0a0;
+  background: #fdf6f6;
+}
+
+.field-input.is-valid {
+  border-color: #a8c7b0;
+  background: #f7fbf8;
+}
+
 .field-textarea {
   height: auto;
   min-height: 80px;
@@ -230,8 +267,33 @@ h1 {
 }
 
 .field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
   font-size: 0.75rem;
   color: #dc2626;
+  line-height: 1.5;
+}
+
+.field-error::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.field-success {
+  font-size: 0.75rem;
+  color: #2f855a;
 }
 
 /* ── Error box ── */
@@ -242,6 +304,139 @@ h1 {
   border-radius: 6px;
   font-size: 0.875rem;
   color: #dc2626;
+}
+
+/* ── Loading: spinner (〜4秒) と progress bar (4秒以上) ── */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: -3px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.load-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #ecece8;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 40%;
+  border-radius: 3px;
+  background: var(--accent);
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0% {
+    margin-left: -40%;
+  }
+  100% {
+    margin-left: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.5s;
+  }
+  .progress-bar {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
+/* ── 入力完了メーター ── */
+.completion-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.completion-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: #ecece8;
+  overflow: hidden;
+}
+
+.completion-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.completion-label {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 離脱確認モーダル ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(30, 30, 28, 0.4);
+}
+
+.modal-card {
+  width: min(400px, 100%);
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.modal-title {
+  margin: 0 0 8px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.modal-body {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
 /* ── Step progress rail ── */

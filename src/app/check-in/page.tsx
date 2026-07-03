@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
+import { validateReservationNumber } from "@/lib/validation";
 
 interface CheckInResult {
   reservationNumber: string;
@@ -19,16 +21,17 @@ interface ApiError {
 
 export default function CheckInPage() {
   const [reservationNumber, setReservationNumber] = useState("");
+  const [touched, setTouched] = useState(false);
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const fieldError = validateReservationNumber(reservationNumber);
+
   async function checkIn() {
-    const number = reservationNumber.trim();
-    if (!number) {
-      setError("予約番号を入力してください。");
-      return;
-    }
+    setTouched(true);
+    if (fieldError) return;
+    const number = reservationNumber.trim().toUpperCase();
     setError(null);
     setLoading(true);
     try {
@@ -93,23 +96,37 @@ export default function CheckInPage() {
           <div className="field">
             <label className="field-label field-required">予約番号</label>
             <input
-              className="field-input"
+              className={
+                !touched || reservationNumber.trim() === ""
+                  ? "field-input"
+                  : fieldError
+                    ? "field-input is-invalid"
+                    : "field-input is-valid"
+              }
               type="text"
               value={reservationNumber}
+              onBlur={() => setTouched(true)}
               onChange={(e) => setReservationNumber(e.target.value)}
               placeholder="HRS-YYYYMMDD-NNNN"
             />
+            <span className="field-hint">
+              予約完了時に発行された番号です。半角英数字・ハイフンありで入力してください（例: HRS-20260710-0042）。
+            </span>
+            {touched && fieldError && <span className="field-error">{fieldError}</span>}
           </div>
           {error && <div className="error-box">{error}</div>}
         </div>
-        <button
-          className="btn btn-primary btn-full btn-lg"
-          style={{ marginTop: 20 }}
-          onClick={checkIn}
-          disabled={loading}
-        >
-          {loading ? "処理中…" : "チェックインする"}
-        </button>
+        {loading ? (
+          <LoadingIndicator label="チェックインを処理しています…" />
+        ) : (
+          <button
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: 20 }}
+            onClick={checkIn}
+          >
+            チェックインする
+          </button>
+        )}
       </div>
     </main>
   );

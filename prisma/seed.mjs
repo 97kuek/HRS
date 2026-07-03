@@ -4,8 +4,10 @@ const prisma = new PrismaClient();
 
 async function main() {
   const roomTypes = [
-    { name: "スタンダードシングル", capacity: 1, baseRate: 12000, rooms: ["0301", "0302"] },
+    { name: "スタンダードシングル", capacity: 1, baseRate: 12000, rooms: ["0301", "0302", "0303"] },
+    { name: "スーペリアダブル", capacity: 2, baseRate: 18000, rooms: ["0501", "0502", "0503"] },
     { name: "デラックスツイン", capacity: 2, baseRate: 24000, rooms: ["0805", "0806"] },
+    { name: "和室スイート", capacity: 4, baseRate: 38000, rooms: ["1001", "1002"] },
   ];
 
   for (const roomType of roomTypes) {

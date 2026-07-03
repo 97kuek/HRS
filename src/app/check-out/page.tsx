@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
+import { validateRoomNumber } from "@/lib/validation";
 
 interface Quote {
   roomNumber: string;
@@ -31,18 +33,19 @@ const yen = (n: number) => `¥${n.toLocaleString()}`;
 
 export default function CheckOutPage() {
   const [roomNumber, setRoomNumber] = useState("");
+  const [touched, setTouched] = useState(false);
   const [method, setMethod] = useState("現金");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [result, setResult] = useState<CheckOutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const fieldError = validateRoomNumber(roomNumber);
+
   async function fetchQuote() {
+    setTouched(true);
+    if (fieldError) return;
     const number = roomNumber.trim();
-    if (!number) {
-      setError("部屋番号を入力してください。");
-      return;
-    }
     setError(null);
     setLoading(true);
     try {
@@ -160,14 +163,18 @@ export default function CheckOutPage() {
               {error}
             </div>
           )}
-          <div className="form-actions">
-            <button className="btn btn-secondary" onClick={cancel} disabled={loading}>
-              やめる
-            </button>
-            <button className="btn btn-primary btn-lg" onClick={confirmCheckOut} disabled={loading}>
-              {loading ? "処理中…" : "支払ってチェックアウトする"}
-            </button>
-          </div>
+          {loading ? (
+            <LoadingIndicator label="お支払いを処理しています…" />
+          ) : (
+            <div className="form-actions">
+              <button className="btn btn-secondary" onClick={cancel}>
+                やめる
+              </button>
+              <button className="btn btn-primary btn-lg" onClick={confirmCheckOut}>
+                支払ってチェックアウトする
+              </button>
+            </div>
+          )}
         </div>
       </main>
     );
@@ -184,23 +191,36 @@ export default function CheckOutPage() {
           <div className="field">
             <label className="field-label field-required">部屋番号</label>
             <input
-              className="field-input"
+              className={
+                !touched || roomNumber.trim() === ""
+                  ? "field-input"
+                  : fieldError
+                    ? "field-input is-invalid"
+                    : "field-input is-valid"
+              }
               type="text"
+              inputMode="numeric"
               value={roomNumber}
+              onBlur={() => setTouched(true)}
               onChange={(e) => setRoomNumber(e.target.value)}
-              placeholder="0805"
+              placeholder="101"
             />
+            <span className="field-hint">ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。</span>
+            {touched && fieldError && <span className="field-error">{fieldError}</span>}
           </div>
           {error && <div className="error-box">{error}</div>}
         </div>
-        <button
-          className="btn btn-primary btn-full btn-lg"
-          style={{ marginTop: 20 }}
-          onClick={fetchQuote}
-          disabled={loading}
-        >
-          {loading ? "照会中…" : "料金を確認する"}
-        </button>
+        {loading ? (
+          <LoadingIndicator label="ご請求内容を照会しています…" />
+        ) : (
+          <button
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: 20 }}
+            onClick={fetchQuote}
+          >
+            料金を確認する
+          </button>
+        )}
       </div>
     </main>
   );
