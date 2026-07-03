@@ -48,48 +48,69 @@ export default function CheckInPage() {
     }
   }
 
-  // msg11: 結果画面（部屋番号と完了を表示する）
   if (result) {
     return (
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-        <h1>チェックイン完了</h1>
-        <p>お部屋の準備ができました。</p>
-        <dl>
-          <dt>部屋番号</dt>
-          <dd style={{ fontSize: 28, fontWeight: 700 }}>{result.roomNumber}</dd>
-          <dt>予約番号</dt>
-          <dd>{result.reservationNumber}</dd>
-          <dt>部屋タイプ</dt>
-          <dd>{result.roomTypeName}</dd>
-          <dt>宿泊期間</dt>
-          <dd>
-            {result.checkInDate} 〜 {result.checkOutDate}（{result.guestCount}名）
-          </dd>
-        </dl>
-        <Link href="/">トップへ戻る</Link>
+      <main className="page-shell">
+        <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
+          <div className="complete-mark">✓</div>
+          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>チェックイン完了</h1>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 8px" }}>
+            お部屋の準備ができました。
+          </p>
+          <p className="section-heading" style={{ textAlign: "center" }}>
+            お部屋番号
+          </p>
+          <div className="reservation-number">{result.roomNumber}</div>
+          <div className="confirm-table" style={{ textAlign: "left" }}>
+            {[
+              ["予約番号", result.reservationNumber],
+              ["部屋タイプ", result.roomTypeName],
+              ["宿泊期間", `${result.checkInDate} 〜 ${result.checkOutDate}`],
+              ["人数", `${result.guestCount}名`],
+            ].map(([label, value]) => (
+              <div key={label} className="confirm-row">
+                <span className="confirm-label">{label}</span>
+                <span className="confirm-value">{value}</span>
+              </div>
+            ))}
+          </div>
+          <Link href="/" className="btn btn-secondary btn-full" style={{ marginTop: 16 }}>
+            トップへ戻る
+          </Link>
+        </div>
       </main>
     );
   }
 
-  // msg1: チェックインフォーム（予約番号を入力する・チェックインを指示する）
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 24 }}>
-      <h1>チェックイン</h1>
-      <p>ご予約時に発行された予約番号を入力してください。</p>
-      <label style={{ display: "block", marginBottom: 12 }}>
-        予約番号
-        <input
-          type="text"
-          value={reservationNumber}
-          onChange={(e) => setReservationNumber(e.target.value)}
-          placeholder="HRS-YYYYMMDD-XXXX"
-          style={{ display: "block", width: "100%", padding: 8, marginTop: 4 }}
-        />
-      </label>
-      {error && <p style={{ color: "#c00" }}>{error}</p>}
-      <button onClick={checkIn} disabled={loading} style={{ padding: "8px 16px" }}>
-        {loading ? "処理中…" : "チェックインする"}
-      </button>
+    <main className="page-shell">
+      <div style={{ maxWidth: 440 }}>
+        <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>チェックイン</h1>
+        <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
+          ご予約時に発行された予約番号を入力してください。
+        </p>
+        <div className="form-stack">
+          <div className="field">
+            <label className="field-label field-required">予約番号</label>
+            <input
+              className="field-input"
+              type="text"
+              value={reservationNumber}
+              onChange={(e) => setReservationNumber(e.target.value)}
+              placeholder="HRS-YYYYMMDD-NNNN"
+            />
+          </div>
+          {error && <div className="error-box">{error}</div>}
+        </div>
+        <button
+          className="btn btn-primary btn-full btn-lg"
+          style={{ marginTop: 20 }}
+          onClick={checkIn}
+          disabled={loading}
+        >
+          {loading ? "処理中…" : "チェックインする"}
+        </button>
+      </div>
     </main>
   );
 }
