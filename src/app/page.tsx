@@ -48,7 +48,7 @@ export default function Home() {
         <div className="home-hero-inner">
           <p className="home-kicker">HRS · Hotel Reservation System</p>
           <h1 className="home-title">
-            街の中心で、
+            西早稲田の中心で、
             <br />
             上質なご滞在を。
           </h1>
