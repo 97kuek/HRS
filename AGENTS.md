@@ -17,6 +17,7 @@
 - UMLを用いたオブジェクト指向分析設計 (ドメイン分析 → 要求分析 → システム分析) を行う。
 - 実装はWebアプリケーションとして行う (実装形態は自由)。
 - 技術スタックは Issue #23 で決定済み。TypeScript / Next.js App Router / Prisma / Postgres を使う。
+- メール送信に **Resend** (`resend` npm パッケージ) を使う。
 - リポジトリはPublic運用。
 
 ## 最重要ルール
@@ -109,3 +110,29 @@ npm run dev
 ```
 
 DB接続文字列、APIキー、実在する個人情報を含む `.env.local` などはコミットしない。
+
+## 環境変数
+
+`.env.example` に全項目のテンプレートを置いている。実際の値は `.env`（gitignore済み）に記載すること。
+
+| 変数 | 必須 | 用途 |
+| --- | --- | --- |
+| `DATABASE_URL` | ✅ | Prisma が接続する Postgres URL |
+| `DIRECT_URL` | — | Neon Pooled 接続時のみ Direct URL を設定 |
+| `NEXT_PUBLIC_APP_NAME` | — | 表示用アプリ名（デフォルト: `HRS`） |
+| `APP_BASE_URL` | — | アプリのベース URL（デフォルト: `http://localhost:3000`） |
+| `RESEND_API_KEY` | ✅ | Resend の API キー。未設定時はメール送信をスキップ |
+| `RESEND_FROM_EMAIL` | — | 送信元アドレス（デフォルト: `noreply@example.com`） |
+| `CRON_SECRET` | ✅ | Vercel Cron Job の認証トークン。`openssl rand -base64 32` で生成 |
+
+`RESEND_API_KEY` と `CRON_SECRET` は Vercel の Environment Variables にも同じ値を登録すること。
+
+## Vercel Cron Job
+
+`vercel.json` に以下の Cron を定義している。
+
+| パス | スケジュール | 概要 |
+| --- | --- | --- |
+| `/api/cron/check-in-reminder` | `0 0 * * *`（毎日 0:00 UTC = 9:00 JST） | 翌日チェックイン予定のゲストにリマインダーメールを送信 |
+
+Cron リクエストは `Authorization: Bearer {CRON_SECRET}` で保護されている。ローカルでのテストは `curl -H "Authorization: Bearer <your_secret>" http://localhost:3000/api/cron/check-in-reminder` で実行できる。
