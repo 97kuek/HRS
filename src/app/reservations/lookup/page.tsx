@@ -80,15 +80,44 @@ export default function ReservationLookupPage() {
       <div className="page-panel">
         <p className="page-kicker">RESERVATION</p>
         <h1 className="page-title">予約を確認する</h1>
-        <p className="page-intro">予約番号と代表者氏名を入力してください。</p>
+        <p className="page-intro">予約番号と宿泊代表者のお名前を入力してください。</p>
         <div className="form-stack">
           <div className="field">
-            <label className="field-label field-required">予約番号</label>
-            <input className="field-input" type="text" placeholder="HRS-YYYYMMDD-NNNN" />
+            <label className="field-label field-required" htmlFor="lookupReservationNumber">
+              予約番号
+            </label>
+            <input
+              id="lookupReservationNumber"
+              className="field-input"
+              type="text"
+              placeholder="HRS-YYYYMMDD-NNNN"
+            />
           </div>
-          <div className="field">
-            <label className="field-label field-required">代表者氏名</label>
-            <input className="field-input" type="text" placeholder="山田 太郎" />
+          <div className="form-row">
+            <div className="field">
+              <label className="field-label field-required" htmlFor="lookupFamilyName">
+                姓
+              </label>
+              <input
+                id="lookupFamilyName"
+                className="field-input"
+                type="text"
+                autoComplete="family-name"
+                placeholder="山田"
+              />
+            </div>
+            <div className="field">
+              <label className="field-label field-required" htmlFor="lookupGivenName">
+                名
+              </label>
+              <input
+                id="lookupGivenName"
+                className="field-input"
+                type="text"
+                autoComplete="given-name"
+                placeholder="太郎"
+              />
+            </div>
           </div>
         </div>
         <button

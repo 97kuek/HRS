@@ -8,10 +8,10 @@ export type ValidationResult = string | null;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function validateName(value: string): ValidationResult {
+export function validateName(value: string, label = "氏名"): ValidationResult {
   const v = value.trim();
-  if (v.length === 0) return "氏名を入力してください。";
-  if (v.length > 50) return "氏名は50文字以内で入力してください。";
+  if (v.length === 0) return `${label}を入力してください。`;
+  if (v.length > 50) return `${label}は50文字以内で入力してください。`;
   return null;
 }
 

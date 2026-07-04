@@ -37,7 +37,8 @@ interface SearchCondition {
 }
 
 interface GuestForm {
-  name: string;
+  familyName: string;
+  givenName: string;
   contact: string;
 }
 
@@ -474,21 +475,32 @@ function Step3({
   onNext: (guest: GuestForm) => void;
   onBack: () => void;
 }) {
-  const [name, setName] = useState(initial.name);
+  const [familyName, setFamilyName] = useState(initial.familyName);
+  const [givenName, setGivenName] = useState(initial.givenName);
   const [contact, setContact] = useState(initial.contact);
-  const [touched, setTouched] = useState<{ name: boolean; contact: boolean }>({
-    name: false,
+  const [touched, setTouched] = useState<{
+    familyName: boolean;
+    givenName: boolean;
+    contact: boolean;
+  }>({
+    familyName: false,
+    givenName: false,
     contact: false,
   });
 
-  const nameError = validateName(name);
+  const familyNameError = validateName(familyName, "姓");
+  const givenNameError = validateName(givenName, "名");
   const contactError = validateContact(contact);
-  const completed = (nameError ? 0 : 1) + (contactError ? 0 : 1);
+  const completed = (familyNameError ? 0 : 1) + (givenNameError ? 0 : 1) + (contactError ? 0 : 1);
 
   function next() {
-    setTouched({ name: true, contact: true });
-    if (!nameError && !contactError) {
-      onNext({ name: name.trim(), contact: contact.trim() });
+    setTouched({ familyName: true, givenName: true, contact: true });
+    if (!familyNameError && !givenNameError && !contactError) {
+      onNext({
+        familyName: familyName.trim(),
+        givenName: givenName.trim(),
+        contact: contact.trim(),
+      });
     }
   }
 
@@ -496,34 +508,67 @@ function Step3({
     <div className="reservation-panel layout-with-sidebar">
       <div className="layout-main">
         <h2 className="section-title">宿泊代表者の情報</h2>
-        <CompletionMeter completed={completed} total={2} />
+        <CompletionMeter completed={completed} total={3} />
         <div className="form-stack">
-          <div className="field">
-            <label className="field-label field-required" htmlFor="guestName">
-              氏名
-            </label>
-            <input
-              id="guestName"
-              className={inputClass(touched.name, name, nameError)}
-              type="text"
-              placeholder="山田 太郎"
-              value={name}
-              autoComplete="name"
-              aria-describedby={
-                touched.name && nameError ? "guestName-hint guestName-error" : "guestName-hint"
-              }
-              aria-invalid={touched.name && Boolean(nameError)}
-              onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <span className="field-hint" id="guestName-hint">
-              例: 山田 太郎
-            </span>
-            {touched.name && nameError && (
-              <span className="field-error" id="guestName-error">
-                {nameError}
+          <div className="form-row">
+            <div className="field">
+              <label className="field-label field-required" htmlFor="guestFamilyName">
+                姓
+              </label>
+              <input
+                id="guestFamilyName"
+                className={inputClass(touched.familyName, familyName, familyNameError)}
+                type="text"
+                placeholder="山田"
+                value={familyName}
+                autoComplete="family-name"
+                aria-describedby={
+                  touched.familyName && familyNameError
+                    ? "guestFamilyName-hint guestFamilyName-error"
+                    : "guestFamilyName-hint"
+                }
+                aria-invalid={touched.familyName && Boolean(familyNameError)}
+                onBlur={() => setTouched((t) => ({ ...t, familyName: true }))}
+                onChange={(e) => setFamilyName(e.target.value)}
+              />
+              <span className="field-hint" id="guestFamilyName-hint">
+                例: 山田
               </span>
-            )}
+              {touched.familyName && familyNameError && (
+                <span className="field-error" id="guestFamilyName-error">
+                  {familyNameError}
+                </span>
+              )}
+            </div>
+            <div className="field">
+              <label className="field-label field-required" htmlFor="guestGivenName">
+                名
+              </label>
+              <input
+                id="guestGivenName"
+                className={inputClass(touched.givenName, givenName, givenNameError)}
+                type="text"
+                placeholder="太郎"
+                value={givenName}
+                autoComplete="given-name"
+                aria-describedby={
+                  touched.givenName && givenNameError
+                    ? "guestGivenName-hint guestGivenName-error"
+                    : "guestGivenName-hint"
+                }
+                aria-invalid={touched.givenName && Boolean(givenNameError)}
+                onBlur={() => setTouched((t) => ({ ...t, givenName: true }))}
+                onChange={(e) => setGivenName(e.target.value)}
+              />
+              <span className="field-hint" id="guestGivenName-hint">
+                例: 太郎
+              </span>
+              {touched.givenName && givenNameError && (
+                <span className="field-error" id="guestGivenName-error">
+                  {givenNameError}
+                </span>
+              )}
+            </div>
           </div>
           <div className="field">
             <label className="field-label field-required" htmlFor="guestContact">
@@ -646,7 +691,10 @@ function Step4({
           checkInDate: condition.checkIn,
           checkOutDate: condition.checkOut,
           guestCount: condition.guestCount,
-          guest,
+          guest: {
+            name: `${guest.familyName} ${guest.givenName}`,
+            contact: guest.contact,
+          },
         }),
       });
       const data = (await res.json()) as { reservation: ReservationResult } | ApiError;
@@ -681,7 +729,7 @@ function Step4({
           ["客室", room.name],
           ["宿泊日", `${condition.checkIn} → ${condition.checkOut}（${condition.nights}泊）`],
           ["人数", `${condition.guestCount}名`],
-          ["代表者", guest.name],
+          ["代表者", `${guest.familyName} ${guest.givenName}`],
           ["連絡先", guest.contact],
         ].map(([label, value]) => (
           <div key={label} className="confirm-row">
@@ -807,7 +855,11 @@ export default function ReservationNewPage() {
   const [condition, setCondition] = useState<SearchCondition | null>(null);
   const [roomTypes, setRoomTypes] = useState<RoomTypeAvailability[]>([]);
   const [room, setRoom] = useState<RoomTypeAvailability | null>(null);
-  const [guest, setGuest] = useState<GuestForm>({ name: "", contact: "" });
+  const [guest, setGuest] = useState<GuestForm>({
+    familyName: "",
+    givenName: "",
+    contact: "",
+  });
   const [result, setResult] = useState<ReservationResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [showLeave, setShowLeave] = useState(false);
