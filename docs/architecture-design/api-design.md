@@ -49,10 +49,13 @@
 | `GET` | `/api/room-types` | 部屋を予約する | 予約時に選択できる部屋タイプを取得する |
 | `GET` | `/api/availability` | 部屋を予約する | 宿泊条件に合う部屋タイプ別の空室と料金候補を取得する |
 | `POST` | `/api/reservations` | 部屋を予約する | 予約を作成し、予約番号を発行する |
-| `POST` | `/api/reservations/lookup` | 予約を確認する | 予約番号と連絡先から予約内容と状態を取得する |
+| `GET` | `/api/reservations/{reservationNumber}` | 予約を確認する / チェックインする / 予約をキャンセルする | 予約番号と氏名（姓・名）から予約内容と状態を取得する |
+| `GET` | `/api/reservations/{reservationNumber}/cancel/quote` | 予約をキャンセルする | キャンセル確認画面用の予約内容とキャンセル可否を返す |
 | `POST` | `/api/reservations/{reservationNumber}/check-in` | チェックインする | 予約をチェックイン済みにし、部屋を割り当てる |
-| `POST` | `/api/reservations/{reservationNumber}/check-out` | チェックアウトする | 宿泊を終了し、料金と支払いを記録する |
 | `POST` | `/api/reservations/{reservationNumber}/cancel` | 予約をキャンセルする | 予約をキャンセル済みにする |
+| `GET` | `/api/rooms/{roomNumber}/check-out/quote` | チェックアウトする | 部屋番号から宿泊中の予約を特定し料金を返す（表示用・未確定） |
+| `POST` | `/api/rooms/{roomNumber}/check-out` | チェックアウトする | 宿泊を終了し、料金と支払いを記録する |
+| `GET` | `/api/cron/check-in-reminder` | — | 翌日チェックイン予定ゲストにリマインダーメールを送る（Cron専用） |
 
 ## エンドポイント設計の理由
 
@@ -61,9 +64,12 @@
 | REST風APIにする | 小規模なCRUDと状態変更が中心であり、GraphQLより設計と実装が単純になるため |
 | Route Handlerに置く | Next.js App Routerだけで画面とAPIを同じリポジトリに置けるため |
 | 内部IDではなく予約番号をパスに使う | 利用者が実際に控える識別子が予約番号であり、DB内部IDを画面へ漏らす必要がないため |
-| 予約確認を `POST /api/reservations/lookup` にする | 連絡先をURLやアクセスログに残しにくくするため |
-| チェックイン/チェックアウト/キャンセルを `POST` にする | 予約状態を変更する操作であり、冪等な取得ではないため |
-| チェックアウトで `stayId` を指定させない | 利用者は宿泊IDを知らない。予約番号から現在の宿泊をアプリケーション層で特定するほうが画面とドメインに合うため |
+| 予約照会を `GET /api/reservations/{reservationNumber}` にする | 照会は冪等な取得操作であり GETが自然。氏名はクエリパラメータで渡す（ログ残留リスクは許容範囲と判断） |
+| 本人確認を「連絡先」ではなく「姓・名」で行う | 予約確認・チェックイン・キャンセルでは氏名（familyName + givenName）を照合キーとして使う。連絡先フィールドは予約登録時に email / phone の2フィールドに分けており、照合には使わない |
+| チェックイン/キャンセルを `POST` にする | 予約状態を変更する操作であり、冪等な取得ではないため |
+| チェックアウトを部屋番号ベースにする | フロントスタッフは部屋番号から操作を開始する。予約番号は guest 側の識別子であり、チェックアウト操作の起点として部屋番号の方が実務に合う |
+| チェックアウトで `stayId` を指定させない | 利用者・スタッフは宿泊IDを知らない。部屋番号から現在の宿泊をアプリケーション層で特定するほうが画面とドメインに合うため |
+| キャンセル確認用に quote エンドポイントを分ける | 予約内容表示（読み取り）とキャンセル確定（状態変更）を分離することで、確認画面と確定操作を独立させるため |
 
 ## `GET /api/room-types`
 
@@ -92,31 +98,35 @@
 
 ## `GET /api/availability`
 
-- 宿泊日、泊数、人数、部屋タイプから予約可能な候補を取得する。
+- チェックイン日、チェックアウト日、人数、部屋タイプから予約可能な候補を取得する。
 - 予約作成前の候補表示に使う。
 
 ### クエリ
 
 | 名前 | 必須 | 型 | 説明 |
 | --- | --- | --- | --- |
-| `checkInDate` | yes | `YYYY-MM-DD` | チェックイン予定日 |
-| `nights` | yes | number | 泊数 |
+| `checkIn` | yes | `YYYY-MM-DD` | チェックイン予定日 |
+| `checkOut` | yes | `YYYY-MM-DD` | チェックアウト予定日 |
 | `guestCount` | yes | number | 宿泊人数 |
-| `roomTypeId` | no | string | 希望部屋タイプ。未指定なら条件に合う部屋タイプを返す |
+| `roomTypeId` | no | string | 希望部屋タイプ。未指定なら条件に合う部屋タイプを全て返す |
 
 ### レスポンス
 
 ```json
 {
-  "checkInDate": "2026-07-03",
-  "checkOutDate": "2026-07-05",
-  "guestCount": 2,
-  "candidates": [
+  "condition": {
+    "checkIn": "2026-07-03",
+    "checkOut": "2026-07-05",
+    "nights": 2,
+    "guestCount": 2
+  },
+  "roomTypes": [
     {
-      "roomTypeId": "rt_twin",
-      "roomTypeName": "ツイン",
+      "id": "rt_twin",
+      "name": "ツイン",
+      "capacity": 2,
+      "baseRate": 12000,
       "availableCount": 3,
-      "nights": 2,
       "estimatedAmount": 24000
     }
   ]
@@ -127,119 +137,171 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 日付形式が不正 | `400` | `VALIDATION_ERROR` |
-| 泊数または人数が0以下 | `422` | `INVALID_STAY_CONDITION` |
-| 条件に合う空室がない | `409` | `NO_AVAILABILITY` |
+| 日付形式が不正、必須パラメータ不足 | `400` | `VALIDATION_ERROR` |
+| チェックアウトがチェックイン以前、人数が0以下など | `400` | `VALIDATION_ERROR` |
+| 条件に合う空室がない | `404` | `NO_AVAILABILITY` |
 
 ## `POST /api/reservations`
 
 - 利用者情報と予約条件から予約を作成し、予約番号を発行する。
 - 予約は部屋タイプに対して作成し、具体的な部屋はチェックイン時に割り当てる。
+- 予約確定後、登録メールアドレスに確認メールを送信する。
 
 ### リクエスト
 
 ```json
 {
   "guest": {
-    "name": "山田太郎",
-    "contact": "taro@example.com"
+    "name": "山田 太郎",
+    "email": "taro@example.com",
+    "phone": "090-1234-5678"
   },
   "checkInDate": "2026-07-03",
-  "nights": 2,
+  "checkOutDate": "2026-07-05",
   "guestCount": 2,
   "roomTypeId": "rt_twin"
 }
 ```
 
+- `guest.phone` は省略可能。
+- `checkInDate` と `checkOutDate` を直接指定する（泊数は指定しない）。
+
 ### レスポンス
 
 ```json
 {
   "reservation": {
     "reservationNumber": "HRS-20260703-0001",
+    "roomTypeName": "ツイン",
+    "checkInDate": "2026-07-03",
+    "checkOutDate": "2026-07-05",
+    "nights": 2,
+    "guestCount": 2,
+    "guestName": "山田 太郎",
+    "email": "taro@example.com",
+    "phone": "090-1234-5678",
+    "totalCharge": 24000
+  }
+}
+```
+
+### 主なエラー
+
+| 条件 | ステータス | `code` |
+| --- | --- | --- |
+| 氏名・メールアドレスが空、形式不正 | `400` | `VALIDATION_ERROR` |
+| 宿泊人数が部屋タイプの定員を超える | `400` | `CAPACITY_EXCEEDED` |
+| 部屋タイプが存在しない | `404` | `ROOM_TYPE_NOT_FOUND` |
+| 作成直前に空室がなくなった | `409` | `NO_AVAILABILITY` |
+
+## `GET /api/reservations/{reservationNumber}`
+
+- 予約番号と氏名（姓・名）から予約内容と現在状態を取得する。
+- 予約確認、チェックイン前確認、キャンセル前確認で利用する。
+
+### クエリ
+
+| 名前 | 必須 | 型 | 説明 |
+| --- | --- | --- | --- |
+| `familyName` | yes | string | 予約者の姓 |
+| `givenName` | yes | string | 予約者の名 |
+
+### レスポンス
+
+```json
+{
+  "reservation": {
+    "reservationNumber": "HRS-20260703-0001",
+    "roomTypeName": "ツイン",
+    "checkInDate": "2026-07-03",
+    "checkOutDate": "2026-07-05",
+    "nights": 2,
+    "guestCount": 2,
+    "guestName": "山田 太郎",
+    "email": "taro@example.com",
+    "phone": "090-1234-5678",
     "status": "RESERVED",
-    "guestName": "山田太郎",
+    "totalCharge": 24000,
+    "roomNumber": null
+  }
+}
+```
+
+- `roomNumber` はチェックイン前は `null`、チェックイン済みは割当部屋番号を返す。
+
+### 主なエラー
+
+| 条件 | ステータス | `code` |
+| --- | --- | --- |
+| 予約番号が存在しない、または氏名が一致しない | `404` | `RESERVATION_NOT_FOUND` |
+
+---
+
+## `GET /api/reservations/{reservationNumber}/cancel/quote`
+
+- キャンセル確認画面用の予約内容とキャンセル可否を返す。
+- 予約が存在すれば内容を返す。キャンセル不可状態でも内容は返し、理由を `reason` で通知する。
+
+### クエリ
+
+| 名前 | 必須 | 型 | 説明 |
+| --- | --- | --- | --- |
+| `familyName` | yes | string | 予約者の姓 |
+| `givenName` | yes | string | 予約者の名 |
+
+### レスポンス
+
+```json
+{
+  "quote": {
+    "reservationNumber": "HRS-20260703-0001",
     "roomTypeName": "ツイン",
     "checkInDate": "2026-07-03",
     "checkOutDate": "2026-07-05",
     "guestCount": 2,
-    "estimatedAmount": 24000
-  }
-}
-```
-
-### 主なエラー
-
-| 条件 | ステータス | `code` |
-| --- | --- | --- |
-| 氏名または連絡先が空 | `400` | `VALIDATION_ERROR` |
-| 宿泊人数が部屋タイプの定員を超える | `422` | `CAPACITY_EXCEEDED` |
-| 作成直前に空室がなくなった | `409` | `NO_AVAILABILITY` |
-
-## `POST /api/reservations/lookup`
-
-- 予約番号と連絡先から予約内容と現在状態を取得する。
-- 予約確認、チェックイン前確認、チェックアウト前確認で利用する。
-- 連絡先を URL クエリに載せないため `POST` とする。
-
-### リクエスト
-
-```json
-{
-  "reservationNumber": "HRS-20260703-0001",
-  "contact": "taro@example.com"
-}
-```
-
-### レスポンス
-
-```json
-{
-  "reservation": {
-    "reservationNumber": "HRS-20260703-0001",
     "status": "RESERVED",
-    "guestName": "山田太郎",
-    "roomTypeName": "ツイン",
-    "roomNumber": null,
-    "checkInDate": "2026-07-03",
-    "checkOutDate": "2026-07-05",
-    "guestCount": 2
+    "cancelable": true,
+    "reason": null
   }
 }
 ```
+
+- `cancelable` が `false` の場合、`reason` にキャンセル不可理由を返す。
 
 ### 主なエラー
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
+| 予約番号が存在しない、または氏名が一致しない | `404` | `RESERVATION_NOT_FOUND` |
 
 ## `POST /api/reservations/{reservationNumber}/check-in`
 
 - 予約済みの予約に対して部屋を割り当て、宿泊を作成し、予約状態を `CHECKED_IN` にする。
+- チェックインはチェックイン予定日当日のみ可能（JST基準）。
 
 ### リクエスト
 
 ```json
 {
-  "contact": "taro@example.com",
-  "checkedInAt": "2026-07-03T15:00:00+09:00"
+  "familyName": "山田",
+  "givenName": "太郎"
 }
 ```
 
-- `checkedInAt` は省略可能とし、省略時はサーバー時刻を使う。
+- チェックイン日時はサーバー時刻を使う（クライアントから指定しない）。
 
 ### レスポンス
 
 ```json
 {
-  "reservation": {
+  "checkIn": {
     "reservationNumber": "HRS-20260703-0001",
-    "status": "CHECKED_IN"
-  },
-  "stay": {
+    "roomTypeName": "ツイン",
     "roomNumber": "502",
-    "checkedInAt": "2026-07-03T15:00:00+09:00"
+    "checkInDate": "2026-07-03",
+    "checkOutDate": "2026-07-05",
+    "guestCount": 2,
+    "checkedInAt": "2026-07-03T06:00:00.000Z"
   }
 }
 ```
@@ -248,49 +310,28 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
+| 予約番号が存在しない、または氏名が一致しない | `404` | `RESERVATION_NOT_FOUND` |
+| チェックイン予定日が今日でない | `409` | `NOT_CHECKIN_DATE` |
 | 予約状態が `RESERVED` ではない | `409` | `INVALID_RESERVATION_STATUS` |
 | 割り当て可能な部屋がない | `409` | `NO_ASSIGNABLE_ROOM` |
 
-## `POST /api/reservations/{reservationNumber}/check-out`
+## `GET /api/rooms/{roomNumber}/check-out/quote`
 
-- 宿泊を終了し、宿泊料金と支払い情報を記録する。
-- 予約状態は `CHECKED_OUT` にする。
-- 利用者に内部IDである `stayId` を直接指定させず、予約番号から現在の宿泊を特定する。
-
-### リクエスト
-
-```json
-{
-  "contact": "taro@example.com",
-  "checkedOutAt": "2026-07-05T10:00:00+09:00",
-  "payment": {
-    "amount": 24000,
-    "method": "card"
-  }
-}
-```
-
-- `checkedOutAt` は省略可能とし、省略時はサーバー時刻を使う。
+- 部屋番号から現在チェックイン中の宿泊を特定し、料金を計算して返す。
+- 確認画面表示用であり、この時点ではDBに何も保存しない。
 
 ### レスポンス
 
 ```json
 {
-  "reservation": {
-    "reservationNumber": "HRS-20260703-0001",
-    "status": "CHECKED_OUT"
-  },
-  "stay": {
+  "quote": {
     "roomNumber": "502",
-    "checkedOutAt": "2026-07-05T10:00:00+09:00"
-  },
-  "charge": {
+    "reservationNumber": "HRS-20260703-0001",
+    "roomTypeName": "ツイン",
+    "checkInDate": "2026-07-03",
+    "checkOutDate": "2026-07-05",
+    "nights": 2,
     "amount": 24000
-  },
-  "payment": {
-    "amount": 24000,
-    "method": "card"
   }
 }
 ```
@@ -299,22 +340,69 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
-| 対応する宿泊が存在しない | `404` | `STAY_NOT_FOUND` |
+| チェックイン中の宿泊が存在しない | `404` | `STAY_NOT_FOUND` |
+| チェックアウト済みの部屋 | `409` | `ALREADY_CHECKED_OUT` |
+
+---
+
+## `POST /api/rooms/{roomNumber}/check-out`
+
+- 部屋番号から宿泊を特定し、宿泊料金と支払い情報を記録してチェックアウトを確定する。
+- 予約状態は `CHECKED_OUT` にする。
+- チェックアウト後、登録メールアドレスに領収書メールを送信する。
+
+### リクエスト
+
+```json
+{
+  "amount": 24000,
+  "method": "現金"
+}
+```
+
+- `method` は `"現金"` または `"クレジットカード"` のいずれかのみ受け付ける。
+- `amount` は見積もり（quote）と一致しなければ `PAYMENT_AMOUNT_MISMATCH` を返す。
+- チェックアウト日時はサーバー時刻を使う（クライアントから指定しない）。
+
+### レスポンス
+
+```json
+{
+  "checkOut": {
+    "roomNumber": "502",
+    "reservationNumber": "HRS-20260703-0001",
+    "roomTypeName": "ツイン",
+    "amount": 24000,
+    "method": "現金",
+    "paidAt": "2026-07-05T01:00:00.000Z",
+    "checkedOutAt": "2026-07-05T01:00:00.000Z"
+  }
+}
+```
+
+### 主なエラー
+
+| 条件 | ステータス | `code` |
+| --- | --- | --- |
+| 支払い方法が空 | `400` | `VALIDATION_ERROR` |
+| 支払い方法が許可値以外 | `400` | `VALIDATION_ERROR` |
+| チェックイン中の宿泊が存在しない | `404` | `STAY_NOT_FOUND` |
 | すでにチェックアウト済み | `409` | `ALREADY_CHECKED_OUT` |
-| 支払金額が請求金額と一致しない | `422` | `PAYMENT_AMOUNT_MISMATCH` |
+| 支払金額が請求金額と一致しない | `409` | `PAYMENT_AMOUNT_MISMATCH` |
 
 ## `POST /api/reservations/{reservationNumber}/cancel`
 
 - 予約済みの予約をキャンセル済みにする。
 - チェックイン済み、チェックアウト済み、すでにキャンセル済みの予約はキャンセルできない。
 - 初期実装ではキャンセル料は扱わない。
+- キャンセル確定後、登録メールアドレスにキャンセル確認メールを送信する。
 
 ### リクエスト
 
 ```json
 {
-  "contact": "taro@example.com"
+  "familyName": "山田",
+  "givenName": "太郎"
 }
 ```
 
@@ -322,8 +410,12 @@
 
 ```json
 {
-  "reservation": {
+  "cancellation": {
     "reservationNumber": "HRS-20260703-0001",
+    "roomTypeName": "ツイン",
+    "checkInDate": "2026-07-03",
+    "checkOutDate": "2026-07-05",
+    "guestCount": 2,
     "status": "CANCELLED"
   }
 }
@@ -333,7 +425,7 @@
 
 | 条件 | ステータス | `code` |
 | --- | --- | --- |
-| 予約番号または連絡先が一致しない | `404` | `RESERVATION_NOT_FOUND` |
+| 予約番号が存在しない、または氏名が一致しない | `404` | `RESERVATION_NOT_FOUND` |
 | 予約状態が `RESERVED` ではない | `409` | `INVALID_RESERVATION_STATUS` |
 
 ## ユースケースとの対応
@@ -341,10 +433,24 @@
 | ユースケース | API | 備考 |
 | --- | --- | --- |
 | 部屋を予約する | `GET /api/room-types`, `GET /api/availability`, `POST /api/reservations` | 空室検索、候補表示、予約確定に分ける |
-| 予約を確認する | `POST /api/reservations/lookup` | 予約番号と連絡先を照合する |
-| チェックインする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/check-in` | 状態確認後に部屋を割り当てる |
-| チェックアウトする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/check-out` | 予約番号と連絡先を照合し、宿泊IDは画面へ不要な限り返さない |
-| 予約をキャンセルする | `POST /api/reservations/lookup`, `POST /api/reservations/{reservationNumber}/cancel` | 予約済み状態だけキャンセルできる |
+| 予約を確認する | `GET /api/reservations/{reservationNumber}` | 予約番号と氏名（姓・名）を照合する |
+| チェックインする | `GET /api/reservations/{reservationNumber}`, `POST /api/reservations/{reservationNumber}/check-in` | 予約内容確認後にチェックイン実行。当日のみ可能 |
+| チェックアウトする | `GET /api/rooms/{roomNumber}/check-out/quote`, `POST /api/rooms/{roomNumber}/check-out` | 部屋番号から宿泊を特定。見積もり確認後に支払い・確定 |
+| 予約をキャンセルする | `GET /api/reservations/{reservationNumber}/cancel/quote`, `POST /api/reservations/{reservationNumber}/cancel` | キャンセル可否確認後に確定。予約済み状態だけキャンセルできる |
+
+## `GET /api/cron/check-in-reminder`
+
+- Vercel Cron Job から毎日 0:00 UTC（9:00 JST）に呼ばれ、翌日チェックイン予定のゲストにリマインダーメールを送る。
+- `Authorization: Bearer {CRON_SECRET}` ヘッダーで認証する。
+
+### レスポンス
+
+```json
+{ "sent": 3, "date": "2026-07-04" }
+```
+
+- `sent`: 送信対象件数（送信失敗は含めない）。
+- このエンドポイントは画面からは呼ばない。
 
 ## 未確定事項
 
