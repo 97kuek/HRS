@@ -29,7 +29,7 @@ export default function ReservationLookupPage() {
             ← 照会に戻る
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700 }}>予約詳細</h2>
+            <h2 className="section-title" style={{ margin: 0 }}>予約詳細</h2>
             <span className="status-chip">{MOCK.status}</span>
           </div>
           <div className="confirm-table">
@@ -67,7 +67,8 @@ export default function ReservationLookupPage() {
   return (
     <main className="page-shell">
       <div style={{ maxWidth: 440 }}>
-        <h1 style={{ fontSize: '1.5rem', margin: '0 0 8px' }}>予約を確認する</h1>
+        <p className="page-kicker">RESERVATION</p>
+        <h1 className="page-title">予約を確認する</h1>
         <p style={{ color: 'var(--muted)', fontSize: '0.875rem', margin: '0 0 28px' }}>
           予約番号と代表者氏名を入力してください。
         </p>

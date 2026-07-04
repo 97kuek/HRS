@@ -1,30 +1,26 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "HRS",
   description: "Hotel Reservation System",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja">
       <body>
-        <header className="site-header">
-          <div className="site-header-inner">
-            <Link href="/" className="site-logo">
-              HRS
-            </Link>
-            <nav className="site-nav" aria-label="メインナビゲーション">
-              <Link href="/reservations/new">空室検索</Link>
-              <Link href="/reservations/lookup">予約照会</Link>
-            </nav>
-          </div>
-        </header>
+        <SiteHeader />
         {children}
+        <footer className="site-footer">
+          <div className="site-footer-inner">
+            <span>HRS — Hotel Reservation System</span>
+            <span className="site-footer-note">
+              ソフトウェア工学A チーム開発課題（学習用のデモ環境です）
+            </span>
+          </div>
+        </footer>
       </body>
     </html>
   );

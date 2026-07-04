@@ -1,31 +1,108 @@
 import Link from "next/link";
+import { HomeHeroGallery } from "@/components/HomeHeroGallery";
 
-const actions = [
-  { href: "/reservations/new", label: "部屋を予約する" },
-  { href: "/reservations/lookup", label: "予約を確認する" },
-  { href: "/check-in", label: "チェックインする" },
-  { href: "/check-out", label: "チェックアウトする" },
-  { href: "/reservations/cancel", label: "予約をキャンセルする" },
+const steps = [
+  {
+    n: "01",
+    title: "お部屋を予約",
+    desc: "ご希望の日程と人数で空室を検索し、オンラインでご予約いただけます。",
+  },
+  {
+    n: "02",
+    title: "チェックイン",
+    desc: "ご来館時は予約番号だけで、スムーズにチェックインできます。",
+  },
+  {
+    n: "03",
+    title: "チェックアウト",
+    desc: "ご退室時にお支払い。ご滞在の締めくくりまでオンラインで完結します。",
+  },
+];
+
+const services = [
+  {
+    href: "/reservations/lookup",
+    label: "予約を確認する",
+    desc: "予約番号からご予約内容を照会します。",
+  },
+  {
+    href: "/check-in",
+    label: "チェックイン",
+    desc: "ご来館時のお手続きはこちら。",
+  },
+  {
+    href: "/check-out",
+    label: "チェックアウト",
+    desc: "お支払いとご退室のお手続き。",
+  },
+  {
+    href: "/reservations/cancel",
+    label: "予約をキャンセル",
+    desc: "ご予約の取り消しはこちら。",
+  },
 ];
 
 export default function Home() {
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <p className="eyebrow">Hotel Reservation System</p>
-        <h1>HRS</h1>
-        <p className="lead">
-          予約、確認、チェックイン、チェックアウトを扱うホテル予約システムです。
-        </p>
+    <main className="home">
+      <section className="home-hero">
+        <HomeHeroGallery />
+        <div className="home-hero-inner">
+          <p className="home-kicker">HRS · Hotel Reservation System</p>
+          <h1 className="home-title">
+            西早稲田の中心で、
+            <br />
+            上質なご滞在を。
+          </h1>
+          <p className="home-tagline">
+            空室検索からご予約、チェックイン／チェックアウトまで。ご滞在にまつわるお手続きを、オンラインでスマートに。
+          </p>
+          <div className="home-cta">
+            <Link className="btn btn-gold btn-lg" href="/reservations/new">
+              お部屋を探す
+            </Link>
+            <Link className="btn btn-hero-ghost btn-lg" href="/reservations/lookup">
+              予約を確認する
+            </Link>
+          </div>
+        </div>
       </section>
 
-      <nav className="action-grid" aria-label="主要機能">
-        {actions.map((action) => (
-          <Link className="action-link" href={action.href} key={action.href}>
-            {action.label}
-          </Link>
-        ))}
-      </nav>
+      <div className="home-body">
+        <section className="home-section" aria-labelledby="flow-heading">
+          <p className="home-section-kicker">GUIDE</p>
+          <h2 className="home-h2" id="flow-heading">
+            ご利用の流れ
+          </h2>
+          <ol className="home-steps">
+            {steps.map((step) => (
+              <li className="home-step" key={step.n}>
+                <span className="home-step-num">{step.n}</span>
+                <span className="home-step-title">{step.title}</span>
+                <span className="home-step-desc">{step.desc}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="home-section" aria-labelledby="services-heading">
+          <p className="home-section-kicker">SERVICES</p>
+          <h2 className="home-h2" id="services-heading">
+            各種お手続き
+          </h2>
+          <nav className="home-services" aria-label="各種お手続き">
+            {services.map((service) => (
+              <Link className="service-card" href={service.href} key={service.href}>
+                <span className="service-card-title">{service.label}</span>
+                <span className="service-card-desc">{service.desc}</span>
+                <span className="service-card-arrow" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            ))}
+          </nav>
+        </section>
+      </div>
     </main>
   );
 }

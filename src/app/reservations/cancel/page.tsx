@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { LongWaitBar } from "@/components/LoadingIndicator";
+import { validateReservationNumber } from "@/lib/validation";
 
 interface Quote {
   reservationNumber: string;
@@ -29,17 +31,18 @@ interface ApiError {
 
 export default function CancelReservationPage() {
   const [reservationNumber, setReservationNumber] = useState("");
+  const [touched, setTouched] = useState(false);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [result, setResult] = useState<CancelResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const fieldError = validateReservationNumber(reservationNumber);
+
   async function fetchQuote() {
-    const number = reservationNumber.trim();
-    if (!number) {
-      setError("予約番号を入力してください。");
-      return;
-    }
+    setTouched(true);
+    if (fieldError) return;
+    const number = reservationNumber.trim().toUpperCase();
     setError(null);
     setLoading(true);
     try {
@@ -89,7 +92,7 @@ export default function CancelReservationPage() {
       <main className="page-shell">
         <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
           <div className="complete-mark">✓</div>
-          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>キャンセル完了</h1>
+          <h1 className="page-title">キャンセル完了</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 16px" }}>
             ご予約をキャンセルしました。
           </p>
@@ -120,7 +123,7 @@ export default function CancelReservationPage() {
     return (
       <main className="page-shell">
         <div style={{ maxWidth: 440 }}>
-          <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>予約内容の確認</h1>
+          <h1 className="page-title">予約内容の確認</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 20px" }}>
             以下のご予約をキャンセルしますか？
           </p>
@@ -154,10 +157,21 @@ export default function CancelReservationPage() {
                   className="btn btn-primary btn-lg"
                   onClick={confirmCancel}
                   disabled={loading}
+                  aria-busy={loading}
                 >
-                  {loading ? "処理中…" : "キャンセルする"}
+                  {loading ? (
+                    <>
+                      <span className="spinner" aria-hidden="true" /> 処理中…
+                    </>
+                  ) : (
+                    "キャンセルする"
+                  )}
                 </button>
               </div>
+              <LongWaitBar
+                loading={loading}
+                message="キャンセルを処理しています。そのままお待ちください…"
+              />
             </>
           ) : (
             <>
@@ -177,20 +191,46 @@ export default function CancelReservationPage() {
   return (
     <main className="page-shell">
       <div style={{ maxWidth: 440 }}>
-        <h1 style={{ fontSize: "1.5rem", margin: "0 0 8px" }}>予約のキャンセル</h1>
+        <p className="page-kicker">CANCELLATION</p>
+        <h1 className="page-title">予約のキャンセル</h1>
         <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
           キャンセルするご予約の予約番号を入力してください。
         </p>
         <div className="form-stack">
           <div className="field">
-            <label className="field-label field-required">予約番号</label>
+            <label className="field-label field-required" htmlFor="reservationNumber">
+              予約番号
+            </label>
             <input
-              className="field-input"
+              id="reservationNumber"
+              className={
+                !touched || reservationNumber.trim() === ""
+                  ? "field-input"
+                  : fieldError
+                    ? "field-input is-invalid"
+                    : "field-input is-valid"
+              }
               type="text"
               value={reservationNumber}
+              aria-describedby={
+                touched && fieldError
+                  ? "reservationNumber-hint reservationNumber-error"
+                  : "reservationNumber-hint"
+              }
+              aria-invalid={touched && Boolean(fieldError)}
+              onBlur={() => setTouched(true)}
               onChange={(e) => setReservationNumber(e.target.value)}
               placeholder="HRS-YYYYMMDD-NNNN"
             />
+            <span className="field-hint" id="reservationNumber-hint">
+              予約完了時に発行された番号です。半角英数字・ハイフンありで入力してください（例:
+              HRS-20260710-0042）。
+            </span>
+            {touched && fieldError && (
+              <span className="field-error" id="reservationNumber-error">
+                {fieldError}
+              </span>
+            )}
           </div>
           {error && <div className="error-box">{error}</div>}
         </div>
@@ -199,9 +239,17 @@ export default function CancelReservationPage() {
           style={{ marginTop: 20 }}
           onClick={fetchQuote}
           disabled={loading}
+          aria-busy={loading}
         >
-          {loading ? "照会中…" : "予約を照会する"}
+          {loading ? (
+            <>
+              <span className="spinner" aria-hidden="true" /> 照会中…
+            </>
+          ) : (
+            "予約を照会する"
+          )}
         </button>
+        <LongWaitBar loading={loading} message="ご予約を照会しています。そのままお待ちください…" />
       </div>
     </main>
   );
