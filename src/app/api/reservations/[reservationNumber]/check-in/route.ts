@@ -9,7 +9,7 @@ import { evaluateCheckIn, pickAssignableRoom, todayInHotelTz } from "@/lib/reser
  * UC「チェックインする」#10 コラボ図 msg2〜10 に対応。
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ reservationNumber: string }> },
 ) {
   const { reservationNumber } = await params;
@@ -17,15 +17,39 @@ export async function POST(
     return apiError(400, "VALIDATION_ERROR", "予約番号が指定されていません。");
   }
 
+  let familyName = "";
+  let givenName = "";
+  try {
+    const body = (await request.json()) as { familyName?: string; givenName?: string };
+    familyName = body.familyName?.trim() ?? "";
+    givenName = body.givenName?.trim() ?? "";
+  } catch {
+    // body なしは空文字のまま、下の validation で弾く。
+  }
+
+  if (!familyName || !givenName) {
+    return apiError(400, "VALIDATION_ERROR", "姓と名を入力してください。");
+  }
+
   try {
     const result = await prisma.$transaction(async (tx) => {
       // msg3: 予約を特定する（E1 予約番号無効）。
       const reservation = await tx.reservation.findUnique({
         where: { reservationNumber },
-        include: { roomType: { select: { name: true } } },
+        include: {
+          guest: { select: { name: true } },
+          roomType: { select: { name: true } },
+        },
       });
-      if (!reservation) {
-        throw new DomainError("RESERVATION_NOT_FOUND", 404, "指定された予約番号が見つかりません。");
+
+      const inputName = `${familyName} ${givenName}`.replace(/\s+/g, " ").trim();
+      const storedName = reservation?.guest.name.replace(/\s+/g, " ").trim();
+      if (!reservation || storedName !== inputName) {
+        throw new DomainError(
+          "RESERVATION_NOT_FOUND",
+          404,
+          "入力内容に一致する予約が見つかりませんでした。",
+        );
       }
 
       // msg4: 状態を確認する（E2 当日でない / E3 チェックイン済み等）。

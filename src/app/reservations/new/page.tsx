@@ -849,10 +849,13 @@ function Step5({ result }: { result: ReservationResult }) {
         </ul>
       </div>
       <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-        <Link href="/reservations/lookup" className="btn btn-secondary">
+        <button className="btn btn-secondary no-print" onClick={() => window.print()}>
+          印刷 / PDF保存
+        </button>
+        <Link href="/reservations/lookup" className="btn btn-secondary no-print">
           予約を確認する
         </Link>
-        <Link href="/" className="btn btn-primary">
+        <Link href="/" className="btn btn-primary no-print">
           トップへ戻る
         </Link>
       </div>

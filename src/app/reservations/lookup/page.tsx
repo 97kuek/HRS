@@ -16,6 +16,7 @@ interface LookupResult {
   contact: string;
   status: "RESERVED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
   totalCharge: number;
+  roomNumber: string | null;
 }
 
 interface ApiError {
@@ -91,6 +92,7 @@ export default function ReservationLookupPage() {
             {[
               ["予約番号", result.reservationNumber],
               ["客室", result.roomTypeName],
+              ...(result.roomNumber ? [["部屋番号", result.roomNumber] as [string, string]] : []),
               ["チェックイン", result.checkInDate],
               ["チェックアウト", result.checkOutDate],
               ["人数", `${result.guestCount}名`],
@@ -105,8 +107,23 @@ export default function ReservationLookupPage() {
             ))}
           </div>
           {result.status === "RESERVED" && (
-            <Link href="/reservations/cancel" className="btn btn-secondary btn-full">
-              この予約をキャンセルする
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {result.checkInDate === new Date().toISOString().slice(0, 10) && (
+                <Link href="/check-in" className="btn btn-primary btn-full">
+                  チェックインへ進む
+                </Link>
+              )}
+              <Link
+                href={`/reservations/cancel?r=${encodeURIComponent(result.reservationNumber)}`}
+                className="btn btn-secondary btn-full"
+              >
+                この予約をキャンセルする
+              </Link>
+            </div>
+          )}
+          {result.status === "CHECKED_IN" && (
+            <Link href="/check-out" className="btn btn-secondary btn-full">
+              チェックアウトへ進む
             </Link>
           )}
         </div>

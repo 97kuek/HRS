@@ -8,21 +8,31 @@ import { evaluateCancellation } from "@/lib/reservations/cancellation";
  * 予約が存在すれば内容とキャンセル可否を返す（不可でも状態を表示できるようにする）。
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ reservationNumber: string }> },
 ) {
   const { reservationNumber } = await params;
-  if (!reservationNumber) {
-    return apiError(400, "VALIDATION_ERROR", "予約番号が指定されていません。");
+  const searchParams = new URL(request.url).searchParams;
+  const familyName = searchParams.get("familyName")?.trim() ?? "";
+  const givenName = searchParams.get("givenName")?.trim() ?? "";
+
+  if (!reservationNumber || !familyName || !givenName) {
+    return apiError(400, "VALIDATION_ERROR", "予約番号、姓、名をすべて入力してください。");
   }
 
   try {
     const reservation = await prisma.reservation.findUnique({
-      where: { reservationNumber },
-      include: { roomType: { select: { name: true } } },
+      where: { reservationNumber: reservationNumber.toUpperCase() },
+      include: {
+        guest: { select: { name: true } },
+        roomType: { select: { name: true } },
+      },
     });
-    if (!reservation) {
-      return apiError(404, "RESERVATION_NOT_FOUND", "指定された予約番号が見つかりません。");
+
+    const inputName = `${familyName} ${givenName}`.replace(/\s+/g, " ").trim();
+    const storedName = reservation?.guest.name.replace(/\s+/g, " ").trim();
+    if (!reservation || storedName !== inputName) {
+      return apiError(404, "RESERVATION_NOT_FOUND", "入力内容に一致する予約が見つかりませんでした。");
     }
 
     const evaluation = evaluateCancellation(reservation.status);

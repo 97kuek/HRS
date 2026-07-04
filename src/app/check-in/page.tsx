@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { LongWaitBar } from "@/components/LoadingIndicator";
-import { validateReservationNumber } from "@/lib/validation";
+import { validateReservationNumber, validateName } from "@/lib/validation";
 
 interface CheckInResult {
   reservationNumber: string;
@@ -21,12 +21,17 @@ interface ApiError {
 
 export default function CheckInPage() {
   const [reservationNumber, setReservationNumber] = useState("");
+  const [familyName, setFamilyName] = useState("");
+  const [givenName, setGivenName] = useState("");
   const [touched, setTouched] = useState(false);
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const fieldError = validateReservationNumber(reservationNumber);
+  const reservationNumberError = validateReservationNumber(reservationNumber);
+  const familyNameError = validateName(familyName, "姓");
+  const givenNameError = validateName(givenName, "名");
+  const fieldError = reservationNumberError ?? familyNameError ?? givenNameError;
 
   async function checkIn() {
     setTouched(true);
@@ -37,6 +42,8 @@ export default function CheckInPage() {
     try {
       const res = await fetch(`/api/reservations/${encodeURIComponent(number)}/check-in`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ familyName: familyName.trim(), givenName: givenName.trim() }),
       });
       const data = (await res.json()) as { checkIn: CheckInResult } | ApiError;
       if (!res.ok) {
@@ -90,7 +97,7 @@ export default function CheckInPage() {
       <div className="page-panel">
         <p className="page-kicker">CHECK-IN</p>
         <h1 className="page-title">チェックイン</h1>
-        <p className="page-intro">ご予約時に発行された予約番号を入力してください。</p>
+        <p className="page-intro">ご予約時に発行された予約番号と宿泊代表者のお名前を入力してください。</p>
         <div className="form-stack">
           <div className="field">
             <label className="field-label field-required" htmlFor="reservationNumber">
@@ -101,18 +108,18 @@ export default function CheckInPage() {
               className={
                 !touched || reservationNumber.trim() === ""
                   ? "field-input"
-                  : fieldError
+                  : reservationNumberError
                     ? "field-input is-invalid"
                     : "field-input is-valid"
               }
               type="text"
               value={reservationNumber}
               aria-describedby={
-                touched && fieldError
+                touched && reservationNumberError
                   ? "reservationNumber-hint reservationNumber-error"
                   : "reservationNumber-hint"
               }
-              aria-invalid={touched && Boolean(fieldError)}
+              aria-invalid={touched && Boolean(reservationNumberError)}
               onBlur={() => setTouched(true)}
               onChange={(e) => setReservationNumber(e.target.value)}
               placeholder="HRS-YYYYMMDD-NNNN"
@@ -121,11 +128,63 @@ export default function CheckInPage() {
               予約完了時に発行された番号です。半角英数字・ハイフンありで入力してください（例:
               HRS-20260710-0042）。
             </span>
-            {touched && fieldError && (
+            {touched && reservationNumberError && (
               <span className="field-error" id="reservationNumber-error">
-                {fieldError}
+                {reservationNumberError}
               </span>
             )}
+          </div>
+          <div className="form-row">
+            <div className="field">
+              <label className="field-label field-required" htmlFor="checkInFamilyName">
+                姓
+              </label>
+              <input
+                id="checkInFamilyName"
+                className={
+                  !touched || familyName.trim() === ""
+                    ? "field-input"
+                    : familyNameError
+                      ? "field-input is-invalid"
+                      : "field-input is-valid"
+                }
+                type="text"
+                value={familyName}
+                autoComplete="family-name"
+                placeholder="山田"
+                aria-invalid={touched && Boolean(familyNameError)}
+                onBlur={() => setTouched(true)}
+                onChange={(e) => setFamilyName(e.target.value)}
+              />
+              {touched && familyNameError && (
+                <span className="field-error">{familyNameError}</span>
+              )}
+            </div>
+            <div className="field">
+              <label className="field-label field-required" htmlFor="checkInGivenName">
+                名
+              </label>
+              <input
+                id="checkInGivenName"
+                className={
+                  !touched || givenName.trim() === ""
+                    ? "field-input"
+                    : givenNameError
+                      ? "field-input is-invalid"
+                      : "field-input is-valid"
+                }
+                type="text"
+                value={givenName}
+                autoComplete="given-name"
+                placeholder="太郎"
+                aria-invalid={touched && Boolean(givenNameError)}
+                onBlur={() => setTouched(true)}
+                onChange={(e) => setGivenName(e.target.value)}
+              />
+              {touched && givenNameError && (
+                <span className="field-error">{givenNameError}</span>
+              )}
+            </div>
           </div>
           {error && <div className="error-box">{error}</div>}
         </div>

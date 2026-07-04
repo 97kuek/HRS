@@ -22,6 +22,7 @@ export async function GET(
       include: {
         guest: { select: { name: true, contact: true } },
         roomType: { select: { name: true, baseRate: true } },
+        stay: { include: { room: { select: { roomNumber: true } } } },
       },
     });
 
@@ -51,6 +52,7 @@ export async function GET(
         contact: reservation.guest.contact,
         status: reservation.status,
         totalCharge: reservation.roomType.baseRate * nights,
+        roomNumber: reservation.stay?.room.roomNumber ?? null,
       },
     });
   } catch (error) {
