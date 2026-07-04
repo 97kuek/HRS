@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HomeHeroGallery } from "@/components/HomeHeroGallery";
 
 const steps = [
   {
@@ -45,6 +46,7 @@ export default function Home() {
   return (
     <main className="home">
       <section className="home-hero">
+        <HomeHeroGallery />
         <div className="home-hero-inner">
           <p className="home-kicker">HRS · Hotel Reservation System</p>
           <h1 className="home-title">

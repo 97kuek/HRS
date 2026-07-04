@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
+import roomDeluxeTwin from "@/assets/room-deluxe-twin.webp";
+import roomFamily from "@/assets/room-family.webp";
+import roomStandardSingle from "@/assets/room-standard-single.webp";
+import roomSuite from "@/assets/room-suite.webp";
+import roomSuperiorDouble from "@/assets/room-superior-double.webp";
 import { LongWaitBar } from "@/components/LoadingIndicator";
 import { CompletionMeter } from "@/components/CompletionMeter";
 import { LeaveConfirmModal, useBeforeUnloadGuard } from "@/components/LeaveGuard";
@@ -50,6 +56,17 @@ interface ApiError {
 }
 
 const yen = (n: number) => `¥${n.toLocaleString()}`;
+
+const ROOM_IMAGES: Record<string, StaticImageData> = {
+  スタンダードシングル: roomStandardSingle,
+  スーペリアダブル: roomSuperiorDouble,
+  デラックスツイン: roomDeluxeTwin,
+  和室スイート: roomSuite,
+};
+
+function roomImage(name: string) {
+  return ROOM_IMAGES[name] ?? roomFamily;
+}
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -366,8 +383,13 @@ function Step2({
             const low = room.availableCount <= 2;
             return (
               <div key={room.roomTypeId} className="room-card">
-                <div className="room-photo" aria-hidden="true">
-                  <span style={{ fontSize: "1.75rem", lineHeight: 1 }}>🛏️</span>
+                <div className="room-photo">
+                  <Image
+                    src={roomImage(room.name)}
+                    alt={`${room.name}の客室内観`}
+                    fill
+                    sizes="(max-width: 480px) calc(100vw - 56px), 144px"
+                  />
                 </div>
                 <div className="room-info">
                   <p className="room-name">
@@ -545,7 +567,14 @@ function Step3({
       <div className="layout-aside">
         <div className="summary-panel">
           <p className="summary-panel-title">予約内容</p>
-          <div className="summary-photo" />
+          <div className="summary-photo">
+            <Image
+              src={roomImage(room.name)}
+              alt={`${room.name}の客室内観`}
+              fill
+              sizes="(max-width: 768px) calc(100vw - 60px), 200px"
+            />
+          </div>
           <p
             style={{
               fontWeight: 700,
