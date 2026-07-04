@@ -16,21 +16,6 @@ export function validateName(value: string, label = "氏名"): ValidationResult 
 }
 
 /**
- * 連絡先は電話番号（ハイフン有無どちらも可・半角数字）またはメールアドレス。
- */
-export function validateContact(value: string): ValidationResult {
-  const v = value.trim();
-  if (v.length === 0) return "連絡先を入力してください。";
-  const digits = v.replace(/[-\s]/g, "");
-  const isPhone = /^0\d{9,10}$/.test(digits);
-  const isEmail = EMAIL_RE.test(v);
-  if (!isPhone && !isEmail) {
-    return "電話番号（例: 090-1234-5678）またはメールアドレス（例: guest@example.com）の形式で入力してください。半角で入力してください。";
-  }
-  return null;
-}
-
-/**
  * 予約番号は「HRS-YYYYMMDD-NNNN」形式（半角英数字）。
  * 大文字小文字は問わない（照合側で大文字化する想定）。
  */

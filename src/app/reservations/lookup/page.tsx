@@ -110,7 +110,7 @@ export default function ReservationLookupPage() {
           </div>
           {result.status === "RESERVED" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {result.checkInDate === new Date().toISOString().slice(0, 10) && (
+              {result.checkInDate === new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" }) && (
                 <Link href="/check-in" className="btn btn-primary btn-full">
                   チェックインへ進む
                 </Link>
@@ -139,70 +139,72 @@ export default function ReservationLookupPage() {
         <p className="page-kicker">RESERVATION</p>
         <h1 className="page-title">予約を確認する</h1>
         <p className="page-intro">予約番号と宿泊代表者のお名前を入力してください。</p>
-        <div className="form-stack">
-          <div className="field">
-            <label className="field-label field-required" htmlFor="lookupReservationNumber">
-              予約番号
-            </label>
-            <input
-              id="lookupReservationNumber"
-              className="field-input"
-              type="text"
-              value={reservationNumber}
-              onChange={(event) => setReservationNumber(event.target.value)}
-              placeholder="HRS-YYYYMMDD-NNNN"
-              aria-invalid={touched && Boolean(reservationNumberError)}
-            />
-            {touched && reservationNumberError && (
-              <span className="field-error">{reservationNumberError}</span>
-            )}
-          </div>
-          <div className="form-row">
+        <form onSubmit={(e) => { e.preventDefault(); search(); }}>
+          <div className="form-stack">
             <div className="field">
-              <label className="field-label field-required" htmlFor="lookupFamilyName">
-                姓
+              <label className="field-label field-required" htmlFor="lookupReservationNumber">
+                予約番号
               </label>
               <input
-                id="lookupFamilyName"
+                id="lookupReservationNumber"
                 className="field-input"
                 type="text"
-                value={familyName}
-                onChange={(event) => setFamilyName(event.target.value)}
-                autoComplete="family-name"
-                placeholder="山田"
-                aria-invalid={touched && Boolean(familyNameError)}
+                value={reservationNumber}
+                onChange={(event) => setReservationNumber(event.target.value)}
+                placeholder="HRS-YYYYMMDD-NNNN"
+                aria-invalid={touched && Boolean(reservationNumberError)}
               />
-              {touched && familyNameError && <span className="field-error">{familyNameError}</span>}
+              {touched && reservationNumberError && (
+                <span className="field-error">{reservationNumberError}</span>
+              )}
             </div>
-            <div className="field">
-              <label className="field-label field-required" htmlFor="lookupGivenName">
-                名
-              </label>
-              <input
-                id="lookupGivenName"
-                className="field-input"
-                type="text"
-                value={givenName}
-                onChange={(event) => setGivenName(event.target.value)}
-                autoComplete="given-name"
-                placeholder="太郎"
-                aria-invalid={touched && Boolean(givenNameError)}
-              />
-              {touched && givenNameError && <span className="field-error">{givenNameError}</span>}
+            <div className="form-row">
+              <div className="field">
+                <label className="field-label field-required" htmlFor="lookupFamilyName">
+                  姓
+                </label>
+                <input
+                  id="lookupFamilyName"
+                  className="field-input"
+                  type="text"
+                  value={familyName}
+                  onChange={(event) => setFamilyName(event.target.value)}
+                  autoComplete="family-name"
+                  placeholder="山田"
+                  aria-invalid={touched && Boolean(familyNameError)}
+                />
+                {touched && familyNameError && <span className="field-error">{familyNameError}</span>}
+              </div>
+              <div className="field">
+                <label className="field-label field-required" htmlFor="lookupGivenName">
+                  名
+                </label>
+                <input
+                  id="lookupGivenName"
+                  className="field-input"
+                  type="text"
+                  value={givenName}
+                  onChange={(event) => setGivenName(event.target.value)}
+                  autoComplete="given-name"
+                  placeholder="太郎"
+                  aria-invalid={touched && Boolean(givenNameError)}
+                />
+                {touched && givenNameError && <span className="field-error">{givenNameError}</span>}
+              </div>
             </div>
+            {error && <div className="error-box">{error}</div>}
           </div>
-          {error && <div className="error-box">{error}</div>}
-        </div>
-        <button
-          className="btn btn-primary btn-full btn-lg"
-          style={{ marginTop: 20 }}
-          onClick={search}
-          disabled={loading}
-          aria-busy={loading}
-        >
-          {loading ? "照会中…" : "予約を照会する"}
-        </button>
-        <LongWaitBar loading={loading} message="ご予約を照会しています…" />
+          <button
+            type="submit"
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: 20 }}
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? "照会中…" : "予約を照会する"}
+          </button>
+          <LongWaitBar loading={loading} message="ご予約を照会しています…" />
+        </form>
       </div>
     </main>
   );

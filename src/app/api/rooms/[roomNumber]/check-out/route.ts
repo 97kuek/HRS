@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { apiError, internalServerError } from "@/lib/api/response";
+import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/checkOut";
 import { sendCheckOutReceipt } from "@/lib/email/send";
@@ -28,10 +28,16 @@ export async function POST(
     return apiError(400, "VALIDATION_ERROR", "リクエスト本文が不正です。");
   }
 
+  const ALLOWED_METHODS = ["現金", "クレジットカード"];
   const method = typeof body.method === "string" ? body.method.trim() : "";
   if (method.length === 0) {
     return apiError(400, "VALIDATION_ERROR", "支払い方法を指定してください。", [
       { field: "method", message: "支払い方法を選択してください。" },
+    ]);
+  }
+  if (!ALLOWED_METHODS.includes(method)) {
+    return apiError(400, "VALIDATION_ERROR", "支払い方法が不正です。", [
+      { field: "method", message: "「現金」または「クレジットカード」を選択してください。" },
     ]);
   }
   const submittedAmount = Number(body.amount);
@@ -145,13 +151,3 @@ export async function POST(
   }
 }
 
-/** ドメイン上のチェックアウト不可要因をトランザクション外へ伝える内部例外。 */
-class DomainError extends Error {
-  constructor(
-    readonly code: Parameters<typeof apiError>[1],
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}

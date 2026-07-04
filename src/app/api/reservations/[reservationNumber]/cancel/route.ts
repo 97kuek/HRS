@@ -1,4 +1,4 @@
-import { apiError, internalServerError } from "@/lib/api/response";
+import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { evaluateCancellation } from "@/lib/reservations/cancellation";
 import { sendReservationCancellation } from "@/lib/email/send";
@@ -6,14 +6,28 @@ import { sendReservationCancellation } from "@/lib/email/send";
 /**
  * POST /api/reservations/[reservationNumber]/cancel
  * UC「予約をキャンセルする」：予約状態のキャンセル更新（確定）。
+ * body: { familyName, givenName }
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ reservationNumber: string }> },
 ) {
   const { reservationNumber } = await params;
   if (!reservationNumber) {
     return apiError(400, "VALIDATION_ERROR", "予約番号が指定されていません。");
+  }
+
+  let familyName = "";
+  let givenName = "";
+  try {
+    const body = (await request.json()) as { familyName?: string; givenName?: string };
+    familyName = body.familyName?.trim() ?? "";
+    givenName = body.givenName?.trim() ?? "";
+  } catch {
+    // body なしは空文字のまま、下の validation で弾く。
+  }
+  if (!familyName || !givenName) {
+    return apiError(400, "VALIDATION_ERROR", "姓と名を入力してください。");
   }
 
   try {
@@ -26,8 +40,12 @@ export async function POST(
           roomType: { select: { name: true } },
         },
       });
-      if (!reservation) {
-        throw new DomainError("RESERVATION_NOT_FOUND", 404, "指定された予約番号が見つかりません。");
+
+      // 名前照合（quote と同じロジック）。
+      const inputName = `${familyName} ${givenName}`.replace(/\s+/g, " ").trim();
+      const storedName = reservation?.guest.name.replace(/\s+/g, " ").trim();
+      if (!reservation || storedName !== inputName) {
+        throw new DomainError("RESERVATION_NOT_FOUND", 404, "入力内容に一致する予約が見つかりませんでした。");
       }
 
       // 状態を確認する（キャンセル済み / チェックイン済み等）。
@@ -81,13 +99,3 @@ export async function POST(
   }
 }
 
-/** ドメイン上のキャンセル不可要因をトランザクション外へ伝える内部例外。 */
-class DomainError extends Error {
-  constructor(
-    readonly code: Parameters<typeof apiError>[1],
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}

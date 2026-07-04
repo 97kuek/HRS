@@ -126,7 +126,7 @@ export default function Home() {
             </div>
             <div className="home-access-map">
               <iframe
-                src="https://maps.google.com/maps?q=35.7073,139.7153&z=16&ie=UTF8&output=embed&hl=ja"
+                src="https://www.google.com/maps?q=35.7073,139.7153&z=16&output=embed&hl=ja"
                 title="西早稲田キャンパス 地図"
                 allowFullScreen
                 loading="lazy"
