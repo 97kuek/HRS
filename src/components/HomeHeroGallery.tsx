@@ -76,7 +76,6 @@ export function HomeHeroGallery() {
         })}
       </div>
       <div className="home-gallery-status">
-        <span className="home-gallery-label">{slides[current].label}</span>
         <div className="home-gallery-dots" aria-label="ホテルギャラリー">
           {slides.map((slide, index) => (
             <button
