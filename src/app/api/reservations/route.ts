@@ -56,7 +56,12 @@ export async function POST(request: Request) {
     { requireRoomType: true },
   );
   if (!conditionResult.ok) {
-    return apiError(400, "VALIDATION_ERROR", "予約条件が正しくありません。", conditionResult.errors);
+    return apiError(
+      400,
+      "VALIDATION_ERROR",
+      "予約条件が正しくありません。",
+      conditionResult.errors,
+    );
   }
   const condition = conditionResult.value;
   const roomTypeId = condition.roomTypeId!;
@@ -74,10 +79,18 @@ export async function POST(request: Request) {
         const reservation = await prisma.$transaction(async (tx) => {
           const roomType = await tx.roomType.findUnique({ where: { id: roomTypeId } });
           if (!roomType) {
-            throw new DomainError("ROOM_TYPE_NOT_FOUND", 404, "指定された部屋タイプが見つかりません。");
+            throw new DomainError(
+              "ROOM_TYPE_NOT_FOUND",
+              404,
+              "指定された部屋タイプが見つかりません。",
+            );
           }
           if (roomType.capacity < condition.guestCount) {
-            throw new DomainError("CAPACITY_EXCEEDED", 400, "選択した部屋タイプの定員を超えています。");
+            throw new DomainError(
+              "CAPACITY_EXCEEDED",
+              400,
+              "選択した部屋タイプの定員を超えています。",
+            );
           }
 
           // 確定直前に最新の空室を再確認（基本系列 6 / 例外 E3）。
@@ -121,6 +134,8 @@ export async function POST(request: Request) {
               checkOutDate: reservation.checkOutDate.toISOString().slice(0, 10),
               nights: condition.nights,
               guestCount: reservation.guestCount,
+              guestName: guestResult.name,
+              contact: guestResult.contact,
               totalCharge: reservation.roomType.baseRate * condition.nights,
             },
           },
@@ -140,7 +155,11 @@ export async function POST(request: Request) {
     }
 
     // リトライ上限到達（E5）。
-    return apiError(500, "INTERNAL_SERVER_ERROR", "予約番号の発行に失敗しました。時間をおいて再度お試しください。");
+    return apiError(
+      500,
+      "INTERNAL_SERVER_ERROR",
+      "予約番号の発行に失敗しました。時間をおいて再度お試しください。",
+    );
   } catch (error) {
     if (error instanceof DomainError) {
       return apiError(error.status, error.code, error.message);
