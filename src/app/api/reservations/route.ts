@@ -7,35 +7,51 @@ import {
   validateReservationCondition,
 } from "@/lib/reservations/availability";
 import { generateReservationNumber } from "@/lib/reservations/reservationNumber";
+import { sendReservationConfirmation } from "@/lib/email/send";
 
 const RESERVATION_NUMBER_MAX_RETRIES = 5;
 
-type GuestInput = { name?: unknown; contact?: unknown };
+type GuestInput = { name?: unknown; email?: unknown; phone?: unknown };
 
 /** 利用者情報のバリデーション（ユースケース E4）。 */
-function validateGuest(input: GuestInput): { name: string; contact: string } | ApiErrorDetail[] {
+function validateGuest(
+  input: GuestInput,
+): { name: string; email: string; phone: string | null } | ApiErrorDetail[] {
   const errors: ApiErrorDetail[] = [];
   const name = typeof input.name === "string" ? input.name.trim() : "";
-  const contact = typeof input.contact === "string" ? input.contact.trim() : "";
+  const email = typeof input.email === "string" ? input.email.trim() : "";
+  const phone = typeof input.phone === "string" ? input.phone.trim() : "";
 
   if (name.length === 0) {
     errors.push({ field: "guest.name", message: "氏名を入力してください。" });
   } else if (name.length > 100) {
     errors.push({ field: "guest.name", message: "氏名は 100 文字以内で入力してください。" });
   }
-  if (contact.length === 0) {
-    errors.push({ field: "guest.contact", message: "連絡先を入力してください。" });
-  } else if (contact.length > 200) {
-    errors.push({ field: "guest.contact", message: "連絡先は 200 文字以内で入力してください。" });
+  if (email.length === 0) {
+    errors.push({ field: "guest.email", message: "メールアドレスを入力してください。" });
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.push({
+      field: "guest.email",
+      message: "メールアドレスの形式が正しくありません。",
+    });
+  }
+  if (phone.length > 0) {
+    const digits = phone.replace(/[-\s]/g, "");
+    if (!/^0\d{9,10}$/.test(digits)) {
+      errors.push({
+        field: "guest.phone",
+        message: "電話番号は市外局番から半角数字で入力してください（例: 090-1234-5678）。",
+      });
+    }
   }
 
-  return errors.length > 0 ? errors : { name, contact };
+  return errors.length > 0 ? errors : { name, email, phone: phone || null };
 }
 
 /**
  * POST /api/reservations
  * UC「部屋を予約する」基本系列 6・9・12〜13。
- * body: { roomTypeId, checkInDate, checkOutDate, guestCount, guest: { name, contact } }
+ * body: { roomTypeId, checkInDate, checkOutDate, guestCount, guest: { name, email, phone? } }
  */
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -109,7 +125,11 @@ export async function POST(request: Request) {
           }
 
           const guest = await tx.guest.create({
-            data: { name: guestResult.name, contact: guestResult.contact },
+            data: {
+              name: guestResult.name,
+              email: guestResult.email,
+              phone: guestResult.phone,
+            },
           });
 
           return tx.reservation.create({
@@ -125,22 +145,35 @@ export async function POST(request: Request) {
           });
         });
 
-        return Response.json(
-          {
-            reservation: {
-              reservationNumber: reservation.reservationNumber,
-              roomTypeName: reservation.roomType.name,
-              checkInDate: reservation.checkInDate.toISOString().slice(0, 10),
-              checkOutDate: reservation.checkOutDate.toISOString().slice(0, 10),
-              nights: condition.nights,
-              guestCount: reservation.guestCount,
-              guestName: guestResult.name,
-              contact: guestResult.contact,
-              totalCharge: reservation.roomType.baseRate * condition.nights,
-            },
+        const totalCharge = reservation.roomType.baseRate * condition.nights;
+        const responsePayload = {
+          reservation: {
+            reservationNumber: reservation.reservationNumber,
+            roomTypeName: reservation.roomType.name,
+            checkInDate: reservation.checkInDate.toISOString().slice(0, 10),
+            checkOutDate: reservation.checkOutDate.toISOString().slice(0, 10),
+            nights: condition.nights,
+            guestCount: reservation.guestCount,
+            guestName: guestResult.name,
+            email: guestResult.email,
+            phone: guestResult.phone,
+            totalCharge,
           },
-          { status: 201 },
-        );
+        };
+
+        // 確定メール送信（失敗しても 201 を返す）。
+        void sendReservationConfirmation(guestResult.email, {
+          guestName: guestResult.name,
+          reservationNumber: reservation.reservationNumber,
+          roomTypeName: reservation.roomType.name,
+          checkInDate: reservation.checkInDate.toISOString().slice(0, 10),
+          checkOutDate: reservation.checkOutDate.toISOString().slice(0, 10),
+          nights: condition.nights,
+          guestCount: reservation.guestCount,
+          totalCharge,
+        });
+
+        return Response.json(responsePayload, { status: 201 });
       } catch (error) {
         // 予約番号の一意制約違反はリトライする。
         if (

@@ -73,3 +73,21 @@ export function validateGuestCount(count: number): ValidationResult {
   if (count > 10) return "宿泊人数は10名以内で入力してください。";
   return null;
 }
+
+export function validateEmail(value: string): ValidationResult {
+  const v = value.trim();
+  if (v.length === 0) return "メールアドレスを入力してください。";
+  if (!EMAIL_RE.test(v))
+    return "メールアドレスは「sample@example.com」の形式で入力してください。";
+  return null;
+}
+
+export function validatePhone(value: string): ValidationResult {
+  const v = value.trim();
+  if (v.length === 0) return null; // 任意
+  const digits = v.replace(/[-\s]/g, "");
+  if (!/^0\d{9,10}$/.test(digits)) {
+    return "電話番号は市外局番から入力してください（例: 090-1234-5678）。半角数字で入力してください。";
+  }
+  return null;
+}

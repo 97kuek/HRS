@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { apiError, internalServerError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/checkOut";
+import { sendCheckOutReceipt } from "@/lib/email/send";
 
 type CheckOutBody = { amount?: unknown; method?: unknown };
 
@@ -45,7 +46,10 @@ export async function POST(
         where: { room: { roomNumber }, checkedOutAt: null },
         include: {
           reservation: {
-            include: { roomType: { select: { name: true, baseRate: true } } },
+            include: {
+              guest: { select: { name: true, email: true } },
+              roomType: { select: { name: true, baseRate: true } },
+            },
           },
         },
       });
@@ -96,6 +100,23 @@ export async function POST(
       });
 
       return { reservation, stay, charge, payment };
+    });
+
+    // チェックアウト後メール送信（失敗しても 200 を返す）。
+    const nights = calculateNights(
+      result.reservation.checkInDate,
+      result.reservation.checkOutDate,
+    );
+    void sendCheckOutReceipt(result.reservation.guest.email, {
+      guestName: result.reservation.guest.name,
+      reservationNumber: result.reservation.reservationNumber,
+      roomNumber,
+      roomTypeName: result.reservation.roomType.name,
+      checkInDate: result.reservation.checkInDate.toISOString().slice(0, 10),
+      checkOutDate: result.reservation.checkOutDate.toISOString().slice(0, 10),
+      nights,
+      amount: result.charge.amount,
+      method: result.payment.method,
     });
 
     // msg9: 結果を返す（完了と支払い内容）。msg11 の表示材料。

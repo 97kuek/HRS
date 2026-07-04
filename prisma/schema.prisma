@@ -17,7 +17,8 @@ enum ReservationStatus {
 model Guest {
   id           String        @id @default(cuid())
   name         String
-  contact      String
+  email        String
+  phone        String?
   reservations Reservation[]
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")

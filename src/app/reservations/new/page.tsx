@@ -13,7 +13,8 @@ import { CompletionMeter } from "@/components/CompletionMeter";
 import { LeaveConfirmModal, useBeforeUnloadGuard } from "@/components/LeaveGuard";
 import {
   validateName,
-  validateContact,
+  validateEmail,
+  validatePhone,
   validateStayDates,
   validateGuestCount,
 } from "@/lib/validation";
@@ -39,7 +40,8 @@ interface SearchCondition {
 interface GuestForm {
   familyName: string;
   givenName: string;
-  contact: string;
+  email: string;
+  phone: string;
 }
 
 interface ReservationResult {
@@ -50,7 +52,8 @@ interface ReservationResult {
   nights: number;
   guestCount: number;
   guestName: string;
-  contact: string;
+  email: string;
+  phone: string | null;
   totalCharge: number;
 }
 
@@ -486,29 +489,34 @@ function Step3({
 }) {
   const [familyName, setFamilyName] = useState(initial.familyName);
   const [givenName, setGivenName] = useState(initial.givenName);
-  const [contact, setContact] = useState(initial.contact);
+  const [email, setEmail] = useState(initial.email);
+  const [phone, setPhone] = useState(initial.phone);
   const [touched, setTouched] = useState<{
     familyName: boolean;
     givenName: boolean;
-    contact: boolean;
+    email: boolean;
+    phone: boolean;
   }>({
     familyName: false,
     givenName: false,
-    contact: false,
+    email: false,
+    phone: false,
   });
 
   const familyNameError = validateName(familyName, "姓");
   const givenNameError = validateName(givenName, "名");
-  const contactError = validateContact(contact);
-  const completed = (familyNameError ? 0 : 1) + (givenNameError ? 0 : 1) + (contactError ? 0 : 1);
+  const emailError = validateEmail(email);
+  const phoneError = validatePhone(phone);
+  const completed = (familyNameError ? 0 : 1) + (givenNameError ? 0 : 1) + (emailError ? 0 : 1);
 
   function next() {
-    setTouched({ familyName: true, givenName: true, contact: true });
-    if (!familyNameError && !givenNameError && !contactError) {
+    setTouched({ familyName: true, givenName: true, email: true, phone: true });
+    if (!familyNameError && !givenNameError && !emailError && !phoneError) {
       onNext({
         familyName: familyName.trim(),
         givenName: givenName.trim(),
-        contact: contact.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
       });
     }
   }
@@ -580,31 +588,60 @@ function Step3({
             </div>
           </div>
           <div className="field">
-            <label className="field-label field-required" htmlFor="guestContact">
-              連絡先（電話番号 / メール）
+            <label className="field-label field-required" htmlFor="guestEmail">
+              メールアドレス
             </label>
             <input
-              id="guestContact"
-              className={inputClass(touched.contact, contact, contactError)}
-              type="text"
-              placeholder="090-1234-5678 または guest@example.com"
-              value={contact}
+              id="guestEmail"
+              className={inputClass(touched.email, email, emailError)}
+              type="email"
+              placeholder="guest@example.com"
+              value={email}
+              autoComplete="email"
               aria-describedby={
-                touched.contact && contactError
-                  ? "guestContact-hint guestContact-error"
-                  : "guestContact-hint"
+                touched.email && emailError
+                  ? "guestEmail-hint guestEmail-error"
+                  : "guestEmail-hint"
               }
-              aria-invalid={touched.contact && Boolean(contactError)}
-              onBlur={() => setTouched((t) => ({ ...t, contact: true }))}
-              onChange={(e) => setContact(e.target.value)}
+              aria-invalid={touched.email && Boolean(emailError)}
+              onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <span className="field-hint" id="guestContact-hint">
-              電話番号は市外局番から。ハイフンは有無どちらでも可（例: 09012345678 /
-              090-1234-5678）。メールは半角で入力してください。
+            <span className="field-hint" id="guestEmail-hint">
+              予約確認メールの送信先です。半角で入力してください（例: guest@example.com）。
             </span>
-            {touched.contact && contactError && (
-              <span className="field-error" id="guestContact-error">
-                {contactError}
+            {touched.email && emailError && (
+              <span className="field-error" id="guestEmail-error">
+                {emailError}
+              </span>
+            )}
+          </div>
+          <div className="field">
+            <label className="field-label field-optional" htmlFor="guestPhone">
+              電話番号
+            </label>
+            <input
+              id="guestPhone"
+              className={inputClass(touched.phone, phone, phoneError)}
+              type="tel"
+              placeholder="090-1234-5678"
+              value={phone}
+              autoComplete="tel"
+              aria-describedby={
+                touched.phone && phoneError
+                  ? "guestPhone-hint guestPhone-error"
+                  : "guestPhone-hint"
+              }
+              aria-invalid={touched.phone && Boolean(phoneError)}
+              onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <span className="field-hint" id="guestPhone-hint">
+              市外局番から入力してください。ハイフン有無どちらでも可（例: 090-1234-5678）。
+            </span>
+            {touched.phone && phoneError && (
+              <span className="field-error" id="guestPhone-error">
+                {phoneError}
               </span>
             )}
           </div>
@@ -702,7 +739,8 @@ function Step4({
           guestCount: condition.guestCount,
           guest: {
             name: `${guest.familyName} ${guest.givenName}`,
-            contact: guest.contact,
+            email: guest.email,
+            phone: guest.phone || undefined,
           },
         }),
       });
@@ -739,7 +777,8 @@ function Step4({
           ["宿泊日", `${condition.checkIn} → ${condition.checkOut}（${condition.nights}泊）`],
           ["人数", `${condition.guestCount}名`],
           ["代表者", `${guest.familyName} ${guest.givenName}`],
-          ["連絡先", guest.contact],
+          ["メール", guest.email],
+          ...(guest.phone ? [["電話番号", guest.phone] as [string, string]] : []),
         ].map(([label, value]) => (
           <div key={label} className="confirm-row">
             <span className="confirm-label">{label}</span>
@@ -830,7 +869,8 @@ function Step5({ result }: { result: ReservationResult }) {
           ["宿泊日", `${result.checkInDate} → ${result.checkOutDate}（${result.nights}泊）`],
           ["人数", `${result.guestCount}名`],
           ["代表者", result.guestName],
-          ["連絡先", result.contact],
+          ["メール", result.email],
+          ...(result.phone ? [["電話番号", result.phone] as [string, string]] : []),
           ["合計", yen(result.totalCharge)],
         ].map(([label, value]) => (
           <div key={label} className="confirm-row">
@@ -844,6 +884,7 @@ function Step5({ result }: { result: ReservationResult }) {
           次にできること
         </p>
         <ul style={{ margin: 0, padding: "0 0 0 18px", lineHeight: 1.9, fontSize: "0.8125rem" }}>
+          <li>ご登録のメールアドレスに予約確認メールをお送りしました。</li>
           <li>予約番号は「予約を確認する」で照会・キャンセルに使います。控えておいてください。</li>
           <li>ご来館時はフロントで予約番号をお伝えください。</li>
         </ul>
@@ -871,7 +912,8 @@ export default function ReservationNewPage() {
   const [guest, setGuest] = useState<GuestForm>({
     familyName: "",
     givenName: "",
-    contact: "",
+    email: "",
+    phone: "",
   });
   const [result, setResult] = useState<ReservationResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);

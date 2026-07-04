@@ -13,7 +13,8 @@ interface LookupResult {
   nights: number;
   guestCount: number;
   guestName: string;
-  contact: string;
+  email: string;
+  phone: string | null;
   status: "RESERVED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
   totalCharge: number;
   roomNumber: string | null;
@@ -97,7 +98,8 @@ export default function ReservationLookupPage() {
               ["チェックアウト", result.checkOutDate],
               ["人数", `${result.guestCount}名`],
               ["代表者", result.guestName],
-              ["連絡先", result.contact],
+              ["メール", result.email],
+              ...(result.phone ? [["電話番号", result.phone] as [string, string]] : []),
               ["合計（税込）", `¥${result.totalCharge.toLocaleString()}`],
             ].map(([label, value]) => (
               <div key={label} className="confirm-row">

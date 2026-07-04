@@ -20,7 +20,7 @@ export async function GET(
     const reservation = await prisma.reservation.findUnique({
       where: { reservationNumber: reservationNumber.toUpperCase() },
       include: {
-        guest: { select: { name: true, contact: true } },
+        guest: { select: { name: true, email: true, phone: true } },
         roomType: { select: { name: true, baseRate: true } },
         stay: { include: { room: { select: { roomNumber: true } } } },
       },
@@ -49,7 +49,8 @@ export async function GET(
         nights,
         guestCount: reservation.guestCount,
         guestName: reservation.guest.name,
-        contact: reservation.guest.contact,
+        email: reservation.guest.email,
+        phone: reservation.guest.phone ?? null,
         status: reservation.status,
         totalCharge: reservation.roomType.baseRate * nights,
         roomNumber: reservation.stay?.room.roomNumber ?? null,
