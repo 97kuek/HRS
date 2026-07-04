@@ -48,7 +48,6 @@ export default function Home() {
       <section className="home-hero">
         <HomeHeroGallery />
         <div className="home-hero-inner">
-          <p className="home-kicker">HRS · Hotel Reservation System</p>
           <h1 className="home-title">
             西早稲田の中心で、
             <br />
