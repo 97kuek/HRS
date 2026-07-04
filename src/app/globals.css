@@ -493,6 +493,80 @@ h1 {
   font-weight: 700;
 }
 
+/* アクセス */
+.home-access {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.home-access-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-access-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.home-access-address {
+  margin: 0;
+  font-style: normal;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.home-access-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.home-access-row {
+  display: grid;
+  grid-template-columns: 3em 1fr;
+  gap: 0 10px;
+}
+
+.home-access-row dt {
+  font-weight: 700;
+  color: var(--accent-strong);
+  padding-top: 1px;
+}
+
+.home-access-row dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.home-access-map {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  aspect-ratio: 4 / 3;
+}
+
+.home-access-map iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (max-width: 620px) {
+  .home-access {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Site footer ── */
 .site-footer {
   margin-top: 48px;

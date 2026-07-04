@@ -102,6 +102,42 @@ export default function Home() {
             ))}
           </nav>
         </section>
+
+        <section className="home-section" aria-labelledby="access-heading">
+          <p className="home-section-kicker">ACCESS</p>
+          <h2 className="home-h2" id="access-heading">
+            アクセス
+          </h2>
+          <div className="home-access">
+            <div className="home-access-info">
+              <p className="home-access-name">早稲田大学 西早稲田キャンパス</p>
+              <address className="home-access-address">
+                〒169-8555
+                <br />
+                東京都新宿区大久保3丁目4番1号
+              </address>
+              <dl className="home-access-list">
+                <div className="home-access-row">
+                  <dt>電車</dt>
+                  <dd>東京メトロ副都心線「西早稲田」駅 直結（2番出口）</dd>
+                </div>
+                <div className="home-access-row">
+                  <dt>バス</dt>
+                  <dd>都バス「早大正門前」停留所 徒歩 約7分</dd>
+                </div>
+              </dl>
+            </div>
+            <div className="home-access-map">
+              <iframe
+                src="https://maps.google.com/maps?q=35.7073,139.7153&z=16&ie=UTF8&output=embed&hl=ja"
+                title="西早稲田キャンパス 地図"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
