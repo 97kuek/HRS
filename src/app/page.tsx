@@ -54,9 +54,6 @@ export default function Home() {
             <br />
             上質なご滞在を。
           </h1>
-          <p className="home-tagline">
-            空室検索からご予約、チェックイン／チェックアウトまで。ご滞在にまつわるお手続きを、オンラインでスマートに。
-          </p>
           <div className="home-cta">
             <Link className="btn btn-gold btn-lg" href="/reservations/new">
               お部屋を探す
