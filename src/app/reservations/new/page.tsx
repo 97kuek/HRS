@@ -49,6 +49,8 @@ interface ReservationResult {
   checkOutDate: string;
   nights: number;
   guestCount: number;
+  guestName: string;
+  contact: string;
   totalCharge: number;
 }
 
@@ -60,8 +62,11 @@ const yen = (n: number) => `¥${n.toLocaleString()}`;
 
 const ROOM_IMAGES: Record<string, StaticImageData> = {
   スタンダードシングル: roomStandardSingle,
+  コンフォートダブル: roomSuperiorDouble,
   スーペリアダブル: roomSuperiorDouble,
   デラックスツイン: roomDeluxeTwin,
+  プレミアムツイン: roomDeluxeTwin,
+  ファミリールーム: roomFamily,
   和室スイート: roomSuite,
 };
 
@@ -70,7 +75,11 @@ function roomImage(name: string) {
 }
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function addDaysISO(base: string, days: number) {
@@ -197,7 +206,7 @@ function Step1({
               onChange={(e) => {
                 const v = e.target.value;
                 setCheckIn(v);
-                if (checkOut <= v) setCheckOut(addDaysISO(v, 1));
+                if (v && (!checkOut || checkOut <= v)) setCheckOut(addDaysISO(v, 1));
               }}
             />
           </div>
@@ -210,7 +219,7 @@ function Step1({
               className="field-input"
               type="date"
               value={checkOut}
-              min={addDaysISO(checkIn, 1)}
+              min={checkIn ? addDaysISO(checkIn, 1) : todayISO()}
               aria-describedby="stay-dates-hint"
               aria-invalid={touched && Boolean(dateError)}
               onBlur={() => setTouched(true)}
@@ -820,6 +829,8 @@ function Step5({ result }: { result: ReservationResult }) {
           ["客室", result.roomTypeName],
           ["宿泊日", `${result.checkInDate} → ${result.checkOutDate}（${result.nights}泊）`],
           ["人数", `${result.guestCount}名`],
+          ["代表者", result.guestName],
+          ["連絡先", result.contact],
           ["合計", yen(result.totalCharge)],
         ].map(([label, value]) => (
           <div key={label} className="confirm-row">
@@ -850,7 +861,6 @@ function Step5({ result }: { result: ReservationResult }) {
 }
 
 export default function ReservationNewPage() {
-  const defaultCheckIn = addDaysISO(todayISO(), 7);
   const [step, setStep] = useState(1);
   const [condition, setCondition] = useState<SearchCondition | null>(null);
   const [roomTypes, setRoomTypes] = useState<RoomTypeAvailability[]>([]);
@@ -872,7 +882,7 @@ export default function ReservationNewPage() {
     <main className="page-shell">
       <StepRail current={step} onGo={step < 5 ? (n) => setStep(n) : undefined} />
       {inProgress && (
-        <div style={{ textAlign: "right", marginBottom: 12 }}>
+        <div className="reservation-toolbar">
           <button
             className="btn btn-secondary"
             style={{ height: 28, padding: "0 10px", fontSize: "0.75rem" }}
@@ -890,8 +900,8 @@ export default function ReservationNewPage() {
       {step === 1 && (
         <Step1
           initial={{
-            checkIn: defaultCheckIn,
-            checkOut: addDaysISO(defaultCheckIn, 2),
+            checkIn: "",
+            checkOut: "",
             guestCount: 2,
           }}
           onSearched={(c, rts) => {
