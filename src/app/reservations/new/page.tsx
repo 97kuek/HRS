@@ -170,7 +170,7 @@ function Step1({
   }
 
   return (
-    <div style={{ maxWidth: 480 }}>
+    <div className="reservation-panel reservation-panel-narrow">
       <h2 className="section-title">宿泊日を選択</h2>
       <CompletionMeter completed={completed} total={2} />
       {error && (
@@ -321,7 +321,7 @@ function Step2({
   }
 
   return (
-    <div>
+    <div className="reservation-panel">
       <div className="search-summary">
         <span>
           {condition.checkIn}〜{condition.checkOut}（{condition.nights}泊）・{condition.guestCount}
@@ -493,7 +493,7 @@ function Step3({
   }
 
   return (
-    <div className="layout-with-sidebar">
+    <div className="reservation-panel layout-with-sidebar">
       <div className="layout-main">
         <h2 className="section-title">宿泊代表者の情報</h2>
         <CompletionMeter completed={completed} total={2} />
@@ -669,7 +669,7 @@ function Step4({
   }
 
   return (
-    <div style={{ maxWidth: 540 }}>
+    <div className="reservation-panel reservation-panel-narrow">
       <h2 className="section-title">ご予約内容の確認</h2>
       {error && (
         <div className="error-box" style={{ marginBottom: 16 }}>
@@ -755,7 +755,7 @@ function Step5({ result }: { result: ReservationResult }) {
   }
 
   return (
-    <div style={{ maxWidth: 480, textAlign: "center" }}>
+    <div className="reservation-panel reservation-panel-narrow page-panel-centered">
       <div className="complete-mark">✓</div>
       <h2 className="page-title">予約が完了しました</h2>
       <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 4px" }}>ご予約番号</p>

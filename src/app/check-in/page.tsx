@@ -54,7 +54,7 @@ export default function CheckInPage() {
   if (result) {
     return (
       <main className="page-shell">
-        <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
+        <div className="page-panel page-panel-centered">
           <div className="complete-mark">✓</div>
           <h1 className="page-title">チェックイン完了</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 8px" }}>
@@ -87,12 +87,10 @@ export default function CheckInPage() {
 
   return (
     <main className="page-shell">
-      <div style={{ maxWidth: 440 }}>
+      <div className="page-panel">
         <p className="page-kicker">CHECK-IN</p>
         <h1 className="page-title">チェックイン</h1>
-        <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
-          ご予約時に発行された予約番号を入力してください。
-        </p>
+        <p className="page-intro">ご予約時に発行された予約番号を入力してください。</p>
         <div className="form-stack">
           <div className="field">
             <label className="field-label field-required" htmlFor="reservationNumber">

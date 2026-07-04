@@ -25,30 +25,55 @@ const slides: GallerySlide[] = [
 
 export function HomeHeroGallery() {
   const [current, setCurrent] = useState(0);
+  const [previous, setPrevious] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
+
+  function showSlide(index: number) {
+    if (index === current) return;
+    setPrevious(current);
+    setCurrent(index);
+  }
 
   useEffect(() => {
     if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const timer = window.setInterval(() => {
-      setCurrent((index) => (index + 1) % slides.length);
+      setPrevious(current);
+      setCurrent((current + 1) % slides.length);
     }, 5000);
 
     return () => window.clearInterval(timer);
-  }, [paused]);
+  }, [current, paused]);
+
+  useEffect(() => {
+    if (previous === null) return;
+    const timer = window.setTimeout(() => setPrevious(null), 1600);
+    return () => window.clearTimeout(timer);
+  }, [current, previous]);
+
+  const next = (current + 1) % slides.length;
+  const renderedSlides = Array.from(
+    new Set([previous, current, next].filter((index): index is number => index !== null)),
+  );
 
   return (
     <div className="home-gallery">
       <div className="home-gallery-images" aria-hidden="true">
-        <Image
-          key={slides[current].label}
-          className="home-gallery-image"
-          src={slides[current].image}
-          alt=""
-          fill
-          priority={current === 0}
-          sizes="100vw"
-        />
+        {renderedSlides.map((index) => {
+          const state =
+            index === current ? " is-active" : index === previous ? " is-leaving" : " is-preload";
+          return (
+            <Image
+              key={slides[index].label}
+              className={`home-gallery-image${state}`}
+              src={slides[index].image}
+              alt=""
+              fill
+              priority={index === 0}
+              sizes="100vw"
+            />
+          );
+        })}
       </div>
       <div className="home-gallery-status">
         <span className="home-gallery-label">{slides[current].label}</span>
@@ -60,7 +85,7 @@ export function HomeHeroGallery() {
               className={`home-gallery-dot${index === current ? " is-active" : ""}`}
               aria-label={`${slide.label}を表示`}
               aria-pressed={index === current}
-              onClick={() => setCurrent(index)}
+              onClick={() => showSlide(index)}
             />
           ))}
           <button

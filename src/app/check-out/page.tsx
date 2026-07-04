@@ -94,7 +94,7 @@ export default function CheckOutPage() {
   if (result) {
     return (
       <main className="page-shell">
-        <div style={{ maxWidth: 440, margin: "0 auto", textAlign: "center" }}>
+        <div className="page-panel page-panel-centered">
           <div className="complete-mark">✓</div>
           <h1 className="page-title">チェックアウト完了</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 16px" }}>
@@ -124,7 +124,7 @@ export default function CheckOutPage() {
   if (quote) {
     return (
       <main className="page-shell">
-        <div style={{ maxWidth: 440 }}>
+        <div className="page-panel">
           <h1 className="page-title">お支払い</h1>
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 20px" }}>
             ご請求内容をご確認のうえ、お支払い方法を選択してください。
@@ -193,12 +193,10 @@ export default function CheckOutPage() {
 
   return (
     <main className="page-shell">
-      <div style={{ maxWidth: 440 }}>
+      <div className="page-panel">
         <p className="page-kicker">CHECK-OUT</p>
         <h1 className="page-title">チェックアウト</h1>
-        <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 28px" }}>
-          ご滞在中のお部屋の番号を入力してください。
-        </p>
+        <p className="page-intro">ご滞在中のお部屋の番号を入力してください。</p>
         <div className="form-stack">
           <div className="field">
             <label className="field-label field-required" htmlFor="roomNumber">
