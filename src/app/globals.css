@@ -263,11 +263,6 @@ h1 {
   color: #f6f4ef;
 }
 
-.home-gallery-label {
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
-}
 
 .home-gallery-dots {
   display: flex;
@@ -316,37 +311,21 @@ h1 {
   padding: clamp(64px, 12vw, 124px) 0 clamp(56px, 10vw, 100px);
 }
 
-.home-kicker {
-  margin: 0 0 20px;
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #d8b982;
-  font-weight: 700;
-}
 
 .home-title {
   margin: 0;
-  font-family: var(--font-base);
-  font-weight: 600;
+  font-family: var(--font-mincho), var(--font-base);
+  font-weight: 400;
   font-size: clamp(2.1rem, 6vw, 3.5rem);
-  line-height: 1.3;
-  letter-spacing: 0.01em;
-}
-
-.home-tagline {
-  max-width: 560px;
-  margin: 22px 0 0;
-  color: #d9d4c9;
-  line-height: 1.9;
-  font-size: 0.95rem;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
 }
 
 .home-cta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 34px;
+  margin-top: 40px;
 }
 
 .btn-gold {
@@ -491,6 +470,80 @@ h1 {
   right: 16px;
   color: var(--gold);
   font-weight: 700;
+}
+
+/* アクセス */
+.home-access {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.home-access-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.home-access-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.home-access-address {
+  margin: 0;
+  font-style: normal;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+.home-access-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.home-access-row {
+  display: grid;
+  grid-template-columns: 3em 1fr;
+  gap: 0 10px;
+}
+
+.home-access-row dt {
+  font-weight: 700;
+  color: var(--accent-strong);
+  padding-top: 1px;
+}
+
+.home-access-row dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.home-access-map {
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  aspect-ratio: 4 / 3;
+}
+
+.home-access-map iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (max-width: 620px) {
+  .home-access {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Site footer ── */

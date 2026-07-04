@@ -97,8 +97,11 @@ export default function CheckOutPage() {
         <div className="page-panel page-panel-centered">
           <div className="complete-mark">✓</div>
           <h1 className="page-title">チェックアウト完了</h1>
-          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 16px" }}>
+          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 4px" }}>
             ご利用ありがとうございました。
+          </p>
+          <p style={{ color: "var(--muted)", fontSize: "0.8125rem", margin: "0 0 16px" }}>
+            領収書をご登録のメールアドレスにお送りしました。
           </p>
           <div className="confirm-table" style={{ textAlign: "left" }}>
             {[
@@ -197,61 +200,63 @@ export default function CheckOutPage() {
         <p className="page-kicker">CHECK-OUT</p>
         <h1 className="page-title">チェックアウト</h1>
         <p className="page-intro">ご滞在中のお部屋の番号を入力してください。</p>
-        <div className="form-stack">
-          <div className="field">
-            <label className="field-label field-required" htmlFor="roomNumber">
-              部屋番号
-            </label>
-            <input
-              id="roomNumber"
-              className={
-                !touched || roomNumber.trim() === ""
-                  ? "field-input"
-                  : fieldError
-                    ? "field-input is-invalid"
-                    : "field-input is-valid"
-              }
-              type="text"
-              inputMode="numeric"
-              value={roomNumber}
-              aria-describedby={
-                touched && fieldError ? "roomNumber-hint roomNumber-error" : "roomNumber-hint"
-              }
-              aria-invalid={touched && Boolean(fieldError)}
-              onBlur={() => setTouched(true)}
-              onChange={(e) => setRoomNumber(e.target.value)}
-              placeholder="101"
-            />
-            <span className="field-hint" id="roomNumber-hint">
-              ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。
-            </span>
-            {touched && fieldError && (
-              <span className="field-error" id="roomNumber-error">
-                {fieldError}
+        <form onSubmit={(e) => { e.preventDefault(); fetchQuote(); }}>
+          <div className="form-stack">
+            <div className="field">
+              <label className="field-label field-required" htmlFor="roomNumber">
+                部屋番号
+              </label>
+              <input
+                id="roomNumber"
+                className={
+                  !touched || roomNumber.trim() === ""
+                    ? "field-input"
+                    : fieldError
+                      ? "field-input is-invalid"
+                      : "field-input is-valid"
+                }
+                type="text"
+                inputMode="numeric"
+                value={roomNumber}
+                aria-describedby={
+                  touched && fieldError ? "roomNumber-hint roomNumber-error" : "roomNumber-hint"
+                }
+                aria-invalid={touched && Boolean(fieldError)}
+                onBlur={() => setTouched(true)}
+                onChange={(e) => setRoomNumber(e.target.value)}
+                placeholder="101"
+              />
+              <span className="field-hint" id="roomNumber-hint">
+                ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。
               </span>
-            )}
+              {touched && fieldError && (
+                <span className="field-error" id="roomNumber-error">
+                  {fieldError}
+                </span>
+              )}
+            </div>
+            {error && <div className="error-box">{error}</div>}
           </div>
-          {error && <div className="error-box">{error}</div>}
-        </div>
-        <button
-          className="btn btn-primary btn-full btn-lg"
-          style={{ marginTop: 20 }}
-          onClick={fetchQuote}
-          disabled={loading}
-          aria-busy={loading}
-        >
-          {loading ? (
-            <>
-              <span className="spinner" aria-hidden="true" /> 照会中…
-            </>
-          ) : (
-            "料金を確認する"
-          )}
-        </button>
-        <LongWaitBar
-          loading={loading}
-          message="ご請求内容を照会しています。そのままお待ちください…"
-        />
+          <button
+            type="submit"
+            className="btn btn-primary btn-full btn-lg"
+            style={{ marginTop: 20 }}
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <>
+                <span className="spinner" aria-hidden="true" /> 照会中…
+              </>
+            ) : (
+              "料金を確認する"
+            )}
+          </button>
+          <LongWaitBar
+            loading={loading}
+            message="ご請求内容を照会しています。そのままお待ちください…"
+          />
+        </form>
       </div>
     </main>
   );

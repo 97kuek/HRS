@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
+import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
+
+const notoSerifJP = Noto_Serif_JP({
+  subsets: ["latin"],
+  weight: ["300", "400"],
+  variable: "--font-mincho",
+  display: "swap",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: "HRS",
@@ -9,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ja">
+    <html lang="ja" className={notoSerifJP.variable}>
       <body>
         <SiteHeader />
         {children}

@@ -41,3 +41,13 @@ export function apiError(
 export function internalServerError() {
   return apiError(500, "INTERNAL_SERVER_ERROR", "サーバーエラーが発生しました。");
 }
+
+export class DomainError extends Error {
+  constructor(
+    readonly code: ApiErrorCode,
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
