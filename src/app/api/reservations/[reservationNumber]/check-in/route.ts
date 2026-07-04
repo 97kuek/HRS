@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { apiError, internalServerError } from "@/lib/api/response";
+import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { evaluateCheckIn, pickAssignableRoom, todayInHotelTz } from "@/lib/reservations/checkIn";
 
@@ -122,13 +122,3 @@ export async function POST(
   }
 }
 
-/** ドメイン上のチェックイン不可要因をトランザクション外へ伝える内部例外。 */
-class DomainError extends Error {
-  constructor(
-    readonly code: Parameters<typeof apiError>[1],
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}

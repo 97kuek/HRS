@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { apiError, internalServerError, type ApiErrorDetail } from "@/lib/api/response";
+import { apiError, internalServerError, DomainError, type ApiErrorDetail } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import {
   hasAvailabilityForRoomType,
@@ -202,13 +202,3 @@ export async function POST(request: Request) {
   }
 }
 
-/** ドメイン上の予約不可要因をトランザクション外へ伝える内部例外。 */
-class DomainError extends Error {
-  constructor(
-    readonly code: Parameters<typeof apiError>[1],
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
