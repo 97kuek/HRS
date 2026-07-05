@@ -95,6 +95,7 @@
 ```powershell
 npm run lint
 npm run build
+npm test          # 単体テスト（DB 不要）
 ```
 
 Prisma Client を生成する場合:
@@ -110,6 +111,30 @@ npm run dev
 ```
 
 DB接続文字列、APIキー、実在する個人情報を含む `.env.local` などはコミットしない。
+
+## テスト方針
+
+詳細は `docs/architecture-design/test-strategy.md` を参照。
+
+### 単体テスト（自動）
+
+- 対象: DB に触れない純関数（ホワイトボックス）
+- テストファイル: `src/lib/**/__tests__/*.test.ts`
+
+### 結合テスト（自動）
+
+- 対象: API Route Handler（ブラックボックス、Prisma をモック）
+- テストファイル: `src/app/api/**/__tests__/*.test.ts`
+- `todayInHotelTz` など時刻依存の関数は `vi.mock` で固定値をモックする
+
+### 受入テスト（手動）
+
+- UC 記述に基づくシナリオ確認（#46）
+- チェックリスト: `docs/requirements-analysis/acceptance-test-checklist.md`
+
+### DB を使う処理の方針
+
+`searchAvailability` など Prisma を使う関数は結合テストの対象外。#46 の手動確認で検証する。
 
 ## 環境変数
 
