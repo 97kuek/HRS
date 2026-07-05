@@ -156,6 +156,18 @@ npm run lint
 npm run build
 ```
 
+### テスト
+
+業務ロジックの単体テストには [Vitest](https://vitest.dev/) を使います。DB 接続不要で実行できます。
+
+```powershell
+npm test               # 全テストを一度実行
+npm run test:watch     # ファイル保存のたびに自動再実行（開発中）
+npm run test:coverage  # カバレッジレポートを出力
+```
+
+テストファイルは `src/**/__tests__/*.test.ts` に配置しています。対象は DB に触れない純関数です。
+
 DBスキーマ（`prisma/schema.prisma`）を変更したら、マイグレーションを作成して反映します。
 
 ```powershell
