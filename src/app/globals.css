@@ -1014,6 +1014,7 @@ h1 {
 }
 .form-row > .field {
   flex: 1;
+  min-width: 0;
 }
 
 .form-actions {
@@ -1414,8 +1415,15 @@ h1 {
     padding: 12px;
   }
 
-  /* 入力2カラムを縦積み */
+  /* 入力2カラムを縦積み（date input が min-width で溢れるため広めに設定） */
   .form-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  /* date / number input はブラウザ固有の最小幅があるため少し広めで縦積みに */
+  .form-row:has(input[type="date"]) {
     flex-direction: column;
   }
 
