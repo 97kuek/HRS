@@ -1,62 +1,66 @@
 # Docs
 
-HRSチーム開発の資料と成果物を管理します。
+- HRS の分析・設計成果物を管理
+- Web アプリケーションは `src/`、DB 関連は `prisma/` に配置
+- レビューは Pull Request または Issue、発表資料は必要になった時点で管理
 
-GitやGitHubの基本操作は[git-beginner-guide.md](git-beginner-guide.md)を確認してください。
-
-## Where to Put Files
+## 構成
 
 ```text
 docs/
-├── チーム開発1.pdf
-├── git-beginner-guide.md
-├── domain-analysis/
-├── requirements-analysis/
-├── system-analysis/
-├── architecture-design/
-├── tech-stack/
-├── reviews/
-└── presentation/
+├── analysis/
+│   ├── domain/          # クラス図、オブジェクト図
+│   ├── requirements/    # ユースケース、アクティビティ図、受入テスト
+│   └── system/          # コラボレーション図、保守分析
+├── design/              # 技術選定、画面、API、DB、テスト、デプロイ設計
+├── README.md
+└── *.pdf                # 公開許可と再配布権を確認済みの課題資料
 ```
 
-| Directory | Purpose |
-| --- | --- |
-| `domain-analysis/` | 問題領域のクラス図、オブジェクト図、用語整理 |
-| `requirements-analysis/` | ユースケース図、ユースケース記述、アクティビティ図 |
-| `system-analysis/` | コラボレーション図、分析クラス図 |
-| `architecture-design/` | アーキテクチャ設計図、レイヤー責務、実装モジュール設計 |
-| `tech-stack/` | 技術選定の記録 ([Issue #23](https://github.com/97kuek/HRS/issues/23)) |
-| `reviews/` | レビュー結果、指摘事項、修正判断 |
-| `presentation/` | 3分発表資料、デモ手順、発表メモ |
+## 成果物
 
-WebアプリケーションのソースコードはこのDocs配下ではなく、リポジトリのルートまたはサブディレクトリ(例: `frontend/`, `backend/`)に配置します。具体的な構成は技術スタック決定([Issue #23](https://github.com/97kuek/HRS/issues/23))後に確定します。
+| 分類         | 内容                                               | 索引                                                               |
+| ------------ | -------------------------------------------------- | ------------------------------------------------------------------ |
+| ドメイン分析 | クラス図、オブジェクト図                           | [analysis/domain/README.md](analysis/domain/README.md)             |
+| 要求分析     | ユースケース図・記述、アクティビティ図、受入テスト | [analysis/requirements/README.md](analysis/requirements/README.md) |
+| システム分析 | コラボレーション図、保守分析                       | [analysis/system/README.md](analysis/system/README.md)             |
+| 設計         | 技術選定、UI、API、DB、エラー、テスト、デプロイ    | [design/README.md](design/README.md)                               |
 
-## Naming Rules
+## 作業順序
 
-- ファイル名は内容が分かる名前にする
-- 日付を入れる場合は `YYYY-MM-DD` 形式にする
-- レビュー後の版は同じファイルを更新し、必要ならPRで差分を確認する
-- 図の元ファイルと画像を書き出す場合は同じ名前にする
+| 順序 | 作業                                                    | 配置                     |
+| ---- | ------------------------------------------------------- | ------------------------ |
+| 1    | 問題領域の概念と関係を整理                              | `analysis/domain/`       |
+| 2    | 利用者の目的とシステムの振る舞いを整理                  | `analysis/requirements/` |
+| 3    | Boundary / Control / Entity の相互作用を整理            | `analysis/system/`       |
+| 4    | 実装方式と責務を設計                                    | `design/`                |
+| 5    | 成果物間の整合性を Pull Request または Issue でレビュー | GitHub                   |
 
-Examples:
+## ファイル管理
+
+| 対象       | 規則                                                      |
+| ---------- | --------------------------------------------------------- |
+| ファイル名 | 内容を識別できる名前にする                                |
+| 日付       | 必要な場合だけ `YYYY-MM-DD` 形式を使う                    |
+| 更新履歴   | 同じ成果物を更新し、履歴は Git で管理する                 |
+| UML        | `.asta` を編集元、`.png` を閲覧用の出力として対で管理する |
+| Markdown   | 図の説明、判断理由、レビュー結果を記録する                |
+| 用語       | UML、ユースケース、設計、コードで統一する                 |
+| 配布物     | 公開許可と再配布権を確認できたものだけを追加する          |
 
 ```text
-domain-analysis/class-diagram.md
-domain-analysis/class-diagram.png
-requirements-analysis/usecase-description-reservation.md
-reviews/domain-analysis-review-2026-06-19.md
-presentation/2026-07-03-demo.md
+analysis/domain/class-diagram.asta
+analysis/domain/class-diagram.md
+analysis/domain/クラス図.png
+analysis/requirements/ユースケース記述_部屋を予約する.md
+design/api-design.md
 ```
 
-## Work Order
+## 変更時の確認
 
-1. `domain-analysis/` で問題領域の用語と関係を整理する
-2. `requirements-analysis/` で利用者のユースケースを整理する
-3. `system-analysis/` でバウンダリ、コントロール、エンティティを整理する
-4. `architecture-design/` でWebアプリケーションの構成と実装モジュールを整理する
-5. `reviews/` にレビュー結果を残す
-6. `presentation/` に発表資料とデモ手順を置く
-
-## Review
-
-レビューはPull Requestまたはレビュー用Issueで行います。指摘事項は「何が問題か」「なぜ問題か」「どう直すか」が分かるように書きます。
+- 関連する分析・設計資料と矛盾していない
+- `.asta` と書き出した `.png` が一致している
+- Markdown の相対リンクが有効
+- 本索引と実際のファイル構成が一致している
+- Public リポジトリに公開できる内容だけを含む
+- 指摘には問題点、理由、修正案を含める
