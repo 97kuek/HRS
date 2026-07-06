@@ -105,7 +105,7 @@ src/app/api/<route>/__tests__/<METHOD>.test.ts
 
 ### 観点: ブラックボックス
 
-UC 記述（`docs/requirements-analysis/ユースケース記述_*.md`）を仕様書とし、画面操作で確認する。チェックリストは `acceptance-test-checklist.md` を参照。
+UC 記述（`docs/analysis/requirements/ユースケース記述_*.md`）を仕様書とし、画面操作で確認する。チェックリストは [acceptance-test-checklist.md](../analysis/requirements/acceptance-test-checklist.md) を参照。
 
 ### #46 との分担
 

@@ -1,7 +1,7 @@
 # アーキテクチャ設計
 
 - 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
-- 前提: [#23 技術スタック・API設計・DB設計の決定](../tech-stack/README.md)
+- 前提: [#23 技術スタック・API設計・DB設計の決定](tech-stack.md)
 - 状態: **ドラフト**（[#14 システム分析レビュー](https://github.com/97kuek/HRS/issues/14) が未完了のため、レビュー後に見直す）
 
 HRS (ホテル予約システム) を Next.js (App Router) / TypeScript / Prisma / Postgres で実装する前提で、フロントエンド、バックエンド、データ層の責務と、分析成果物から実装モジュールへの対応を整理する。

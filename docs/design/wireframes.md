@@ -6,7 +6,7 @@
 - **対象アクター**: 宿泊客（ゲスト）
 - **対象プラットフォーム**: PC（ブラウザ）＋ モバイル
 - **フィデリティ**: 中（レイアウトと主要要素を確定。実画像・実コピーは別途）
-- ルーティング・API対応の詳細は [`docs/architecture-design/ui-routing-design.md`](../architecture-design/ui-routing-design.md) を参照
+- ルーティング・API対応の詳細は [`docs/design/ui-routing-design.md`](ui-routing-design.md) を参照
 
 ---
 

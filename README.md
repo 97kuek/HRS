@@ -127,15 +127,15 @@ npm run build
 
 ## ドキュメント
 
-| 文書                                                     | 内容                                    |
-| -------------------------------------------------------- | --------------------------------------- |
-| [docs/README.md](docs/README.md)                         | 成果物の構成と配置                      |
-| [ドメイン分析](docs/domain-analysis/README.md)           | クラス図、オブジェクト図                |
-| [要求分析](docs/requirements-analysis/README.md)         | ユースケース図・記述、アクティビティ図  |
-| [システム分析](docs/system-analysis/README.md)           | コラボレーション図、分析資料            |
-| [アーキテクチャ設計](docs/architecture-design/README.md) | API、DB、画面、デプロイ、テスト設計     |
-| [技術スタック](docs/tech-stack/README.md)                | 技術選定の記録                          |
-| [CONTRIBUTING.md](CONTRIBUTING.md)                       | ブランチ、コミット、Pull Request の規約 |
+| 文書                                             | 内容                                    |
+| ------------------------------------------------ | --------------------------------------- |
+| [docs/README.md](docs/README.md)                 | 成果物の構成と配置                      |
+| [ドメイン分析](docs/analysis/domain/README.md)   | クラス図、オブジェクト図                |
+| [要求分析](docs/analysis/requirements/README.md) | ユースケース図・記述、アクティビティ図  |
+| [システム分析](docs/analysis/system/README.md)   | コラボレーション図、分析資料            |
+| [設計](docs/design/README.md)                    | API、DB、画面、デプロイ、テスト設計     |
+| [技術スタック](docs/design/tech-stack.md)        | 技術選定の記録                          |
+| [CONTRIBUTING.md](CONTRIBUTING.md)               | ブランチ、コミット、Pull Request の規約 |
 
 ## 開発ルール
 
@@ -151,7 +151,7 @@ npm run build
 - 構成: Vercel（アプリケーション）/ Neon（PostgreSQL）
 - `main` の更新時に Vercel がビルド・デプロイ
 - ビルド時に `prisma migrate deploy` を実行
-- 詳細: [環境変数・デプロイ設計](docs/architecture-design/deployment-environment-design.md)
+- 詳細: [環境変数・デプロイ設計](docs/design/deployment-environment-design.md)
 
 ## ライセンス
 

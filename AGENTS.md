@@ -108,9 +108,9 @@ npm run build
 | Prisma スキーマ  | `npm run prisma:generate`                                 |
 | フォーマット対象 | `npm run format:check`                                    |
 | ローカル動作     | `npm run dev`                                             |
-| 受入シナリオ     | `docs/requirements-analysis/acceptance-test-checklist.md` |
+| 受入シナリオ     | `docs/analysis/requirements/acceptance-test-checklist.md` |
 
-- テスト方針: [docs/architecture-design/test-strategy.md](docs/architecture-design/test-strategy.md)
+- テスト方針: [docs/design/test-strategy.md](docs/design/test-strategy.md)
 - DB 接続不要のテストを自動テストの基本とする
 - Prisma を使う `searchAvailability` などは、テスト戦略に従って手動確認する
 

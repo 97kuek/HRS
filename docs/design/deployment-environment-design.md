@@ -1,7 +1,7 @@
 # 環境変数・デプロイ設計
 
 - 対象 Issue: [#15](https://github.com/97kuek/HRS/issues/15)
-- 前提: [技術選定の記録](../tech-stack/README.md), [DB設計](db-design.md)
+- 前提: [技術選定の記録](tech-stack.md), [DB設計](db-design.md)
 - 状態: **ドラフト**（実装開始後に実際のコマンドへ更新する）
 
 HRS を Next.js / Prisma / Postgres で実装・起動・デプロイするための環境変数、環境分離、デプロイ手順の方針を定義する。現時点では実装コードが未作成のため、具体的なコマンドは実装開始後に確定する。
