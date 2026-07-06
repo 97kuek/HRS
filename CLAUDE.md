@@ -1,14 +1,22 @@
 # CLAUDE.md
 
-このプロジェクトの作業規約は [AGENTS.md](AGENTS.md) に集約しています。
-Claude Code で作業する際は、まず **[AGENTS.md](AGENTS.md) を読んでから** 着手してください。
+- HRS の作業規約は [AGENTS.md](AGENTS.md) に集約
+- Claude Code 固有の追加規約はなし
+- 作業開始前に `AGENTS.md` を読み、その内容を優先
 
-特に重要な点 (詳細は AGENTS.md):
+## 参照先
 
-- Publicリポジトリ。授業配布物・個人情報・非公開情報をコミットしない。
-- `main` へ直接コミットしない。1 Issue = 1 ブランチ = 1 PR。
-- 技術スタックは Issue #23 で決定済み。TypeScript / Next.js App Router / Prisma / Postgres を使う。
-- 実装コードは `src/`、DBスキーマは `prisma/` に配置する。
-- Pull Request の最終送信・レビュー依頼は、人間の確認を得てから行う。
+| 文書                               | 内容                             |
+| ---------------------------------- | -------------------------------- |
+| [AGENTS.md](AGENTS.md)             | AI エージェントの作業規約        |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | ブランチ、コミット、Pull Request |
+| [README.md](README.md)             | セットアップ、機能、開発コマンド |
+| [docs/README.md](docs/README.md)   | 分析・設計成果物                 |
 
-人間向けのAIツール利用ガイドは [docs/ai-agents-guide.md](docs/ai-agents-guide.md) を参照してください。
+## 作業時の要点
+
+- Public リポジトリに秘密情報や非公開情報を追加しない
+- 1 Issue / 1 成果物 / 1 ブランチ / 1 Pull Request を守る
+- `main` に直接コミットまたは push しない
+- Issue の範囲外を変更しない
+- Pull Request の最終送信とレビュー依頼は人間の確認後に行う

@@ -1,154 +1,163 @@
 # Contributing
 
-HRSチーム開発に参加するメンバー向けの作業ルールです。新しく作業を始める前に、このファイルと[docs/README.md](docs/README.md)を確認してください。
+- 対象: HRS の開発に参加するメンバー
+- 作業前に確認:
 
-Gitをまだインストールしていない人、cloneやcommitに慣れていない人は、先に[docs/git-beginner-guide.md](docs/git-beginner-guide.md)を読んでください。
+| 文書                             | 内容                                |
+| -------------------------------- | ----------------------------------- |
+| [README.md](README.md)           | 機能、セットアップ、開発コマンド    |
+| [docs/README.md](docs/README.md) | 分析・設計成果物の配置              |
+| [AGENTS.md](AGENTS.md)           | AI コーディングエージェント向け規約 |
 
-Claude CodeやCodexなどのAIコーディングツールを使う場合は、[docs/ai-agents-guide.md](docs/ai-agents-guide.md)とリポジトリルートの[AGENTS.md](AGENTS.md)を確認してください。AIエージェントは作業前に`AGENTS.md`(Claude Codeは`CLAUDE.md`経由)を読み込みます。
-
-## Repository Setup
-
-チームメンバーとして参加する場合は、まずリポジトリを自分のPCにコピーします。
+## セットアップ
 
 ```powershell
 git clone https://github.com/97kuek/HRS.git
 cd HRS
+npm install
+Copy-Item .env.example .env
 ```
 
-Gitのユーザー情報が未設定の場合は、自分の名前とメールアドレスを設定します。
+- Git のユーザー情報が未設定の場合:
 
 ```powershell
 git config --global user.name "<your-name>"
 git config --global user.email "<your-email>"
 ```
 
-## Daily Workflow
+- DB の準備と起動方法: [README.md](README.md)
 
-1. GitHub Projectsで担当Issueを決める
-2. Issueを `Doing` に移す
-3. `main` を最新化する（**作業開始前に必ず `git pull` する**）
-4. Issue番号付きのブランチを作る
-5. 変更してコミットする
-6. Pull Requestを作る
-7. レビュー後に `main` へマージする
-8. Issueを `Done` に移す
+## 作業フロー
 
-> **作業を始める前に必ず `main` を最新化してからブランチを作る**こと。古い `main` から始めると、あとで競合（コンフリクト）が起きやすくなります。
+| 手順 | 作業                                       |
+| ---- | ------------------------------------------ |
+| 1    | GitHub Issue を作成または担当する          |
+| 2    | Issue を GitHub Projects の `Doing` に移す |
+| 3    | `main` を最新化する                        |
+| 4    | Issue 番号付きブランチを作成する           |
+| 5    | Issue の範囲内で変更し、検証する           |
+| 6    | 規約に沿ってコミット、push する            |
+| 7    | Pull Request を作成し、レビューを受ける    |
+| 8    | マージ後に Issue を `Done` に移す          |
 
 ```powershell
 git checkout main
 git pull
-git checkout -b docs/<issue-number>-<short-name>
+git checkout -b <type>/<issue-number>-<short-name>
 ```
 
-## コンフリクト（競合）の解決
+## ブランチ
 
-複数人が同じファイルを編集すると、マージ時に競合が起きることがあります。
+| 種別      | 用途                                 | 例                              |
+| --------- | ------------------------------------ | ------------------------------- |
+| `docs`    | 分析・設計資料、README、レビュー記録 | `docs/83-document-maintenance`  |
+| `feature` | 機能追加                             | `feature/12-reservation-search` |
+| `fix`     | コードや資料の修正                   | `fix/18-checkin-flow`           |
 
-**予防（いちばん大事）**: 作業を始める前と再開するときに、必ず `main` を最新化する。
+- 形式: `<type>/<issue-number>-<short-name>`
+- `main` は発表・提出可能な状態を維持する
+- `main` へ直接コミットまたは push しない
 
-作業中に `main` が他の人の変更で進んだら、自分のブランチに最新の `main` を取り込みます。
+## コミット
 
-```powershell
-git checkout <your-branch>
-git fetch origin
-git merge origin/main
-```
-
-競合が出たときの手順:
-
-1. `git status` で競合しているファイルを確認する
-2. ファイルを開き、`<<<<<<<` / `=======` / `>>>>>>>` のマーカーで挟まれた部分を、正しい内容に手で直す
-3. マーカー行（`<<<<<<<` など）を消したら、`git add <file>` で解決済みにする
-4. すべて解決したら `git commit`（マージコミット）で確定する
-5. 内容に自信がないときは、勝手に上書きせず変更した本人に確認する
-
-途中でやめて元に戻したいときは `git merge --abort` で中断できます。
-
-## Branch Rules
-
-- `main`: 発表・提出可能な安定版のみを置く
-- `docs/<issue-number>-<short-name>`: 分析設計資料、README、レビュー記録
-- `feature/<issue-number>-<short-name>`: 実装の新規追加
-- `fix/<issue-number>-<short-name>`: 資料や実装の修正
-
-Examples:
-
-```text
-docs/3-usecase-description
-docs/8-domain-review
-feature/12-reservation-search
-fix/18-checkin-flow
-```
-
-`main` への直接pushは避け、Pull Request経由でマージします。
-
-## Commit Message Rules
-
-形式:
+- 形式:
 
 ```text
 <type>: <summary>
 ```
 
-type:
-
-- `docs`: ドキュメント、UML、レビュー記録
-- `feat`: 機能追加
-- `fix`: バグ修正
-- `test`: テスト追加・修正
-- `refactor`: 振る舞いを変えない整理
-- `chore`: 設定、雑務
-
-Examples:
+| type       | 用途                            |
+| ---------- | ------------------------------- |
+| `docs`     | ドキュメント、UML、レビュー記録 |
+| `feat`     | 機能追加                        |
+| `fix`      | 不具合修正                      |
+| `test`     | テスト追加・修正                |
+| `refactor` | 振る舞いを変えない整理          |
+| `chore`    | 設定、依存関係、保守作業        |
 
 ```text
-docs: add domain analysis class diagram draft
-docs: ドメイン分析の初版を追加
-feat: add reservation number lookup
-fix: correct checkout fee calculation
+docs: READMEを整理
+feat: 予約照会機能を追加
+fix: チェックアウト料金の計算を修正
 ```
 
-## Pull Request Rules
+## 検証
 
-- 1つのPRは1つのIssueまたは1つの成果物に対応させる
-- PR本文に `Closes #<issue-number>` または `Refs #<issue-number>` を書く
-- 最低1名がレビューする
-- レビューで指摘された内容は、同じPR上で修正する
-- Publicリポジトリに置いてよい内容だけを含める
+```powershell
+npm run lint
+npm test
+npm run build
+```
 
-## GitHub Project
+- 変更内容に応じて追加:
 
-作業管理にはGitHub Projectsのかんばんボードを使います。
+| 変更               | コマンドまたは確認         |
+| ------------------ | -------------------------- |
+| Prisma スキーマ    | `npm run prisma:generate`  |
+| フォーマット       | `npm run format:check`     |
+| 画面・受入シナリオ | `npm run dev` と受入テスト |
 
-Columns:
+## Pull Request
 
-- `Todo`: 未着手
-- `Doing`: 作業中
-- `Review`: レビュー待ち
-- `Done`: 完了
+- 1 Issue / 1 成果物 / 1 Pull Request
+- タイトルと本文から変更目的が分かるようにする
+- 本文に `Closes #<issue-number>` または `Refs #<issue-number>` を記載する
+- 実行した検証と結果を記載する
+- 最低 1 名のレビューを受ける
+- 指摘への修正は同じ Pull Request に追加する
+- Public リポジトリに公開できる差分だけを含める
 
-Issueは技術レイヤー別ではなく、ユースケースや成果物単位で作成します。
+## コンフリクト
 
-## Issues
+- 作業開始時と再開時に `main` を最新化する
+- 作業中に `main` が更新された場合:
 
-分析・設計・実装・発表の各Issueは作成済みです。[GitHub Issues](https://github.com/97kuek/HRS/issues)から担当を選んでください。
+```powershell
+git fetch origin
+git merge origin/main
+```
 
-Issueは技術レイヤー別ではなく、ユースケースや成果物単位で作成しています。ラベルは`分析` / `設計・実装` / `発表` / `レビュー`、フェーズは`分析フェーズ完了` / `設計・実装フェーズ完了`のマイルストーンで管理します。
+- 競合した場合:
 
-新しいIssueを作る場合は、`.github/ISSUE_TEMPLATE/`のテンプレートを利用してください。
+1. `git status` で対象ファイルを確認する
+2. `<<<<<<<` / `=======` / `>>>>>>>` の範囲を正しい内容へ修正する
+3. 競合マーカーを削除する
+4. `git add <file>` で解決済みにする
+5. 全件解決後に `git commit` する
 
-## Review Focus
+- 中断:
 
-レビューでは授業資料のチェックリストを使います。
+```powershell
+git merge --abort
+```
 
-- 図が読みやすい
-- 用語がHRSの問題領域に合っている
-- 実装都合ではなく問題領域の概念を表している
-- ユースケースが具体的な振る舞いとして書かれている
-- 事前条件、事後条件、基本系列、代替・例外系列が明確である
-- システム分析の相互作用がユースケース記述と対応している
+## GitHub Projects
 
-## Public Repository Notice
+| 状態     | 意味         |
+| -------- | ------------ |
+| `Todo`   | 未着手       |
+| `Doing`  | 作業中       |
+| `Review` | レビュー待ち |
+| `Done`   | 完了         |
 
-このリポジトリはPublic運用です。授業資料、提供コード、個人情報、提出条件に関わる内容を追加する前に、公開してよい情報か確認してください。
+- Issue は技術レイヤーではなく、ユースケースまたは成果物単位で作成する
+- 新規 Issue は `.github/ISSUE_TEMPLATE/` のテンプレートを使う
+
+## レビュー
+
+- Pull Request またはレビュー Issue で実施する
+- 対象に応じたチェックリストを使用する
+- 指摘には次の3点を含める
+  - 問題点
+  - 問題となる理由
+  - 修正案
+- UML、ユースケース、実装、README の用語と振る舞いが一致しているか確認する
+
+## Public リポジトリ
+
+- コミットしないもの:
+  - 接続 URL、API キー、`.env`
+  - 個人情報
+  - 提出条件に関わる非公開情報
+  - 許可されていない授業配布物
+- Issue や Pull Request にも秘密情報を記載しない
