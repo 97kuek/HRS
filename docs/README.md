@@ -51,7 +51,7 @@ docs/
 ```text
 analysis/domain/class-diagram.asta
 analysis/domain/class-diagram.md
-analysis/domain/クラス図.png
+analysis/domain/class-diagram.png
 analysis/requirements/ユースケース記述_部屋を予約する.md
 design/api-design.md
 ```
