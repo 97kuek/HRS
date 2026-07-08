@@ -81,10 +81,11 @@ flowchart TD
     roomTypes["部屋タイプを取得"]
     input["宿泊条件・利用者情報を入力"]
     availability["空室と概算料金を確認"]
+    roomDetail["客室タイプの詳細を確認"]
     submit["予約を確定"]
     result["予約番号と予約内容を表示"]
 
-    start --> roomTypes --> input --> availability --> submit --> result
+    start --> roomTypes --> input --> availability --> roomDetail --> submit --> result
 ```
 
 予約作成後は、予約番号と連絡先が今後の予約照会に必要であることを画面上で明確に表示する。

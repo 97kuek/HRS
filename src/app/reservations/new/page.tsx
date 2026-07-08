@@ -77,6 +77,87 @@ function roomImage(name: string) {
   return ROOM_IMAGES[name] ?? roomFamily;
 }
 
+type RoomDetail = {
+  lead: string;
+  size: string;
+  bed: string;
+  floor: string;
+  amenities: string[];
+  notes: string[];
+};
+
+const DEFAULT_ROOM_DETAIL: RoomDetail = {
+  lead: "ゆとりある滞在に必要な設備を整えた客室です。",
+  size: "28㎡",
+  bed: "ベッド構成は客室タイプにより異なります",
+  floor: "3〜10階",
+  amenities: ["無料Wi-Fi", "デスク", "冷蔵庫", "電気ケトル", "加湿空気清浄機"],
+  notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+};
+
+const ROOM_DETAILS: Record<string, RoomDetail> = {
+  スタンダードシングル: {
+    lead: "一人旅や出張に使いやすい、コンパクトで落ち着いた客室です。",
+    size: "18㎡",
+    bed: "シングルベッド 1台",
+    floor: "3階",
+    amenities: ["無料Wi-Fi", "デスク", "冷蔵庫", "電気ケトル"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+  コンフォートダブル: {
+    lead: "二名利用でも過ごしやすい、機能性を重視したダブルルームです。",
+    size: "24㎡",
+    bed: "ダブルベッド 1台",
+    floor: "4階",
+    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "加湿空気清浄機"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+  スーペリアダブル: {
+    lead: "広めのベッドとくつろぎスペースを備えた、滞在時間を楽しめる客室です。",
+    size: "28㎡",
+    bed: "クイーンベッド 1台",
+    floor: "5階",
+    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "加湿空気清浄機"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+  デラックスツイン: {
+    lead: "ご家族やご友人との宿泊に向いた、ベッドを分けて使える客室です。",
+    size: "34㎡",
+    bed: "セミダブルベッド 2台",
+    floor: "7階",
+    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+  プレミアムツイン: {
+    lead: "上層階の落ち着いた空間で、余裕のある滞在ができるツインルームです。",
+    size: "38㎡",
+    bed: "セミダブルベッド 2台",
+    floor: "8階",
+    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台", "バスローブ"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+  ファミリールーム: {
+    lead: "複数名での宿泊に便利な、荷物を広げやすいファミリー向け客室です。",
+    size: "42㎡",
+    bed: "セミダブルベッド 2台 + ソファベッド",
+    floor: "9階",
+    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台", "電子レンジ"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+  和室スイート: {
+    lead: "畳のくつろぎと寝室を分けて使える、特別な日の滞在に向いた客室です。",
+    size: "52㎡",
+    bed: "布団 最大4組",
+    floor: "10階",
+    amenities: ["無料Wi-Fi", "座卓", "冷蔵庫", "独立洗面台", "バスローブ", "茶器セット"],
+    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  },
+};
+
+function roomDetail(name: string) {
+  return ROOM_DETAILS[name] ?? DEFAULT_ROOM_DETAIL;
+}
+
 function todayISO() {
   const today = new Date();
   const year = today.getFullYear();
@@ -86,8 +167,8 @@ function todayISO() {
 }
 
 function addDaysISO(base: string, days: number) {
-  const d = new Date(`${base}T00:00:00`);
-  d.setDate(d.getDate() + days);
+  const d = new Date(`${base}T00:00:00.000Z`);
+  d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
 
@@ -139,7 +220,7 @@ function Step1({
   initial,
   onSearched,
 }: {
-  initial: { checkIn: string; checkOut: string; guestCount: number };
+  initial: { checkIn: string; checkOut: string; guestCount: string };
   onSearched: (condition: SearchCondition, roomTypes: RoomTypeAvailability[]) => void;
 }) {
   const [checkIn, setCheckIn] = useState(initial.checkIn);
@@ -149,8 +230,14 @@ function Step1({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const dateError = validateStayDates(checkIn, checkOut);
-  const guestError = validateGuestCount(guestCount);
+  const stayDateError = validateStayDates(checkIn, checkOut);
+  const dateError =
+    stayDateError ??
+    (checkIn && checkOut && checkOut !== addDaysISO(checkIn, 1)
+      ? "チェックアウト日はチェックイン日の翌日を選択してください。"
+      : null);
+  const guestCountNumber = guestCount.trim() === "" ? Number.NaN : Number(guestCount);
+  const guestError = validateGuestCount(guestCountNumber);
   const completed = (dateError ? 0 : 1) + (guestError ? 0 : 1);
   const canSearch = !dateError && !guestError;
 
@@ -163,7 +250,7 @@ function Step1({
       const params = new URLSearchParams({
         checkIn,
         checkOut,
-        guestCount: String(guestCount),
+        guestCount: String(guestCountNumber),
       });
       const res = await fetch(`/api/availability?${params}`);
       const data = (await res.json()) as
@@ -209,7 +296,7 @@ function Step1({
               onChange={(e) => {
                 const v = e.target.value;
                 setCheckIn(v);
-                if (v && (!checkOut || checkOut <= v)) setCheckOut(addDaysISO(v, 1));
+                setCheckOut(v ? addDaysISO(v, 1) : "");
               }}
             />
           </div>
@@ -222,16 +309,20 @@ function Step1({
               className="field-input"
               type="date"
               value={checkOut}
-              min={checkIn ? addDaysISO(checkIn, 1) : todayISO()}
+              min={checkIn ? addDaysISO(checkIn, 1) : addDaysISO(todayISO(), 1)}
               aria-describedby="stay-dates-hint"
               aria-invalid={touched && Boolean(dateError)}
               onBlur={() => setTouched(true)}
-              onChange={(e) => setCheckOut(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setCheckOut(v);
+                setCheckIn(v ? addDaysISO(v, -1) : "");
+              }}
             />
           </div>
         </div>
         <span className="field-hint" id="stay-dates-hint">
-          本日以降の日付を選択してください。チェックアウトはチェックインの翌日以降です。
+          チェックインは本日以降、チェックアウトはチェックインの翌日です。
         </span>
         {touched && dateError && <span className="field-error">{dateError}</span>}
         <div className="field" style={{ maxWidth: 180 }}>
@@ -240,7 +331,7 @@ function Step1({
           </label>
           <input
             id="guestCount"
-            className={inputClass(touched, String(guestCount), guestError)}
+            className={inputClass(touched, guestCount, guestError)}
             type="number"
             inputMode="numeric"
             value={guestCount}
@@ -251,7 +342,7 @@ function Step1({
             }
             aria-invalid={touched && Boolean(guestError)}
             onBlur={() => setTouched(true)}
-            onChange={(e) => setGuestCount(Number(e.target.value))}
+            onChange={(e) => setGuestCount(e.target.value)}
           />
           <span className="field-hint" id="guestCount-hint">
             半角数字・1〜10名
@@ -304,6 +395,7 @@ function Step2({
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [detailRoom, setDetailRoom] = useState<RoomTypeAvailability | null>(null);
 
   function toggleFavorite(id: string) {
     setFavorites((prev) => {
@@ -331,6 +423,105 @@ function Step2({
     } catch {
       setCopied(false);
     }
+  }
+
+  if (detailRoom) {
+    const detail = roomDetail(detailRoom.name);
+    const low = detailRoom.availableCount <= 2;
+
+    return (
+      <div className="reservation-panel">
+        <div className="search-summary">
+          <span>
+            {condition.checkIn}〜{condition.checkOut}（{condition.nights}泊）・
+            {condition.guestCount}名
+          </span>
+          <button
+            className="btn btn-secondary"
+            style={{ height: 28, padding: "0 10px", fontSize: "0.75rem" }}
+            onClick={() => setDetailRoom(null)}
+          >
+            一覧へ戻る
+          </button>
+          <span style={{ marginLeft: "auto", color: "var(--placeholder)", fontSize: "0.8125rem" }}>
+            空室 {detailRoom.availableCount}室
+          </span>
+        </div>
+
+        <div className="room-detail">
+          <div className="room-detail-gallery">
+            <Image
+              src={roomImage(detailRoom.name)}
+              alt={`${detailRoom.name}の客室内観`}
+              fill
+              sizes="(max-width: 768px) calc(100vw - 64px), 430px"
+              priority
+            />
+          </div>
+          <div className="room-detail-main">
+            <div>
+              <p className="page-kicker">Room Type</p>
+              <h2 className="section-title room-detail-title">{detailRoom.name}</h2>
+              <p className="room-detail-lead">{detail.lead}</p>
+            </div>
+
+            <div className="room-detail-facts">
+              {[
+                ["定員", `${detailRoom.capacity}名`],
+                ["広さ", detail.size],
+                ["ベッド", detail.bed],
+                ["フロア", detail.floor],
+              ].map(([label, value]) => (
+                <div key={label} className="room-detail-fact">
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <p className="section-heading">主な設備</p>
+              <ul className="room-detail-amenities">
+                {detail.amenities.map((amenity) => (
+                  <li key={amenity}>{amenity}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="room-detail-notes">
+              {detail.notes.map((note) => (
+                <span key={note}>{note}</span>
+              ))}
+              {low && <span>残り{detailRoom.availableCount}室</span>}
+            </div>
+
+            <div className="room-detail-booking">
+              <div>
+                <span className="room-price">
+                  {yen(detailRoom.baseRate)}
+                  <span className="room-price-unit"> /泊</span>
+                </span>
+                <p className="room-meta">
+                  {condition.nights}泊合計 {yen(detailRoom.totalCharge)}
+                </p>
+              </div>
+              <button className="btn btn-primary btn-lg" onClick={() => onSelect(detailRoom)}>
+                この客室を選択
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button className="btn btn-secondary" onClick={() => setDetailRoom(null)}>
+            一覧へ戻る
+          </button>
+          <button className="btn btn-primary" onClick={() => onSelect(detailRoom)}>
+            選択
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -448,6 +639,12 @@ function Step2({
                         onClick={() => toggleFavorite(room.roomTypeId)}
                       >
                         {isFav ? "★ 気になる" : "☆ 気になる"}
+                      </button>
+                      <button
+                        className="btn btn-secondary room-action-btn"
+                        onClick={() => setDetailRoom(room)}
+                      >
+                        詳細
                       </button>
                       <button
                         className="btn btn-primary room-action-btn"
@@ -599,9 +796,7 @@ function Step3({
               value={email}
               autoComplete="email"
               aria-describedby={
-                touched.email && emailError
-                  ? "guestEmail-hint guestEmail-error"
-                  : "guestEmail-hint"
+                touched.email && emailError ? "guestEmail-hint guestEmail-error" : "guestEmail-hint"
               }
               aria-invalid={touched.email && Boolean(emailError)}
               onBlur={() => setTouched((t) => ({ ...t, email: true }))}
@@ -628,9 +823,7 @@ function Step3({
               value={phone}
               autoComplete="tel"
               aria-describedby={
-                touched.phone && phoneError
-                  ? "guestPhone-hint guestPhone-error"
-                  : "guestPhone-hint"
+                touched.phone && phoneError ? "guestPhone-hint guestPhone-error" : "guestPhone-hint"
               }
               aria-invalid={touched.phone && Boolean(phoneError)}
               onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
@@ -947,7 +1140,7 @@ export default function ReservationNewPage() {
           initial={{
             checkIn: "",
             checkOut: "",
-            guestCount: 2,
+            guestCount: "",
           }}
           onSearched={(c, rts) => {
             setCondition(c);

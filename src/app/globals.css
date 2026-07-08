@@ -1148,6 +1148,124 @@ h1 {
   color: var(--placeholder);
 }
 
+/* ── Room detail ── */
+.room-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.room-detail-gallery {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #ececec;
+}
+
+.room-detail-gallery img {
+  object-fit: cover;
+}
+
+.room-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.room-detail-title {
+  margin-bottom: 8px;
+}
+
+.room-detail-lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+
+.room-detail-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.room-detail-fact {
+  min-width: 0;
+  padding: 12px 14px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+.room-detail-fact:nth-child(2n) {
+  border-right: none;
+}
+
+.room-detail-fact:nth-last-child(-n + 2) {
+  border-bottom: none;
+}
+
+.room-detail-fact span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+.room-detail-fact strong {
+  display: block;
+  color: var(--ink-deep);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.room-detail-amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.room-detail-amenities li {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink-deep);
+  font-size: 0.75rem;
+}
+
+.room-detail-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.room-detail-notes span {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #f5f1e8;
+  color: #4a3520;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.room-detail-booking {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
 /* ── Search body (filter + list) ── */
 .search-body {
   display: flex;
@@ -1184,8 +1302,8 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  background: #eef3f4;
-  border: 1px solid #c8d4d7;
+  background: #fff;
+  border: 1px solid #d8d6cf;
   border-radius: 4px;
   padding: 10px 14px;
   margin-bottom: 20px;
@@ -1377,6 +1495,14 @@ h1 {
     padding-right: 0;
     padding-bottom: 16px;
   }
+
+  .room-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .room-detail-gallery {
+    min-height: 260px;
+  }
 }
 
 /* ── Print ── */
@@ -1470,6 +1596,30 @@ h1 {
   }
   .room-action-btn {
     flex: 1;
+  }
+
+  .room-detail-gallery {
+    min-height: 210px;
+  }
+
+  .room-detail-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .room-detail-fact,
+  .room-detail-fact:nth-child(2n),
+  .room-detail-fact:nth-last-child(-n + 2) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .room-detail-fact:last-child {
+    border-bottom: none;
+  }
+
+  .room-detail-booking {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   /* 完了画面のボタン群を縦並び */
