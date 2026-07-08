@@ -92,7 +92,7 @@ const DEFAULT_ROOM_DETAIL: RoomDetail = {
   bed: "ベッド構成は客室タイプにより異なります",
   floor: "3〜10階",
   amenities: ["無料Wi-Fi", "デスク", "冷蔵庫", "電気ケトル", "加湿空気清浄機"],
-  notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+  notes: ["全室禁煙"],
 };
 
 const ROOM_DETAILS: Record<string, RoomDetail> = {
@@ -102,7 +102,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "シングルベッド 1台",
     floor: "3階",
     amenities: ["無料Wi-Fi", "デスク", "冷蔵庫", "電気ケトル"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
   コンフォートダブル: {
     lead: "二名利用でも過ごしやすい、機能性を重視したダブルルームです。",
@@ -110,7 +110,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "ダブルベッド 1台",
     floor: "4階",
     amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "加湿空気清浄機"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
   スーペリアダブル: {
     lead: "広めのベッドとくつろぎスペースを備えた、滞在時間を楽しめる客室です。",
@@ -118,7 +118,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "クイーンベッド 1台",
     floor: "5階",
     amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "加湿空気清浄機"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
   デラックスツイン: {
     lead: "ご家族やご友人との宿泊に向いた、ベッドを分けて使える客室です。",
@@ -126,7 +126,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "セミダブルベッド 2台",
     floor: "7階",
     amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
   プレミアムツイン: {
     lead: "上層階の落ち着いた空間で、余裕のある滞在ができるツインルームです。",
@@ -134,7 +134,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "セミダブルベッド 2台",
     floor: "8階",
     amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台", "バスローブ"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
   ファミリールーム: {
     lead: "複数名での宿泊に便利な、荷物を広げやすいファミリー向け客室です。",
@@ -142,7 +142,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "セミダブルベッド 2台 + ソファベッド",
     floor: "9階",
     amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台", "電子レンジ"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
   和室スイート: {
     lead: "畳のくつろぎと寝室を分けて使える、特別な日の滞在に向いた客室です。",
@@ -150,7 +150,7 @@ const ROOM_DETAILS: Record<string, RoomDetail> = {
     bed: "布団 最大4組",
     floor: "10階",
     amenities: ["無料Wi-Fi", "座卓", "冷蔵庫", "独立洗面台", "バスローブ", "茶器セット"],
-    notes: ["全室禁煙", "部屋番号はチェックイン時に割り当てます"],
+    notes: ["全室禁煙"],
   },
 };
 
@@ -492,7 +492,9 @@ function Step2({
               {detail.notes.map((note) => (
                 <span key={note}>{note}</span>
               ))}
-              {low && <span>残り{detailRoom.availableCount}室</span>}
+              {low && (
+                <span className="room-detail-note-alert">残り{detailRoom.availableCount}室</span>
+              )}
             </div>
 
             <div className="room-detail-booking">
@@ -512,14 +514,6 @@ function Step2({
           </div>
         </div>
 
-        <div className="form-actions">
-          <button className="btn btn-secondary" onClick={() => setDetailRoom(null)}>
-            一覧へ戻る
-          </button>
-          <button className="btn btn-primary" onClick={() => onSelect(detailRoom)}>
-            選択
-          </button>
-        </div>
       </div>
     );
   }

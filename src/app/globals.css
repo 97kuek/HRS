@@ -1235,9 +1235,9 @@ h1 {
 
 .room-detail-amenities li {
   padding: 5px 9px;
-  border: 1px solid var(--border);
+  border: 1px solid #c6cfcd;
   border-radius: 4px;
-  background: #fff;
+  background: #f5f6f4;
   color: var(--ink-deep);
   font-size: 0.75rem;
 }
@@ -1251,10 +1251,16 @@ h1 {
 .room-detail-notes span {
   padding: 4px 8px;
   border-radius: 4px;
-  background: #f5f1e8;
-  color: #4a3520;
+  background: var(--ink-deep);
+  color: #fff;
   font-size: 0.6875rem;
   font-weight: 700;
+}
+
+.room-detail-notes .room-detail-note-alert {
+  background: #fff3d8;
+  color: #5c3700;
+  border: 1px solid #d6a84a;
 }
 
 .room-detail-booking {
