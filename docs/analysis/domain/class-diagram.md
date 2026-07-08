@@ -4,13 +4,6 @@
 - 対象Issue: #1、#12
 - 作図ツール: Astah
 
-## ファイル
-
-| 種別   | ファイル                                 |
-| ------ | ---------------------------------------- |
-| 編集元 | [class-diagram.asta](class-diagram.asta) |
-| 画像   | [class-diagram.png](class-diagram.png)   |
-
 ## クラス図
 
 ![ドメイン分析クラス図](class-diagram.png)
@@ -49,15 +42,3 @@
 - 宿泊料金と支払いはチェックアウト時に作成
 - 支払方法は現時点では文字列属性として保持
 
-## 実装との対応
-
-| ドメイン概念 | Prismaモデル        |
-| ------------ | ------------------- |
-| 利用者       | `Guest`             |
-| 予約         | `Reservation`       |
-| 予約状態     | `ReservationStatus` |
-| 部屋タイプ   | `RoomType`          |
-| 部屋         | `Room`              |
-| 宿泊         | `Stay`              |
-| 宿泊料金     | `LodgingCharge`     |
-| 支払い       | `Payment`           |

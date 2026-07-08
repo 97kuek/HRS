@@ -4,14 +4,6 @@
 - 作図ツール: Astah
 - 対象ユースケース: 予約、チェックイン、チェックアウト、予約キャンセル
 
-## ファイル
-
-| 種別         | ファイル                                                   |
-| ------------ | ---------------------------------------------------------- |
-| 編集元       | [analysis-class-diagram.asta](analysis-class-diagram.asta) |
-| 画像         | [analysis-class-diagram.png](analysis-class-diagram.png)   |
-| Entityの基準 | [../domain/class-diagram.md](../domain/class-diagram.md)   |
-
 ## 分析クラス図
 
 ![システム分析クラス図](analysis-class-diagram.png)

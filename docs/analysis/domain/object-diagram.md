@@ -4,14 +4,6 @@
 - 対象Issue: #2、#12
 - 作図ツール: Astah
 
-## ファイル
-
-| 種別     | ファイル                                   |
-| -------- | ------------------------------------------ |
-| 編集元   | [object-diagram.asta](object-diagram.asta) |
-| 画像     | [object-diagram.png](object-diagram.png)   |
-| 検証対象 | [class-diagram.md](class-diagram.md)       |
-
 ## 検証シナリオ
 
 - 利用者: 佐藤 健
