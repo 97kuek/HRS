@@ -44,10 +44,10 @@
 
 ### 3.1 コラボレーション図（新規）
 
-キャンセルのコラボレーション図を新規に作成した（`コラボレーション図_予約をキャンセルする.png`）。
+キャンセルのコラボレーション図を新規に作成した（`collaboration-diagram-cancel-reservation.png`）。
 予約内容の表示（照会）とキャンセルの確定を分ける2フェーズ構成であり，チェックアウトのコラボレーション図（#11）と同じ構造をとる．中心となるエンティティは「予約」のみである．
 
-![コラボレーション図_予約をキャンセルする](コラボレーション図_予約をキャンセルする.png)
+![collaboration-diagram-cancel-reservation](collaboration-diagram-cancel-reservation.png)
 
 ### 3.2 クラス図・ドメインモデル
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/checkOut";
+import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/check-out";
 
 describe("classifyMissingStay", () => {
   it("過去の宿泊がある場合は ALREADY_CHECKED_OUT (409)", () => {

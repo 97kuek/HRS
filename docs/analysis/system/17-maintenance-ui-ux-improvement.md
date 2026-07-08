@@ -58,9 +58,9 @@
 追加ファイル:
 
 - `src/lib/validation.ts` … 入力検証の純関数（理由・入力例つきメッセージ）
-- `src/components/LoadingIndicator.tsx` … 待ち時間に応じたローディング表示
-- `src/components/CompletionMeter.tsx` … 入力完了率メーター
-- `src/components/LeaveGuard.tsx` … 離脱確認（`beforeunload` フック＋確認モーダル）
+- `src/components/loading-indicator.tsx` … 待ち時間に応じたローディング表示
+- `src/components/completion-meter.tsx` … 入力完了率メーター
+- `src/components/leave-guard.tsx` … 離脱確認（`beforeunload` フック＋確認モーダル）
 
 変更ファイル:
 

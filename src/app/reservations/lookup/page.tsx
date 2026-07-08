@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ConfirmTable } from "@/components/ConfirmTable";
+import { ConfirmTable } from "@/components/confirm-table";
 import {
   IdentityVerificationForm,
   type IdentityFormValue,
-} from "@/components/IdentityVerificationForm";
-import { LongWaitBar } from "@/components/LoadingIndicator";
-import { SubmitButton } from "@/components/SubmitButton";
+} from "@/components/identity-verification-form";
+import { LongWaitBar } from "@/components/loading-indicator";
+import { SubmitButton } from "@/components/submit-button";
 import { formatYen } from "@/lib/format";
 import { validateName, validateReservationNumber } from "@/lib/validation";
 

@@ -6,7 +6,7 @@ import {
   hasAvailabilityForRoomType,
   validateReservationCondition,
 } from "@/lib/reservations/availability";
-import { generateReservationNumber } from "@/lib/reservations/reservationNumber";
+import { generateReservationNumber } from "@/lib/reservations/reservation-number";
 import { sendReservationConfirmation } from "@/lib/email/send";
 
 const RESERVATION_NUMBER_MAX_RETRIES = 5;

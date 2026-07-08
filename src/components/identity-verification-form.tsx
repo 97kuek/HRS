@@ -1,4 +1,4 @@
-import { FormField, fieldDescribedBy, fieldInputClass } from "@/components/FormField";
+import { FormField, fieldDescribedBy, fieldInputClass } from "@/components/form-field";
 
 export type IdentityFormValue = {
   reservationNumber: string;

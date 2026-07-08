@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateCheckIn, pickAssignableRoom } from "@/lib/reservations/checkIn";
+import { evaluateCheckIn, pickAssignableRoom } from "@/lib/reservations/check-in";
 
 const TODAY = new Date("2026-07-05T00:00:00.000Z");
 const TOMORROW = new Date("2026-07-06T00:00:00.000Z");

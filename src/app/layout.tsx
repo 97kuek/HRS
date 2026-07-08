@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteHeader } from "@/components/site-header";
 
 const notoSerifJP = Noto_Serif_JP({
   subsets: ["latin"],

@@ -28,8 +28,8 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 // todayInHotelTz のみ固定値にし、evaluateCheckIn / pickAssignableRoom は実装を使う
-vi.mock("@/lib/reservations/checkIn", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/lib/reservations/checkIn")>();
+vi.mock("@/lib/reservations/check-in", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/lib/reservations/check-in")>();
   return { ...original, todayInHotelTz: vi.fn(() => TODAY_UTC) };
 });
 

@@ -58,6 +58,13 @@ git checkout -b <type>/<issue-number>-<short-name>
 - `main` は発表・提出可能な状態を維持する
 - `main` へ直接コミットまたは push しない
 
+## ファイル命名
+
+- ユーザー定義のファイル名は lowercase kebab-case で統一する
+- React コンポーネント、関数、型などの識別子は役割に応じて PascalCase または camelCase を使う
+- Next.js の予約ファイルは `page.tsx`、`layout.tsx`、`route.ts`、`not-found.tsx` の形式を維持する
+- GitHub、npm、Prisma などのツールが参照する慣例ファイルは既定名を維持する
+
 ## ドキュメント文体
 
 - 文体: だ・である調で統一する
