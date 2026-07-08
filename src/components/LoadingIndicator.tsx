@@ -39,12 +39,7 @@ export function LongWaitBar({
   if (!loading || !longWait) return null;
 
   return (
-    <div
-      className="load-status"
-      role="status"
-      aria-live="polite"
-      style={{ paddingBottom: 0 }}
-    >
+    <div className="load-status load-status-compact" role="status" aria-live="polite">
       <span>{message}</span>
       <div className="progress-track">
         <div className="progress-bar" />

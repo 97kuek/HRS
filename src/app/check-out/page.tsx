@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ConfirmTable } from "@/components/ConfirmTable";
+import { FormField, fieldDescribedBy, fieldInputClass } from "@/components/FormField";
 import { LongWaitBar } from "@/components/LoadingIndicator";
+import { ResultPanel } from "@/components/ResultPanel";
+import { SubmitButton } from "@/components/SubmitButton";
+import { formatYen } from "@/lib/format";
 import { validateRoomNumber } from "@/lib/validation";
 
 interface Quote {
@@ -29,12 +34,12 @@ interface ApiError {
   error: { code: string; message: string };
 }
 
-const yen = (n: number) => `¥${n.toLocaleString()}`;
+const PAYMENT_METHODS = ["現金", "クレジットカード"] as const;
 
 export default function CheckOutPage() {
   const [roomNumber, setRoomNumber] = useState("");
   const [touched, setTouched] = useState(false);
-  const [method, setMethod] = useState("現金");
+  const [method, setMethod] = useState<string>(PAYMENT_METHODS[0]);
   const [quote, setQuote] = useState<Quote | null>(null);
   const [result, setResult] = useState<CheckOutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,34 +98,21 @@ export default function CheckOutPage() {
 
   if (result) {
     return (
-      <main className="page-shell">
-        <div className="page-panel page-panel-centered">
-          <div className="complete-mark">✓</div>
-          <h1 className="page-title">チェックアウト完了</h1>
-          <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 4px" }}>
-            ご利用ありがとうございました。
-          </p>
-          <p style={{ color: "var(--muted)", fontSize: "0.8125rem", margin: "0 0 16px" }}>
-            領収書をご登録のメールアドレスにお送りしました。
-          </p>
-          <div className="confirm-table" style={{ textAlign: "left" }}>
-            {[
-              ["部屋番号", result.roomNumber],
-              ["予約番号", result.reservationNumber],
-              ["お支払い金額", yen(result.amount)],
-              ["お支払い方法", result.method],
-            ].map(([label, value]) => (
-              <div key={label} className="confirm-row">
-                <span className="confirm-label">{label}</span>
-                <span className="confirm-value">{value}</span>
-              </div>
-            ))}
-          </div>
-          <Link href="/" className="btn btn-secondary btn-full" style={{ marginTop: 16 }}>
-            トップへ戻る
-          </Link>
-        </div>
-      </main>
+      <ResultPanel
+        title="チェックアウト完了"
+        description="ご利用ありがとうございました。"
+        secondaryDescription="領収書をご登録のメールアドレスにお送りしました。"
+        rows={[
+          ["部屋番号", result.roomNumber],
+          ["予約番号", result.reservationNumber],
+          ["お支払い金額", formatYen(result.amount)],
+          ["お支払い方法", result.method],
+        ]}
+      >
+        <Link href="/" className="btn btn-secondary btn-full" style={{ marginTop: 16 }}>
+          トップへ戻る
+        </Link>
+      </ResultPanel>
     );
   }
 
@@ -132,26 +124,21 @@ export default function CheckOutPage() {
           <p style={{ color: "var(--muted)", fontSize: "0.875rem", margin: "0 0 20px" }}>
             ご請求内容をご確認のうえ、お支払い方法を選択してください。
           </p>
-          <div className="confirm-table">
-            {[
+          <ConfirmTable
+            rows={[
               ["部屋番号", quote.roomNumber],
               ["部屋タイプ", quote.roomTypeName],
               ["宿泊期間", `${quote.checkInDate} 〜 ${quote.checkOutDate}（${quote.nights}泊）`],
-            ].map(([label, value]) => (
-              <div key={label} className="confirm-row">
-                <span className="confirm-label">{label}</span>
-                <span className="confirm-value">{value}</span>
-              </div>
-            ))}
-          </div>
+            ]}
+          />
           <div className="price-breakdown">
             <div className="price-row-total">
               <span>ご請求金額</span>
-              <span>{yen(quote.amount)}</span>
+              <span>{formatYen(quote.amount)}</span>
             </div>
           </div>
           <p className="section-heading">お支払い方法</p>
-          {["現金", "クレジットカード"].map((m) => (
+          {PAYMENT_METHODS.map((m) => (
             <div
               key={m}
               className={`payment-option${method === m ? " selected" : ""}`}
@@ -170,20 +157,16 @@ export default function CheckOutPage() {
             <button className="btn btn-secondary" onClick={cancel} disabled={loading}>
               やめる
             </button>
-            <button
+            <SubmitButton
               className="btn btn-primary btn-lg"
+              type="button"
+              loading={loading}
+              loadingLabel="処理中…"
               onClick={confirmCheckOut}
               disabled={loading}
-              aria-busy={loading}
             >
-              {loading ? (
-                <>
-                  <span className="spinner" aria-hidden="true" /> 処理中…
-                </>
-              ) : (
-                "支払ってチェックアウトする"
-              )}
-            </button>
+              支払ってチェックアウトする
+            </SubmitButton>
           </div>
           <LongWaitBar
             loading={loading}
@@ -200,58 +183,45 @@ export default function CheckOutPage() {
         <p className="page-kicker">CHECK-OUT</p>
         <h1 className="page-title">チェックアウト</h1>
         <p className="page-intro">ご滞在中のお部屋の番号を入力してください。</p>
-        <form onSubmit={(e) => { e.preventDefault(); fetchQuote(); }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            fetchQuote();
+          }}
+        >
           <div className="form-stack">
-            <div className="field">
-              <label className="field-label field-required" htmlFor="roomNumber">
-                部屋番号
-              </label>
+            <FormField
+              id="roomNumber"
+              label="部屋番号"
+              hint="ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。"
+              error={fieldError}
+              touched={touched}
+            >
               <input
                 id="roomNumber"
-                className={
-                  !touched || roomNumber.trim() === ""
-                    ? "field-input"
-                    : fieldError
-                      ? "field-input is-invalid"
-                      : "field-input is-valid"
-                }
+                className={fieldInputClass(touched, roomNumber, fieldError)}
                 type="text"
                 inputMode="numeric"
                 value={roomNumber}
-                aria-describedby={
-                  touched && fieldError ? "roomNumber-hint roomNumber-error" : "roomNumber-hint"
-                }
+                aria-describedby={fieldDescribedBy(
+                  "roomNumber",
+                  "ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。",
+                  fieldError,
+                  touched,
+                )}
                 aria-invalid={touched && Boolean(fieldError)}
                 onBlur={() => setTouched(true)}
                 onChange={(e) => setRoomNumber(e.target.value)}
                 placeholder="101"
               />
-              <span className="field-hint" id="roomNumber-hint">
-                ご滞在中のお部屋のドアに記載された番号です。半角数字で入力してください（例: 101）。
-              </span>
-              {touched && fieldError && (
-                <span className="field-error" id="roomNumber-error">
-                  {fieldError}
-                </span>
-              )}
-            </div>
+            </FormField>
             {error && <div className="error-box">{error}</div>}
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary btn-full btn-lg"
-            style={{ marginTop: 20 }}
-            disabled={loading}
-            aria-busy={loading}
-          >
-            {loading ? (
-              <>
-                <span className="spinner" aria-hidden="true" /> 照会中…
-              </>
-            ) : (
-              "料金を確認する"
-            )}
-          </button>
+          <div className="form-submit">
+            <SubmitButton loading={loading} loadingLabel="照会中…">
+              料金を確認する
+            </SubmitButton>
+          </div>
           <LongWaitBar
             loading={loading}
             message="ご請求内容を照会しています。そのままお待ちください…"
