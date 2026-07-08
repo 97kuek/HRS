@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import Image, { type StaticImageData } from "next/image";
+import Image from "next/image";
 import Link from "next/link";
-import roomDeluxeTwin from "@/assets/room-deluxe-twin.webp";
-import roomFamily from "@/assets/room-family.webp";
-import roomStandardSingle from "@/assets/room-standard-single.webp";
-import roomSuite from "@/assets/room-suite.webp";
-import roomSuperiorDouble from "@/assets/room-superior-double.webp";
+import { ConfirmTable } from "@/components/ConfirmTable";
+import { fieldInputClass } from "@/components/FormField";
 import { LongWaitBar } from "@/components/LoadingIndicator";
 import { CompletionMeter } from "@/components/CompletionMeter";
 import { LeaveConfirmModal, useBeforeUnloadGuard } from "@/components/LeaveGuard";
+import { roomDetail, roomImage } from "@/components/reservations/roomDisplay";
+import { SubmitButton } from "@/components/SubmitButton";
+import { addDaysToDateOnly, todayLocalDateOnly } from "@/lib/dateOnly";
+import { formatStayRange, formatYen } from "@/lib/format";
 import {
   validateName,
   validateEmail,
@@ -59,122 +60,6 @@ interface ReservationResult {
 
 interface ApiError {
   error: { code: string; message: string; details?: { field: string; message: string }[] };
-}
-
-const yen = (n: number) => `¥${n.toLocaleString()}`;
-
-const ROOM_IMAGES: Record<string, StaticImageData> = {
-  スタンダードシングル: roomStandardSingle,
-  コンフォートダブル: roomSuperiorDouble,
-  スーペリアダブル: roomSuperiorDouble,
-  デラックスツイン: roomDeluxeTwin,
-  プレミアムツイン: roomDeluxeTwin,
-  ファミリールーム: roomFamily,
-  和室スイート: roomSuite,
-};
-
-function roomImage(name: string) {
-  return ROOM_IMAGES[name] ?? roomFamily;
-}
-
-type RoomDetail = {
-  lead: string;
-  size: string;
-  bed: string;
-  floor: string;
-  amenities: string[];
-  notes: string[];
-};
-
-const DEFAULT_ROOM_DETAIL: RoomDetail = {
-  lead: "ゆとりある滞在に必要な設備を整えた客室です。",
-  size: "28㎡",
-  bed: "ベッド構成は客室タイプにより異なります",
-  floor: "3〜10階",
-  amenities: ["無料Wi-Fi", "デスク", "冷蔵庫", "電気ケトル", "加湿空気清浄機"],
-  notes: ["全室禁煙"],
-};
-
-const ROOM_DETAILS: Record<string, RoomDetail> = {
-  スタンダードシングル: {
-    lead: "一人旅や出張に使いやすい、コンパクトで落ち着いた客室です。",
-    size: "18㎡",
-    bed: "シングルベッド 1台",
-    floor: "3階",
-    amenities: ["無料Wi-Fi", "デスク", "冷蔵庫", "電気ケトル"],
-    notes: ["全室禁煙"],
-  },
-  コンフォートダブル: {
-    lead: "二名利用でも過ごしやすい、機能性を重視したダブルルームです。",
-    size: "24㎡",
-    bed: "ダブルベッド 1台",
-    floor: "4階",
-    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "加湿空気清浄機"],
-    notes: ["全室禁煙"],
-  },
-  スーペリアダブル: {
-    lead: "広めのベッドとくつろぎスペースを備えた、滞在時間を楽しめる客室です。",
-    size: "28㎡",
-    bed: "クイーンベッド 1台",
-    floor: "5階",
-    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "加湿空気清浄機"],
-    notes: ["全室禁煙"],
-  },
-  デラックスツイン: {
-    lead: "ご家族やご友人との宿泊に向いた、ベッドを分けて使える客室です。",
-    size: "34㎡",
-    bed: "セミダブルベッド 2台",
-    floor: "7階",
-    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台"],
-    notes: ["全室禁煙"],
-  },
-  プレミアムツイン: {
-    lead: "上層階の落ち着いた空間で、余裕のある滞在ができるツインルームです。",
-    size: "38㎡",
-    bed: "セミダブルベッド 2台",
-    floor: "8階",
-    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台", "バスローブ"],
-    notes: ["全室禁煙"],
-  },
-  ファミリールーム: {
-    lead: "複数名での宿泊に便利な、荷物を広げやすいファミリー向け客室です。",
-    size: "42㎡",
-    bed: "セミダブルベッド 2台 + ソファベッド",
-    floor: "9階",
-    amenities: ["無料Wi-Fi", "ソファ", "デスク", "冷蔵庫", "独立洗面台", "電子レンジ"],
-    notes: ["全室禁煙"],
-  },
-  和室スイート: {
-    lead: "畳のくつろぎと寝室を分けて使える、特別な日の滞在に向いた客室です。",
-    size: "52㎡",
-    bed: "布団 最大4組",
-    floor: "10階",
-    amenities: ["無料Wi-Fi", "座卓", "冷蔵庫", "独立洗面台", "バスローブ", "茶器セット"],
-    notes: ["全室禁煙"],
-  },
-};
-
-function roomDetail(name: string) {
-  return ROOM_DETAILS[name] ?? DEFAULT_ROOM_DETAIL;
-}
-
-function todayISO() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function addDaysISO(base: string, days: number) {
-  const d = new Date(`${base}T00:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-function inputClass(touched: boolean, value: string, error: string | null) {
-  if (!touched || value.trim() === "") return "field-input";
-  return error ? "field-input is-invalid" : "field-input is-valid";
 }
 
 function StepRail({ current, onGo }: { current: number; onGo?: (step: number) => void }) {
@@ -233,7 +118,7 @@ function Step1({
   const stayDateError = validateStayDates(checkIn, checkOut);
   const dateError =
     stayDateError ??
-    (checkIn && checkOut && checkOut !== addDaysISO(checkIn, 1)
+    (checkIn && checkOut && checkOut !== addDaysToDateOnly(checkIn, 1)
       ? "チェックアウト日はチェックイン日の翌日を選択してください。"
       : null);
   const guestCountNumber = guestCount.trim() === "" ? Number.NaN : Number(guestCount);
@@ -289,14 +174,14 @@ function Step1({
               className="field-input"
               type="date"
               value={checkIn}
-              min={todayISO()}
+              min={todayLocalDateOnly()}
               aria-describedby="stay-dates-hint"
               aria-invalid={touched && Boolean(dateError)}
               onBlur={() => setTouched(true)}
               onChange={(e) => {
                 const v = e.target.value;
                 setCheckIn(v);
-                setCheckOut(v ? addDaysISO(v, 1) : "");
+                setCheckOut(v ? addDaysToDateOnly(v, 1) : "");
               }}
             />
           </div>
@@ -309,14 +194,16 @@ function Step1({
               className="field-input"
               type="date"
               value={checkOut}
-              min={checkIn ? addDaysISO(checkIn, 1) : addDaysISO(todayISO(), 1)}
+              min={
+                checkIn ? addDaysToDateOnly(checkIn, 1) : addDaysToDateOnly(todayLocalDateOnly(), 1)
+              }
               aria-describedby="stay-dates-hint"
               aria-invalid={touched && Boolean(dateError)}
               onBlur={() => setTouched(true)}
               onChange={(e) => {
                 const v = e.target.value;
                 setCheckOut(v);
-                setCheckIn(v ? addDaysISO(v, -1) : "");
+                setCheckIn(v ? addDaysToDateOnly(v, -1) : "");
               }}
             />
           </div>
@@ -331,7 +218,7 @@ function Step1({
           </label>
           <input
             id="guestCount"
-            className={inputClass(touched, guestCount, guestError)}
+            className={fieldInputClass(touched, guestCount, guestError)}
             type="number"
             inputMode="numeric"
             value={guestCount}
@@ -356,20 +243,15 @@ function Step1({
       </div>
       <div style={{ marginTop: 28 }}>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
+          <SubmitButton
             className="btn btn-primary btn-lg"
+            type="button"
+            loading={loading}
+            loadingLabel="検索中…"
             onClick={search}
-            disabled={loading}
-            aria-busy={loading}
           >
-            {loading ? (
-              <>
-                <span className="spinner" aria-hidden="true" /> 検索中…
-              </>
-            ) : (
-              "次へ：客室を探す"
-            )}
-          </button>
+            次へ：客室を探す
+          </SubmitButton>
         </div>
         <LongWaitBar loading={loading} message="空室を確認しています。そのままお待ちください…" />
       </div>
@@ -500,11 +382,11 @@ function Step2({
             <div className="room-detail-booking">
               <div>
                 <span className="room-price">
-                  {yen(detailRoom.baseRate)}
+                  {formatYen(detailRoom.baseRate)}
                   <span className="room-price-unit"> /泊</span>
                 </span>
                 <p className="room-meta">
-                  {condition.nights}泊合計 {yen(detailRoom.totalCharge)}
+                  {condition.nights}泊合計 {formatYen(detailRoom.totalCharge)}
                 </p>
               </div>
               <button className="btn btn-primary btn-lg" onClick={() => onSelect(detailRoom)}>
@@ -513,7 +395,6 @@ function Step2({
             </div>
           </div>
         </div>
-
       </div>
     );
   }
@@ -619,11 +500,12 @@ function Step2({
                     )}
                   </p>
                   <p className="room-meta">
-                    {condition.nights}泊合計 {yen(room.totalCharge)}（{yen(room.baseRate)}/泊）
+                    {condition.nights}泊合計 {formatYen(room.totalCharge)}（
+                    {formatYen(room.baseRate)}/泊）
                   </p>
                   <div className="room-footer">
                     <span className="room-price">
-                      {yen(room.baseRate)}
+                      {formatYen(room.baseRate)}
                       <span className="room-price-unit"> /泊</span>
                     </span>
                     <div className="room-actions">
@@ -725,7 +607,7 @@ function Step3({
               </label>
               <input
                 id="guestFamilyName"
-                className={inputClass(touched.familyName, familyName, familyNameError)}
+                className={fieldInputClass(touched.familyName, familyName, familyNameError)}
                 type="text"
                 placeholder="山田"
                 value={familyName}
@@ -754,7 +636,7 @@ function Step3({
               </label>
               <input
                 id="guestGivenName"
-                className={inputClass(touched.givenName, givenName, givenNameError)}
+                className={fieldInputClass(touched.givenName, givenName, givenNameError)}
                 type="text"
                 placeholder="太郎"
                 value={givenName}
@@ -784,7 +666,7 @@ function Step3({
             </label>
             <input
               id="guestEmail"
-              className={inputClass(touched.email, email, emailError)}
+              className={fieldInputClass(touched.email, email, emailError)}
               type="email"
               placeholder="guest@example.com"
               value={email}
@@ -811,7 +693,7 @@ function Step3({
             </label>
             <input
               id="guestPhone"
-              className={inputClass(touched.phone, phone, phoneError)}
+              className={fieldInputClass(touched.phone, phone, phoneError)}
               type="tel"
               placeholder="090-1234-5678"
               value={phone}
@@ -885,7 +767,9 @@ function Step3({
             }}
           >
             <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>合計</span>
-            <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>{yen(room.totalCharge)}</span>
+            <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>
+              {formatYen(room.totalCharge)}
+            </span>
           </div>
         </div>
       </div>
@@ -958,32 +842,34 @@ function Step4({
           {error}
         </div>
       )}
-      <div className="confirm-table">
-        {[
+      <ConfirmTable
+        rows={[
           ["客室", room.name],
-          ["宿泊日", `${condition.checkIn} → ${condition.checkOut}（${condition.nights}泊）`],
+          [
+            "宿泊日",
+            formatStayRange({
+              checkInDate: condition.checkIn,
+              checkOutDate: condition.checkOut,
+              nights: condition.nights,
+            }),
+          ],
           ["人数", `${condition.guestCount}名`],
           ["代表者", `${guest.familyName} ${guest.givenName}`],
           ["メール", guest.email],
           ...(guest.phone ? [["電話番号", guest.phone] as [string, string]] : []),
-        ].map(([label, value]) => (
-          <div key={label} className="confirm-row">
-            <span className="confirm-label">{label}</span>
-            <span className="confirm-value">{value}</span>
-          </div>
-        ))}
-      </div>
+        ]}
+      />
       <p className="section-heading">料金内訳</p>
       <div className="price-breakdown">
         <div className="price-row">
           <span>
-            室料 {yen(room.baseRate)} × {condition.nights}泊
+            室料 {formatYen(room.baseRate)} × {condition.nights}泊
           </span>
-          <span>{yen(room.totalCharge)}</span>
+          <span>{formatYen(room.totalCharge)}</span>
         </div>
         <div className="price-row-total">
           <span>合計</span>
-          <span>{yen(room.totalCharge)}</span>
+          <span>{formatYen(room.totalCharge)}</span>
         </div>
       </div>
       <p
@@ -996,20 +882,9 @@ function Step4({
       >
         お支払いはチェックイン／チェックアウト時に承ります。
       </p>
-      <button
-        className="btn btn-primary btn-full btn-lg"
-        onClick={confirm}
-        disabled={loading}
-        aria-busy={loading}
-      >
-        {loading ? (
-          <>
-            <span className="spinner" aria-hidden="true" /> 予約処理中…
-          </>
-        ) : (
-          "予約を確定する"
-        )}
-      </button>
+      <SubmitButton type="button" loading={loading} loadingLabel="予約処理中…" onClick={confirm}>
+        予約を確定する
+      </SubmitButton>
       <LongWaitBar
         loading={loading}
         message="予約を確定しています。画面を閉じずにお待ちください…"
@@ -1050,22 +925,25 @@ function Step5({ result }: { result: ReservationResult }) {
       >
         {copied ? "予約番号をコピーしました" : "予約番号をコピー"}
       </button>
-      <div className="confirm-table" style={{ textAlign: "left", marginTop: 12 }}>
-        {[
+      <ConfirmTable
+        className="confirm-table-left confirm-table-spaced"
+        rows={[
           ["客室", result.roomTypeName],
-          ["宿泊日", `${result.checkInDate} → ${result.checkOutDate}（${result.nights}泊）`],
+          [
+            "宿泊日",
+            formatStayRange({
+              checkInDate: result.checkInDate,
+              checkOutDate: result.checkOutDate,
+              nights: result.nights,
+            }),
+          ],
           ["人数", `${result.guestCount}名`],
           ["代表者", result.guestName],
           ["メール", result.email],
           ...(result.phone ? [["電話番号", result.phone] as [string, string]] : []),
-          ["合計", yen(result.totalCharge)],
-        ].map(([label, value]) => (
-          <div key={label} className="confirm-row">
-            <span className="confirm-label">{label}</span>
-            <span className="confirm-value">{value}</span>
-          </div>
-        ))}
-      </div>
+          ["合計", formatYen(result.totalCharge)],
+        ]}
+      />
       <div className="info-box" style={{ textAlign: "left", margin: "20px 0 24px" }}>
         <p className="section-heading" style={{ marginTop: 0 }}>
           次にできること

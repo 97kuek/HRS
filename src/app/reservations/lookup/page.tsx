@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ConfirmTable } from "@/components/ConfirmTable";
+import {
+  IdentityVerificationForm,
+  type IdentityFormValue,
+} from "@/components/IdentityVerificationForm";
 import { LongWaitBar } from "@/components/LoadingIndicator";
+import { SubmitButton } from "@/components/SubmitButton";
+import { formatYen } from "@/lib/format";
 import { validateName, validateReservationNumber } from "@/lib/validation";
 
 interface LookupResult {
@@ -32,17 +39,19 @@ const statusLabels: Record<LookupResult["status"], string> = {
 };
 
 export default function ReservationLookupPage() {
-  const [reservationNumber, setReservationNumber] = useState("");
-  const [familyName, setFamilyName] = useState("");
-  const [givenName, setGivenName] = useState("");
+  const [identity, setIdentity] = useState<IdentityFormValue>({
+    reservationNumber: "",
+    familyName: "",
+    givenName: "",
+  });
   const [touched, setTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<LookupResult | null>(null);
 
-  const reservationNumberError = validateReservationNumber(reservationNumber);
-  const familyNameError = validateName(familyName, "姓");
-  const givenNameError = validateName(givenName, "名");
+  const reservationNumberError = validateReservationNumber(identity.reservationNumber);
+  const familyNameError = validateName(identity.familyName, "姓");
+  const givenNameError = validateName(identity.givenName, "名");
   const canSearch = !reservationNumberError && !familyNameError && !givenNameError;
 
   async function search() {
@@ -53,11 +62,11 @@ export default function ReservationLookupPage() {
     setError(null);
     try {
       const params = new URLSearchParams({
-        familyName: familyName.trim(),
-        givenName: givenName.trim(),
+        familyName: identity.familyName.trim(),
+        givenName: identity.givenName.trim(),
       });
       const response = await fetch(
-        `/api/reservations/${encodeURIComponent(reservationNumber.trim().toUpperCase())}?${params}`,
+        `/api/reservations/${encodeURIComponent(identity.reservationNumber.trim().toUpperCase())}?${params}`,
       );
       const data = (await response.json()) as { reservation: LookupResult } | ApiError;
       if (!response.ok) {
@@ -89,8 +98,8 @@ export default function ReservationLookupPage() {
             </h1>
             <span className="status-chip">{statusLabels[result.status]}</span>
           </div>
-          <div className="confirm-table">
-            {[
+          <ConfirmTable
+            rows={[
               ["予約番号", result.reservationNumber],
               ["客室", result.roomTypeName],
               ...(result.roomNumber ? [["部屋番号", result.roomNumber] as [string, string]] : []),
@@ -100,17 +109,13 @@ export default function ReservationLookupPage() {
               ["代表者", result.guestName],
               ["メール", result.email],
               ...(result.phone ? [["電話番号", result.phone] as [string, string]] : []),
-              ["合計（税込）", `¥${result.totalCharge.toLocaleString()}`],
-            ].map(([label, value]) => (
-              <div key={label} className="confirm-row">
-                <span className="confirm-label">{label}</span>
-                <span className="confirm-value">{value}</span>
-              </div>
-            ))}
-          </div>
+              ["合計（税込）", formatYen(result.totalCharge)],
+            ]}
+          />
           {result.status === "RESERVED" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {result.checkInDate === new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" }) && (
+              {result.checkInDate ===
+                new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" }) && (
                 <Link href="/check-in" className="btn btn-primary btn-full">
                   チェックインへ進む
                 </Link>
@@ -139,70 +144,32 @@ export default function ReservationLookupPage() {
         <p className="page-kicker">RESERVATION</p>
         <h1 className="page-title">予約を確認する</h1>
         <p className="page-intro">予約番号と宿泊代表者のお名前を入力してください。</p>
-        <form onSubmit={(e) => { e.preventDefault(); search(); }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            search();
+          }}
+        >
           <div className="form-stack">
-            <div className="field">
-              <label className="field-label field-required" htmlFor="lookupReservationNumber">
-                予約番号
-              </label>
-              <input
-                id="lookupReservationNumber"
-                className="field-input"
-                type="text"
-                value={reservationNumber}
-                onChange={(event) => setReservationNumber(event.target.value)}
-                placeholder="HRS-YYYYMMDD-NNNN"
-                aria-invalid={touched && Boolean(reservationNumberError)}
-              />
-              {touched && reservationNumberError && (
-                <span className="field-error">{reservationNumberError}</span>
-              )}
-            </div>
-            <div className="form-row">
-              <div className="field">
-                <label className="field-label field-required" htmlFor="lookupFamilyName">
-                  姓
-                </label>
-                <input
-                  id="lookupFamilyName"
-                  className="field-input"
-                  type="text"
-                  value={familyName}
-                  onChange={(event) => setFamilyName(event.target.value)}
-                  autoComplete="family-name"
-                  placeholder="山田"
-                  aria-invalid={touched && Boolean(familyNameError)}
-                />
-                {touched && familyNameError && <span className="field-error">{familyNameError}</span>}
-              </div>
-              <div className="field">
-                <label className="field-label field-required" htmlFor="lookupGivenName">
-                  名
-                </label>
-                <input
-                  id="lookupGivenName"
-                  className="field-input"
-                  type="text"
-                  value={givenName}
-                  onChange={(event) => setGivenName(event.target.value)}
-                  autoComplete="given-name"
-                  placeholder="太郎"
-                  aria-invalid={touched && Boolean(givenNameError)}
-                />
-                {touched && givenNameError && <span className="field-error">{givenNameError}</span>}
-              </div>
-            </div>
+            <IdentityVerificationForm
+              idPrefix="lookup"
+              value={identity}
+              errors={{
+                reservationNumber: reservationNumberError,
+                familyName: familyNameError,
+                givenName: givenNameError,
+              }}
+              touched={touched}
+              onTouched={() => setTouched(true)}
+              onChange={setIdentity}
+            />
             {error && <div className="error-box">{error}</div>}
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary btn-full btn-lg"
-            style={{ marginTop: 20 }}
-            disabled={loading}
-            aria-busy={loading}
-          >
-            {loading ? "照会中…" : "予約を照会する"}
-          </button>
+          <div className="form-submit">
+            <SubmitButton loading={loading} loadingLabel="照会中…">
+              予約を照会する
+            </SubmitButton>
+          </div>
           <LongWaitBar loading={loading} message="ご予約を照会しています…" />
         </form>
       </div>
