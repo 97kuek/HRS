@@ -17,6 +17,19 @@ docs/
 └── *.pdf                # 公開許可と再配布権を確認済みの課題資料
 ```
 
+## ドキュメントの読み順
+
+| 順序 | 成果物 | 目的 |
+| ---- | ------ | ---- |
+| 1 | [クラス図](analysis/domain/class-diagram.md) | 問題領域の概念・属性・関係を把握する |
+| 2 | [オブジェクト図](analysis/domain/object-diagram.md) | クラス図の多重度を具体値で検証する |
+| 3 | [ユースケース図](analysis/requirements/usecase-diagram.md) | システムに期待される機能とアクターを把握する |
+| 4 | 各ユースケース記述・アクティビティ図 | 各 UC の系列・事前条件・例外系列を把握する |
+| 5 | [分析クラス図](analysis/system/analysis-class-diagram.md) | Boundary / Control / Entity の責務を把握する |
+| 6 | 各コラボレーション図 | UC を実現するオブジェクト間のメッセージを把握する |
+| 7 | [設計ドキュメント](design/) | 実装方針・API・DB・ルーティングを把握する |
+| 8 | 保守記録（`analysis/system/*保守*`） | 変更の差分・影響範囲を把握する |
+
 ## 作業順序
 
 | 順序 | 作業                                                    | 配置                     |
