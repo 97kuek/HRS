@@ -41,5 +41,5 @@
 
 ## 図
 
-![コラボレーション図_チェックインする](コラボレーション図_チェックインする.png)
+![collaboration-diagram-check-in](collaboration-diagram-check-in.png)
 

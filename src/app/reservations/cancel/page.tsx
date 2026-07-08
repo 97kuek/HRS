@@ -3,14 +3,14 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ConfirmTable } from "@/components/ConfirmTable";
+import { ConfirmTable } from "@/components/confirm-table";
 import {
   IdentityVerificationForm,
   type IdentityFormValue,
-} from "@/components/IdentityVerificationForm";
-import { LongWaitBar } from "@/components/LoadingIndicator";
-import { ResultPanel } from "@/components/ResultPanel";
-import { SubmitButton } from "@/components/SubmitButton";
+} from "@/components/identity-verification-form";
+import { LongWaitBar } from "@/components/loading-indicator";
+import { ResultPanel } from "@/components/result-panel";
+import { SubmitButton } from "@/components/submit-button";
 import { formatStayRange } from "@/lib/format";
 import { validateReservationNumber, validateName } from "@/lib/validation";
 

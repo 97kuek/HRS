@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
-import { evaluateCheckIn, pickAssignableRoom, todayInHotelTz } from "@/lib/reservations/checkIn";
+import { evaluateCheckIn, pickAssignableRoom, todayInHotelTz } from "@/lib/reservations/check-in";
 
 /**
  * POST /api/reservations/[reservationNumber]/check-in

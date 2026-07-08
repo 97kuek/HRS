@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HomeHeroGallery } from "@/components/HomeHeroGallery";
+import { HomeHeroGallery } from "@/components/home-hero-gallery";
 
 const steps = [
   {

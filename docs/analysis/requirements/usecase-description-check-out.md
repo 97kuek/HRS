@@ -54,7 +54,7 @@
 
 ## アクティビティ図
 
-![アクティビティ図_チェックアウトする](アクティビティ図_チェックアウトする.png)
+![activity-diagram-check-out](activity-diagram-check-out.png)
 
 ## 補足
 

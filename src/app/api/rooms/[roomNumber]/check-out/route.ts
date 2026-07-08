@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
-import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/checkOut";
+import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/check-out";
 import { sendCheckOutReceipt } from "@/lib/email/send";
 
 type CheckOutBody = { amount?: unknown; method?: unknown };

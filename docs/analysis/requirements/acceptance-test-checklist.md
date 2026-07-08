@@ -15,7 +15,7 @@ npm run dev           # ローカルサーバーを起動 → http://localhost:3
 
 ## UC1: 部屋を予約する
 
-**参照**: `ユースケース記述_部屋を予約する.md`  
+**参照**: `usecase-description-reserve-room.md`
 **前提**: ローカル DB に部屋タイプ・部屋が seed 済み
 
 ### 正常系
@@ -46,7 +46,7 @@ npm run dev           # ローカルサーバーを起動 → http://localhost:3
 
 ## UC2: 予約を確認する
 
-**参照**: `ユースケース記述_予約を確認する.md`  
+**参照**: `usecase-description-confirm-reservation.md`
 **前提**: UC1 で作成した予約が存在する
 
 ### 正常系
@@ -69,7 +69,7 @@ npm run dev           # ローカルサーバーを起動 → http://localhost:3
 
 ## UC3: 予約をキャンセルする
 
-**参照**: `ユースケース記述_予約をキャンセルする.md`
+**参照**: `usecase-description-cancel-reservation.md`
 **前提**: `RESERVED` 状態の予約が存在する
 
 ### 正常系
@@ -95,7 +95,7 @@ npm run dev           # ローカルサーバーを起動 → http://localhost:3
 
 ## UC4: チェックインする
 
-**参照**: `ユースケース記述_チェックインする.md`  
+**参照**: `usecase-description-check-in.md`
 **前提**: チェックイン日が**本日**の `RESERVED` 予約が存在する（DB の checkInDate を本日に合わせて作成）
 
 ### 正常系
@@ -119,7 +119,7 @@ npm run dev           # ローカルサーバーを起動 → http://localhost:3
 
 ## UC5: チェックアウトする
 
-**参照**: `ユースケース記述_チェックアウトする.md`  
+**参照**: `usecase-description-check-out.md`
 **前提**: UC4 でチェックイン済みの宿泊が存在し、部屋番号が分かっている
 
 ### 正常系

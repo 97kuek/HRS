@@ -40,5 +40,5 @@
 
 ## 図
 
-![コラボレーション図_チェックアウトする](コラボレーション図_チェックアウトする.png)
+![collaboration-diagram-check-out](collaboration-diagram-check-out.png)
 

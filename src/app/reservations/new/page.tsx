@@ -3,14 +3,14 @@
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ConfirmTable } from "@/components/ConfirmTable";
-import { fieldInputClass } from "@/components/FormField";
-import { LongWaitBar } from "@/components/LoadingIndicator";
-import { CompletionMeter } from "@/components/CompletionMeter";
-import { LeaveConfirmModal, useBeforeUnloadGuard } from "@/components/LeaveGuard";
-import { roomDetail, roomImage } from "@/components/reservations/roomDisplay";
-import { SubmitButton } from "@/components/SubmitButton";
-import { addDaysToDateOnly, todayLocalDateOnly } from "@/lib/dateOnly";
+import { ConfirmTable } from "@/components/confirm-table";
+import { fieldInputClass } from "@/components/form-field";
+import { LongWaitBar } from "@/components/loading-indicator";
+import { CompletionMeter } from "@/components/completion-meter";
+import { LeaveConfirmModal, useBeforeUnloadGuard } from "@/components/leave-guard";
+import { roomDetail, roomImage } from "@/components/reservations/room-display";
+import { SubmitButton } from "@/components/submit-button";
+import { addDaysToDateOnly, todayLocalDateOnly } from "@/lib/date-only";
 import { formatStayRange, formatYen } from "@/lib/format";
 import {
   validateName,

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { ConfirmTable, type ConfirmRow } from "@/components/ConfirmTable";
+import { ConfirmTable, type ConfirmRow } from "@/components/confirm-table";
 
 export function ResultPanel({
   title,

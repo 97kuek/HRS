@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateReservationNumber } from "@/lib/reservations/reservationNumber";
+import { generateReservationNumber } from "@/lib/reservations/reservation-number";
 
 describe("generateReservationNumber", () => {
   const checkIn = new Date("2026-07-01T00:00:00.000Z");

@@ -1,6 +1,6 @@
 import { apiError, internalServerError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
-import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/checkOut";
+import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/check-out";
 
 /**
  * GET /api/rooms/[roomNumber]/check-out/quote

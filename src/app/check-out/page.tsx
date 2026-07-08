@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ConfirmTable } from "@/components/ConfirmTable";
-import { FormField, fieldDescribedBy, fieldInputClass } from "@/components/FormField";
-import { LongWaitBar } from "@/components/LoadingIndicator";
-import { ResultPanel } from "@/components/ResultPanel";
-import { SubmitButton } from "@/components/SubmitButton";
+import { ConfirmTable } from "@/components/confirm-table";
+import { FormField, fieldDescribedBy, fieldInputClass } from "@/components/form-field";
+import { LongWaitBar } from "@/components/loading-indicator";
+import { ResultPanel } from "@/components/result-panel";
+import { SubmitButton } from "@/components/submit-button";
 import { formatYen } from "@/lib/format";
 import { validateRoomNumber } from "@/lib/validation";
 

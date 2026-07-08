@@ -38,11 +38,11 @@ HRS における自動テストの全体方針をまとめる。
 | ファイル | テスト対象関数 |
 |---|---|
 | `src/lib/validation.ts` | `validateName`, `validateEmail`, `validatePhone`, `validateReservationNumber`, `validateRoomNumber`, `validateStayDates`, `validateGuestCount` |
-| `src/lib/reservations/reservationNumber.ts` | `generateReservationNumber` |
+| `src/lib/reservations/reservation-number.ts` | `generateReservationNumber` |
 | `src/lib/reservations/cancellation.ts` | `evaluateCancellation` |
-| `src/lib/reservations/checkIn.ts` | `evaluateCheckIn`, `pickAssignableRoom` |
+| `src/lib/reservations/check-in.ts` | `evaluateCheckIn`, `pickAssignableRoom` |
 | `src/lib/reservations/availability.ts` | `validateReservationCondition` |
-| `src/lib/stays/checkOut.ts` | `classifyMissingStay`, `calculateNights`, `calculateCharge` |
+| `src/lib/stays/check-out.ts` | `classifyMissingStay`, `calculateNights`, `calculateCharge` |
 
 ### テストファイルの配置
 
@@ -95,9 +95,9 @@ src/app/api/<route>/__tests__/<METHOD>.test.ts
 
 | エンドポイント | テストファイル | 正常系 | 異常系 |
 |---|---|---|---|
-| `POST /api/reservations` | `reservations/__tests__/POST.test.ts` | ✓ | E1/E3/E4・定員超過・部屋なし |
-| `POST /api/reservations/[number]/cancel` | `cancel/__tests__/POST.test.ts` | ✓ | E1・E2（全ステータス）・競合更新 |
-| `POST /api/reservations/[number]/check-in` | `check-in/__tests__/POST.test.ts` | ✓ | E1・E2・E3・E4 |
+| `POST /api/reservations` | `reservations/__tests__/post-route.test.ts` | ✓ | E1/E3/E4・定員超過・部屋なし |
+| `POST /api/reservations/[number]/cancel` | `cancel/__tests__/post-route.test.ts` | ✓ | E1・E2（全ステータス）・競合更新 |
+| `POST /api/reservations/[number]/check-in` | `check-in/__tests__/post-route.test.ts` | ✓ | E1・E2・E3・E4 |
 
 ---
 
@@ -105,7 +105,7 @@ src/app/api/<route>/__tests__/<METHOD>.test.ts
 
 ### 観点: ブラックボックス
 
-UC 記述（`docs/analysis/requirements/ユースケース記述_*.md`）を仕様書とし、画面操作で確認する。チェックリストは [acceptance-test-checklist.md](../analysis/requirements/acceptance-test-checklist.md) を参照。
+UC 記述（`docs/analysis/requirements/usecase-description-*.md`）を仕様書とし、画面操作で確認する。チェックリストは [acceptance-test-checklist.md](../analysis/requirements/acceptance-test-checklist.md) を参照。
 
 ### #46 との分担
 

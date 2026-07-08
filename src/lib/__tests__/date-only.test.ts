@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addDaysToDateOnly } from "@/lib/dateOnly";
+import { addDaysToDateOnly } from "@/lib/date-only";
 
 describe("addDaysToDateOnly", () => {
   it("UTC日付として日数を加算する", () => {
