@@ -29,6 +29,7 @@ body {
   background: #f4f3ef;
   color: var(--foreground);
   font-family: var(--font-base);
+  overflow-x: hidden;
 }
 
 .page-shell {
@@ -684,6 +685,14 @@ h1 {
   font-size: 0.875rem;
   color: var(--foreground);
   width: 100%;
+  min-width: 0;
+}
+
+/* iOS Safari は date input の内部表示に独自の最小幅を確保し、
+   width: 100% を指定しても親要素からはみ出すことがあるため appearance をリセット */
+.field-input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .field-input:focus {
