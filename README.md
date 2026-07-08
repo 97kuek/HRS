@@ -125,17 +125,25 @@ npm run build
 └── package.json
 ```
 
+## コードの読み順
+
+| 順序 | 対象 | 目的 |
+| ---- | ---- | ---- |
+| 1 | `prisma/schema.prisma` | ドメインモデルと DB 構造の全体像を把握する |
+| 2 | `docs/README.md` | 分析・設計成果物の概要とドメイン概念を確認する |
+| 3 | `src/lib/` | 業務ロジック・バリデーション・ドメイン関数を読む |
+| 4 | `src/app/api/**/route.ts` | Route Handlers（API 境界）を読む |
+| 5 | `src/app/**/page.tsx` | 画面コンポーネントを読む |
+| 6 | `src/lib/**/__tests__/` | 単体テストで関数の仕様を確認する |
+| 7 | `src/app/api/**/__tests__/` | API 結合テストで API 仕様を確認する |
+
 ## ドキュメント
 
-| 文書                                             | 内容                                    |
-| ------------------------------------------------ | --------------------------------------- |
-| [docs/README.md](docs/README.md)                 | 成果物の構成と配置                      |
-| [ドメイン分析](docs/analysis/domain/README.md)   | クラス図、オブジェクト図                |
-| [要求分析](docs/analysis/requirements/README.md) | ユースケース図・記述、アクティビティ図  |
-| [システム分析](docs/analysis/system/README.md)   | コラボレーション図、分析資料            |
-| [設計](docs/design/README.md)                    | API、DB、画面、デプロイ、テスト設計     |
-| [技術スタック](docs/design/tech-stack.md)        | 技術選定の記録                          |
-| [CONTRIBUTING.md](CONTRIBUTING.md)               | ブランチ、コミット、Pull Request の規約 |
+| 文書                               | 内容                                    |
+| ---------------------------------- | --------------------------------------- |
+| [docs/README.md](docs/README.md)   | 分析・設計成果物の全体索引と各図        |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | ブランチ、コミット、Pull Request の規約 |
+| [AGENTS.md](AGENTS.md)             | AI エージェント向け規約                 |
 
 ## 開発ルール
 

@@ -82,6 +82,7 @@
 
 - コミット type: `docs` / `feat` / `fix` / `test` / `refactor` / `chore`
 - 詳細: [CONTRIBUTING.md](CONTRIBUTING.md)
+- ドキュメント文体: [CONTRIBUTING.md「ドキュメント文体」](CONTRIBUTING.md) に従う
 
 ## 変更時の判断
 
