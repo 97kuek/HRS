@@ -11,7 +11,7 @@ import {
 import { LongWaitBar } from "@/components/loading-indicator";
 import { ResultPanel } from "@/components/result-panel";
 import { SubmitButton } from "@/components/submit-button";
-import { formatStayRange } from "@/lib/format";
+import { formatStayRange, formatYen } from "@/lib/format";
 import { validateReservationNumber, validateName } from "@/lib/validation";
 
 interface Quote {
@@ -20,6 +20,10 @@ interface Quote {
   checkInDate: string;
   checkOutDate: string;
   guestCount: number;
+  totalCharge: number;
+  cancellationFee: number;
+  cancellationPolicy: string;
+  cancellationPolicyDescription: string;
   status: string;
   cancelable: boolean;
   reason: string | null;
@@ -31,6 +35,9 @@ interface CancelResult {
   checkInDate: string;
   checkOutDate: string;
   guestCount: number;
+  totalCharge: number;
+  cancellationFee: number;
+  cancellationPolicy: string;
   status: string;
 }
 
@@ -135,6 +142,9 @@ function CancelReservationPageInner() {
               separator: "〜",
             }),
           ],
+          ["宿泊料金", formatYen(result.totalCharge)],
+          ["キャンセルポリシー", result.cancellationPolicy],
+          ["キャンセル料", formatYen(result.cancellationFee)],
         ]}
       >
         <Link href="/" className="btn btn-secondary btn-full" style={{ marginTop: 16 }}>
@@ -165,8 +175,14 @@ function CancelReservationPageInner() {
                   separator: "〜",
                 }),
               ],
+              ["宿泊料金", formatYen(quote.totalCharge)],
+              ["キャンセルポリシー", quote.cancellationPolicy],
+              ["キャンセル料", formatYen(quote.cancellationFee)],
             ]}
           />
+          <div className="info-box" style={{ marginBottom: 16 }}>
+            {quote.cancellationPolicyDescription}
+          </div>
           {quote.cancelable ? (
             <>
               {error && (

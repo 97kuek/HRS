@@ -11,9 +11,9 @@
 - パス中の予約識別子には、内部IDではなく利用者に提示する `reservationNumber` を使う
 - 入力値の構文チェックは Route Handler、業務ルールの検証はユースケースサービスで行う
 - 正常レスポンスは必要な表示データだけを返し、DB内部のIDは画面に不要な限り返さない
-- 連絡先は照合用の入力として扱い、レスポンスには原則含めない
+- 連絡先は予約登録時の連絡先として扱う。予約番号と氏名で本人照合できた予約詳細では、登録済みのメールアドレスと電話番号を確認用に返してよい
 - 初期実装ではログイン、セッション、ロールによる認証・認可は扱わない
-- 予約番号と連絡先の照合は、認証基盤ではなく予約照会・状態変更時の業務ルールとして扱う
+- 予約番号と氏名（姓・名）の照合は、認証基盤ではなく予約照会・状態変更時の業務ルールとして扱う
 
 ## エラー形式
 
@@ -37,7 +37,7 @@
 | ステータス | 用途 |
 | --- | --- |
 | `400 Bad Request` | JSON形式不正、型不正、必須項目不足 |
-| `404 Not Found` | 予約番号と連絡先の組み合わせ、宿泊、部屋タイプが存在しない |
+| `404 Not Found` | 予約番号と氏名の組み合わせ、宿泊、部屋タイプが存在しない |
 | `409 Conflict` | 予約済みでない予約のチェックイン、空室不足、二重チェックアウトなど状態競合 |
 | `422 Unprocessable Entity` | 日付逆転、定員超過など業務ルール違反 |
 | `500 Internal Server Error` | 想定外のサーバーエラー |
@@ -48,6 +48,7 @@
 | --- | --- | --- | --- |
 | `GET` | `/api/room-types` | 部屋を予約する | 予約時に選択できる部屋タイプを取得する |
 | `GET` | `/api/availability` | 部屋を予約する | 宿泊条件に合う部屋タイプ別の空室と料金候補を取得する |
+| `GET` | `/api/availability/calendar` | 部屋を予約する | 対象人数で宿泊可能な日別空室数を月単位で取得する |
 | `POST` | `/api/reservations` | 部屋を予約する | 予約を作成し、予約番号を発行する |
 | `GET` | `/api/reservations/{reservationNumber}` | 予約を確認する / チェックインする / 予約をキャンセルする | 予約番号と氏名（姓・名）から予約内容と状態を取得する |
 | `GET` | `/api/reservations/{reservationNumber}/cancel/quote` | 予約をキャンセルする | キャンセル確認画面用の予約内容とキャンセル可否を返す |
@@ -127,7 +128,7 @@
       "capacity": 2,
       "baseRate": 12000,
       "availableCount": 3,
-      "estimatedAmount": 24000
+      "totalCharge": 24000
     }
   ]
 }
@@ -140,6 +141,43 @@
 | 日付形式が不正、必須パラメータ不足 | `400` | `VALIDATION_ERROR` |
 | チェックアウトがチェックイン以前、人数が0以下など | `400` | `VALIDATION_ERROR` |
 | 条件に合う空室がない | `404` | `NO_AVAILABILITY` |
+
+## `GET /api/availability/calendar`
+
+- 予約作成画面の空室カレンダーに表示する日別空室数を取得する。
+- 人数条件を満たす部屋タイプを対象に、1泊予約を入れられる総空室数を日別に返す。
+
+### クエリ
+
+| 名前 | 必須 | 型 | 説明 |
+| --- | --- | --- | --- |
+| `year` | yes | number | 表示対象年 |
+| `month` | yes | number | 表示対象月（1〜12） |
+| `guestCount` | yes | number | 宿泊人数 |
+
+### レスポンス
+
+```json
+{
+  "year": 2026,
+  "month": 7,
+  "guestCount": 2,
+  "days": [
+    {
+      "date": "2026-07-03",
+      "availableCount": 3,
+      "status": "available"
+    },
+    {
+      "date": "2026-07-04",
+      "availableCount": 1,
+      "status": "limited"
+    }
+  ]
+}
+```
+
+- `status` は `past`、`available`、`limited`、`sold_out` のいずれかを返す。
 
 ## `POST /api/reservations`
 
@@ -228,6 +266,7 @@
 ```
 
 - `roomNumber` はチェックイン前は `null`、チェックイン済みは割当部屋番号を返す。
+- 予約番号と氏名で本人照合できた後の予約詳細として、登録済みの `guestName`, `email`, `phone` を確認用に返す。`phone` は予約時に未入力の場合 `null` を返す。
 
 ### 主なエラー
 
@@ -259,6 +298,10 @@
     "checkInDate": "2026-07-03",
     "checkOutDate": "2026-07-05",
     "guestCount": 2,
+    "totalCharge": 24000,
+    "cancellationFee": 0,
+    "cancellationPolicy": "前日まで無料",
+    "cancellationPolicyDescription": "チェックイン日前日までのキャンセル料は無料です。",
     "status": "RESERVED",
     "cancelable": true,
     "reason": null
@@ -394,7 +437,7 @@
 
 - 予約済みの予約をキャンセル済みにする。
 - チェックイン済み、チェックアウト済み、すでにキャンセル済みの予約はキャンセルできない。
-- 初期実装ではキャンセル料は扱わない。
+- キャンセル料は「チェックイン日前日まで無料、チェックイン当日50%、チェックイン予定日後100%」で算出する。
 - キャンセル確定後、登録メールアドレスにキャンセル確認メールを送信する。
 
 ### リクエスト
@@ -416,6 +459,9 @@
     "checkInDate": "2026-07-03",
     "checkOutDate": "2026-07-05",
     "guestCount": 2,
+    "totalCharge": 24000,
+    "cancellationFee": 0,
+    "cancellationPolicy": "前日まで無料",
     "status": "CANCELLED"
   }
 }
@@ -432,7 +478,7 @@
 
 | ユースケース | API | 備考 |
 | --- | --- | --- |
-| 部屋を予約する | `GET /api/room-types`, `GET /api/availability`, `POST /api/reservations` | 空室検索、候補表示、予約確定に分ける |
+| 部屋を予約する | `GET /api/room-types`, `GET /api/availability/calendar`, `GET /api/availability`, `POST /api/reservations` | 月別空室表示、候補表示、予約確定に分ける |
 | 予約を確認する | `GET /api/reservations/{reservationNumber}` | 予約番号と氏名（姓・名）を照合する |
 | チェックインする | `GET /api/reservations/{reservationNumber}`, `POST /api/reservations/{reservationNumber}/check-in` | 予約内容確認後にチェックイン実行。当日のみ可能 |
 | チェックアウトする | `GET /api/rooms/{roomNumber}/check-out/quote`, `POST /api/rooms/{roomNumber}/check-out` | 部屋番号から宿泊を特定。見積もり確認後に支払い・確定 |

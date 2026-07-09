@@ -145,6 +145,12 @@ export type RoomTypeAvailability = {
   totalCharge: number;
 };
 
+export type AvailabilityCalendarDay = {
+  date: string;
+  availableCount: number;
+  status: "past" | "available" | "limited" | "sold_out";
+};
+
 /**
  * 条件に合う部屋タイプ別の空室状況を返す（基本系列 3〜4）。
  * 定員を満たし、在庫が 1 以上の部屋タイプのみを対象とする。
@@ -179,6 +185,104 @@ export async function searchAvailability(
     }
   }
   return result;
+}
+
+function daysInMonthUtc(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+export function validateAvailabilityCalendarQuery(input: {
+  year?: unknown;
+  month?: unknown;
+  guestCount?: unknown;
+}): { ok: true; value: { year: number; month: number; guestCount: number } } | { ok: false; errors: ApiErrorDetail[] } {
+  const errors: ApiErrorDetail[] = [];
+  const year = Number(input.year);
+  const month = Number(input.month);
+  const guestCount = Number(input.guestCount);
+
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    errors.push({ field: "year", message: "年は 2000〜2100 の整数で指定してください。" });
+  }
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    errors.push({ field: "month", message: "月は 1〜12 の整数で指定してください。" });
+  }
+  if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > MAX_GUEST_COUNT) {
+    errors.push({ field: "guestCount", message: `人数は 1〜${MAX_GUEST_COUNT} 名で指定してください。` });
+  }
+
+  if (errors.length > 0) return { ok: false, errors };
+  return { ok: true, value: { year, month, guestCount } };
+}
+
+/**
+ * 月間の1泊予約に対する日別空室数を返す。
+ * 予約作成画面のカレンダー表示用で、部屋タイプ単位ではなく対象人数で泊まれる総空室数を集計する。
+ */
+export async function getAvailabilityCalendar(
+  client: PrismaClient,
+  query: { year: number; month: number; guestCount: number },
+): Promise<AvailabilityCalendarDay[]> {
+  const firstDay = new Date(Date.UTC(query.year, query.month - 1, 1));
+  const lastStayEnd = new Date(Date.UTC(query.year, query.month - 1, daysInMonthUtc(query.year, query.month) + 1));
+
+  const roomTypes = await client.roomType.findMany({
+    where: { capacity: { gte: query.guestCount } },
+    include: { _count: { select: { rooms: true } } },
+  });
+  const totalRoomsByType = new Map(roomTypes.map((rt) => [rt.id, rt._count.rooms]));
+
+  const reservations = await client.reservation.findMany({
+    where: {
+      roomTypeId: { in: roomTypes.map((rt) => rt.id) },
+      status: { in: ["RESERVED", "CHECKED_IN"] },
+      checkInDate: { lt: lastStayEnd },
+      checkOutDate: { gt: firstDay },
+    },
+    select: {
+      roomTypeId: true,
+      checkInDate: true,
+      checkOutDate: true,
+    },
+  });
+
+  const today = todayUtc();
+  const days: AvailabilityCalendarDay[] = [];
+  const dayCount = daysInMonthUtc(query.year, query.month);
+
+  for (let day = 1; day <= dayCount; day++) {
+    const date = new Date(Date.UTC(query.year, query.month - 1, day));
+    const stayEnd = new Date(date);
+    stayEnd.setUTCDate(stayEnd.getUTCDate() + 1);
+
+    let availableCount = 0;
+    for (const [roomTypeId, totalRooms] of totalRoomsByType) {
+      const overlapping = reservations.filter(
+        (reservation) =>
+          reservation.roomTypeId === roomTypeId &&
+          reservation.checkInDate < stayEnd &&
+          reservation.checkOutDate > date,
+      ).length;
+      availableCount += Math.max(0, totalRooms - overlapping);
+    }
+
+    const status =
+      date < today
+        ? "past"
+        : availableCount === 0
+          ? "sold_out"
+          : availableCount <= 2
+            ? "limited"
+            : "available";
+
+    days.push({
+      date: date.toISOString().slice(0, 10),
+      availableCount,
+      status,
+    });
+  }
+
+  return days;
 }
 
 /**
