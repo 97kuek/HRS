@@ -30,11 +30,11 @@ const RESERVED_RESERVATION = {
   reservationNumber: "HRS-20260701-0001",
   id: "res-001",
   status: "RESERVED" as const,
-  checkInDate: new Date("2026-07-01T00:00:00.000Z"),
-  checkOutDate: new Date("2026-07-03T00:00:00.000Z"),
+  checkInDate: new Date("2030-08-01T00:00:00.000Z"),
+  checkOutDate: new Date("2030-08-03T00:00:00.000Z"),
   guestCount: 2,
   guest: { name: "山田 太郎", email: "taro@example.com" },
-  roomType: { name: "スタンダード" },
+  roomType: { name: "スタンダード", baseRate: 12000 },
 };
 
 function makeRequest(familyName: string, givenName: string): Request {
@@ -64,6 +64,9 @@ describe("POST /api/reservations/[reservationNumber]/cancel — 結合テスト"
       const body = await response.json() as { cancellation: Record<string, unknown> };
       expect(body.cancellation.status).toBe("CANCELLED");
       expect(body.cancellation.reservationNumber).toBe("HRS-20260701-0001");
+      expect(body.cancellation.totalCharge).toBe(24000);
+      expect(body.cancellation.cancellationFee).toBe(0);
+      expect(body.cancellation.cancellationPolicy).toBe("前日まで無料");
     });
   });
 

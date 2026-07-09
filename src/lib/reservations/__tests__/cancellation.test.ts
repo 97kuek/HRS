@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateCancellation } from "@/lib/reservations/cancellation";
+import { calculateCancellationPolicy, evaluateCancellation } from "@/lib/reservations/cancellation";
 
 describe("evaluateCancellation", () => {
   it("RESERVED はキャンセル可能", () => {
@@ -42,5 +42,46 @@ describe("evaluateCancellation", () => {
       expect(cancelled.message).not.toBe(checkedIn.message);
       expect(checkedIn.message).not.toBe(checkedOut.message);
     }
+  });
+});
+
+describe("calculateCancellationPolicy", () => {
+  it("チェックイン日前日まではキャンセル料無料", () => {
+    const policy = calculateCancellationPolicy({
+      checkInDate: new Date("2026-07-10T00:00:00.000Z"),
+      checkOutDate: new Date("2026-07-12T00:00:00.000Z"),
+      baseRate: 12000,
+      today: new Date("2026-07-09T12:00:00.000Z"),
+    });
+
+    expect(policy.totalCharge).toBe(24000);
+    expect(policy.cancellationFee).toBe(0);
+    expect(policy.rate).toBe(0);
+  });
+
+  it("チェックイン当日は宿泊料金の50%", () => {
+    const policy = calculateCancellationPolicy({
+      checkInDate: new Date("2026-07-10T00:00:00.000Z"),
+      checkOutDate: new Date("2026-07-12T00:00:00.000Z"),
+      baseRate: 12000,
+      today: new Date("2026-07-10T00:00:00.000Z"),
+    });
+
+    expect(policy.totalCharge).toBe(24000);
+    expect(policy.cancellationFee).toBe(12000);
+    expect(policy.rate).toBe(0.5);
+  });
+
+  it("チェックイン予定日後は宿泊料金の100%", () => {
+    const policy = calculateCancellationPolicy({
+      checkInDate: new Date("2026-07-10T00:00:00.000Z"),
+      checkOutDate: new Date("2026-07-12T00:00:00.000Z"),
+      baseRate: 12000,
+      today: new Date("2026-07-11T00:00:00.000Z"),
+    });
+
+    expect(policy.totalCharge).toBe(24000);
+    expect(policy.cancellationFee).toBe(24000);
+    expect(policy.rate).toBe(1);
   });
 });

@@ -11,6 +11,16 @@ export type CancellationRejection = {
 
 export type CancellationEvaluation = { ok: true } | ({ ok: false } & CancellationRejection);
 
+export type CancellationPolicy = {
+  totalCharge: number;
+  cancellationFee: number;
+  rate: number;
+  label: string;
+  description: string;
+};
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
 /** RESERVED 以外の予約に対するメッセージ。 */
 function invalidStatusMessage(status: ReservationStatus): string {
   switch (status) {
@@ -39,4 +49,62 @@ export function evaluateCancellation(status: ReservationStatus): CancellationEva
     };
   }
   return { ok: true };
+}
+
+function toDateOnlyString(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function nightsBetween(checkInDate: Date, checkOutDate: Date) {
+  return Math.max(1, Math.round((checkOutDate.getTime() - checkInDate.getTime()) / MS_PER_DAY));
+}
+
+/**
+ * 初期実装のキャンセルポリシー。
+ * - チェックイン前日まで: 無料
+ * - チェックイン当日: 宿泊料金の50%
+ * - チェックイン予定日後: 宿泊料金の100%（未チェックインのまま残った予約向け）
+ */
+export function calculateCancellationPolicy({
+  checkInDate,
+  checkOutDate,
+  baseRate,
+  today = new Date(),
+}: {
+  checkInDate: Date;
+  checkOutDate: Date;
+  baseRate: number;
+  today?: Date;
+}): CancellationPolicy {
+  const totalCharge = baseRate * nightsBetween(checkInDate, checkOutDate);
+  const checkIn = toDateOnlyString(checkInDate);
+  const current = toDateOnlyString(today);
+
+  if (current < checkIn) {
+    return {
+      totalCharge,
+      cancellationFee: 0,
+      rate: 0,
+      label: "前日まで無料",
+      description: "チェックイン日前日までのキャンセル料は無料です。",
+    };
+  }
+
+  if (current === checkIn) {
+    return {
+      totalCharge,
+      cancellationFee: Math.round(totalCharge * 0.5),
+      rate: 0.5,
+      label: "当日50%",
+      description: "チェックイン当日のキャンセル料は宿泊料金の50%です。",
+    };
+  }
+
+  return {
+    totalCharge,
+    cancellationFee: totalCharge,
+    rate: 1,
+    label: "開始日後100%",
+    description: "チェックイン予定日を過ぎた予約のキャンセル料は宿泊料金の100%です。",
+  };
 }

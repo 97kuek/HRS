@@ -1014,6 +1014,151 @@ h1 {
   font-size: 0.75rem;
 }
 
+/* ── Availability calendar ── */
+.availability-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fbfbf8;
+}
+
+.availability-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.availability-calendar-title {
+  margin: 2px 0 0;
+  color: var(--ink-deep);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.availability-calendar-nav {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.availability-calendar-weekdays,
+.availability-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.availability-calendar-weekdays {
+  color: var(--muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.availability-day {
+  min-width: 0;
+  min-height: 56px;
+  padding: 6px 4px;
+  border: 1px solid #d8d6cf;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--foreground);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font: inherit;
+}
+
+.availability-day:hover:not(:disabled),
+.availability-day:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid rgba(79, 109, 122, 0.18);
+  outline-offset: 1px;
+}
+
+.availability-day:disabled {
+  cursor: not-allowed;
+}
+
+.availability-day-empty {
+  border-color: transparent;
+  background: transparent;
+  pointer-events: none;
+}
+
+.availability-day-number {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.availability-day-count {
+  font-size: 0.625rem;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.availability-day.is-selected {
+  border-color: var(--ink-deep);
+  background: var(--ink-deep);
+  color: #fff;
+}
+
+.availability-day.is-selected .availability-day-count {
+  color: #f6f4ef;
+}
+
+.availability-day.is-limited {
+  background: #fff8e6;
+  border-color: #e2bd67;
+}
+
+.availability-day.is-sold-out {
+  background: #f2f2ee;
+  color: #8a8a82;
+}
+
+.availability-day.is-past {
+  background: #f7f7f5;
+  color: #aaa9a2;
+}
+
+.availability-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border: 1px solid #d8d6cf;
+  border-radius: 2px;
+  vertical-align: -1px;
+  background: #fff;
+}
+
+.legend-swatch.is-limited {
+  background: #fff8e6;
+  border-color: #e2bd67;
+}
+
+.legend-swatch.is-sold-out {
+  background: #f2f2ee;
+}
+
 /* ── Room card actions ── */
 .room-actions {
   display: flex;

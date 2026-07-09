@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ConfirmTable } from "@/components/confirm-table";
@@ -29,6 +29,19 @@ interface RoomTypeAvailability {
   baseRate: number;
   availableCount: number;
   totalCharge: number;
+}
+
+interface AvailabilityCalendarDay {
+  date: string;
+  availableCount: number;
+  status: "past" | "available" | "limited" | "sold_out";
+}
+
+interface AvailabilityCalendarResponse {
+  year: number;
+  month: number;
+  guestCount: number;
+  days: AvailabilityCalendarDay[];
 }
 
 interface SearchCondition {
@@ -60,6 +73,36 @@ interface ReservationResult {
 
 interface ApiError {
   error: { code: string; message: string; details?: { field: string; message: string }[] };
+}
+
+function monthFromDateOnly(value: string) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+  };
+}
+
+function addMonths(month: { year: number; month: number }, amount: number) {
+  const date = new Date(Date.UTC(month.year, month.month - 1 + amount, 1));
+  return {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+  };
+}
+
+function monthLabel(month: { year: number; month: number }) {
+  return `${month.year}年${month.month}月`;
+}
+
+function calendarStartOffset(month: { year: number; month: number }) {
+  return new Date(Date.UTC(month.year, month.month - 1, 1)).getUTCDay();
+}
+
+function availabilityStatusText(day: AvailabilityCalendarDay) {
+  if (day.status === "past") return "過去";
+  if (day.status === "sold_out") return "満室";
+  return `${day.availableCount}室`;
 }
 
 function StepRail({ current, onGo }: { current: number; onGo?: (step: number) => void }) {
@@ -111,6 +154,12 @@ function Step1({
   const [checkIn, setCheckIn] = useState(initial.checkIn);
   const [checkOut, setCheckOut] = useState(initial.checkOut);
   const [guestCount, setGuestCount] = useState(initial.guestCount);
+  const [calendarMonth, setCalendarMonth] = useState(() =>
+    monthFromDateOnly(initial.checkIn || todayLocalDateOnly()),
+  );
+  const [calendarDays, setCalendarDays] = useState<AvailabilityCalendarDay[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [calendarError, setCalendarError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +174,62 @@ function Step1({
   const guestError = validateGuestCount(guestCountNumber);
   const completed = (dateError ? 0 : 1) + (guestError ? 0 : 1);
   const canSearch = !dateError && !guestError;
+  const canLoadCalendar = !guestError && Number.isInteger(guestCountNumber);
+  const calendarOffset = calendarStartOffset(calendarMonth);
+  const visibleCalendarDays = canLoadCalendar ? calendarDays : [];
+
+  useEffect(() => {
+    if (!canLoadCalendar) {
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadCalendar() {
+      setCalendarLoading(true);
+      setCalendarError(null);
+      try {
+        const params = new URLSearchParams({
+          year: String(calendarMonth.year),
+          month: String(calendarMonth.month),
+          guestCount: String(guestCountNumber),
+        });
+        const res = await fetch(`/api/availability/calendar?${params}`, {
+          signal: controller.signal,
+        });
+        const data = (await res.json()) as AvailabilityCalendarResponse | ApiError;
+        if (cancelled) return;
+        if (!res.ok) {
+          setCalendarDays([]);
+          setCalendarError((data as ApiError).error.message);
+          return;
+        }
+        setCalendarDays((data as AvailabilityCalendarResponse).days);
+      } catch (err) {
+        if (!cancelled && (err as Error).name !== "AbortError") {
+          setCalendarDays([]);
+          setCalendarError("空室カレンダーを取得できませんでした。");
+        }
+      } finally {
+        if (!cancelled) setCalendarLoading(false);
+      }
+    }
+
+    loadCalendar();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [calendarMonth.month, calendarMonth.year, canLoadCalendar, guestCountNumber]);
+
+  function selectCalendarDate(day: AvailabilityCalendarDay) {
+    if (day.status === "past" || day.status === "sold_out") return;
+    setCheckIn(day.date);
+    setCheckOut(addDaysToDateOnly(day.date, 1));
+    setTouched(true);
+  }
 
   async function search() {
     setTouched(true);
@@ -182,6 +287,7 @@ function Step1({
                 const v = e.target.value;
                 setCheckIn(v);
                 setCheckOut(v ? addDaysToDateOnly(v, 1) : "");
+                if (v) setCalendarMonth(monthFromDateOnly(v));
               }}
             />
           </div>
@@ -203,7 +309,9 @@ function Step1({
               onChange={(e) => {
                 const v = e.target.value;
                 setCheckOut(v);
-                setCheckIn(v ? addDaysToDateOnly(v, -1) : "");
+                const nextCheckIn = v ? addDaysToDateOnly(v, -1) : "";
+                setCheckIn(nextCheckIn);
+                if (nextCheckIn) setCalendarMonth(monthFromDateOnly(nextCheckIn));
               }}
             />
           </div>
@@ -239,6 +347,76 @@ function Step1({
               {guestError}
             </span>
           )}
+        </div>
+        <div className="availability-calendar">
+          <div className="availability-calendar-header">
+            <button
+              type="button"
+              className="btn btn-secondary availability-calendar-nav"
+              onClick={() => setCalendarMonth((current) => addMonths(current, -1))}
+              aria-label="前月の空室を見る"
+            >
+              &lt;
+            </button>
+            <div>
+              <p className="section-heading" style={{ margin: 0 }}>
+                空室カレンダー
+              </p>
+              <p className="availability-calendar-title">{monthLabel(calendarMonth)}</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary availability-calendar-nav"
+              onClick={() => setCalendarMonth((current) => addMonths(current, 1))}
+              aria-label="翌月の空室を見る"
+            >
+              &gt;
+            </button>
+          </div>
+          <div className="availability-calendar-weekdays" aria-hidden="true">
+            {["日", "月", "火", "水", "木", "金", "土"].map((label) => (
+              <span key={label}>{label}</span>
+            ))}
+          </div>
+          <div className="availability-calendar-grid">
+            {Array.from({ length: calendarOffset }).map((_, i) => (
+              <span key={`blank-${i}`} className="availability-day availability-day-empty" />
+            ))}
+            {visibleCalendarDays.map((day) => {
+              const dayNumber = Number(day.date.slice(-2));
+              const disabled = day.status === "past" || day.status === "sold_out";
+              const selected = checkIn === day.date;
+              const statusClass = day.status.replace("_", "-");
+              return (
+                <button
+                  key={day.date}
+                  type="button"
+                  className={`availability-day is-${statusClass}${selected ? " is-selected" : ""}`}
+                  onClick={() => selectCalendarDate(day)}
+                  disabled={disabled}
+                  aria-pressed={selected}
+                  aria-label={`${day.date} ${availabilityStatusText(day)}`}
+                >
+                  <span className="availability-day-number">{dayNumber}</span>
+                  <span className="availability-day-count">{availabilityStatusText(day)}</span>
+                </button>
+              );
+            })}
+          </div>
+          {calendarLoading && canLoadCalendar && <p className="field-hint">空室数を取得しています…</p>}
+          {calendarError && canLoadCalendar && <span className="field-error">{calendarError}</span>}
+          {!canLoadCalendar && <span className="field-hint">人数を入力すると空室数が表示されます。</span>}
+          <div className="availability-calendar-legend" aria-hidden="true">
+            <span>
+              <i className="legend-swatch is-available" /> 空室あり
+            </span>
+            <span>
+              <i className="legend-swatch is-limited" /> 残りわずか
+            </span>
+            <span>
+              <i className="legend-swatch is-sold-out" /> 満室
+            </span>
+          </div>
         </div>
       </div>
       <div style={{ marginTop: 28 }}>

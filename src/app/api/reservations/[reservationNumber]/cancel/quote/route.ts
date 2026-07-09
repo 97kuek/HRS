@@ -1,6 +1,6 @@
 import { apiError, internalServerError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
-import { evaluateCancellation } from "@/lib/reservations/cancellation";
+import { calculateCancellationPolicy, evaluateCancellation } from "@/lib/reservations/cancellation";
 
 /**
  * GET /api/reservations/[reservationNumber]/cancel/quote
@@ -25,7 +25,7 @@ export async function GET(
       where: { reservationNumber: reservationNumber.toUpperCase() },
       include: {
         guest: { select: { name: true } },
-        roomType: { select: { name: true } },
+        roomType: { select: { name: true, baseRate: true } },
       },
     });
 
@@ -36,6 +36,11 @@ export async function GET(
     }
 
     const evaluation = evaluateCancellation(reservation.status);
+    const policy = calculateCancellationPolicy({
+      checkInDate: reservation.checkInDate,
+      checkOutDate: reservation.checkOutDate,
+      baseRate: reservation.roomType.baseRate,
+    });
 
     return Response.json({
       quote: {
@@ -44,6 +49,10 @@ export async function GET(
         checkInDate: reservation.checkInDate.toISOString().slice(0, 10),
         checkOutDate: reservation.checkOutDate.toISOString().slice(0, 10),
         guestCount: reservation.guestCount,
+        totalCharge: policy.totalCharge,
+        cancellationFee: policy.cancellationFee,
+        cancellationPolicy: policy.label,
+        cancellationPolicyDescription: policy.description,
         status: reservation.status,
         cancelable: evaluation.ok,
         reason: evaluation.ok ? null : evaluation.message,

@@ -1,6 +1,6 @@
 import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
-import { evaluateCancellation } from "@/lib/reservations/cancellation";
+import { calculateCancellationPolicy, evaluateCancellation } from "@/lib/reservations/cancellation";
 import { sendReservationCancellation } from "@/lib/email/send";
 
 /**
@@ -37,7 +37,7 @@ export async function POST(
         where: { reservationNumber },
         include: {
           guest: { select: { name: true, email: true } },
-          roomType: { select: { name: true } },
+          roomType: { select: { name: true, baseRate: true } },
         },
       });
 
@@ -53,6 +53,11 @@ export async function POST(
       if (!evaluation.ok) {
         throw new DomainError(evaluation.code, evaluation.status, evaluation.message);
       }
+      const policy = calculateCancellationPolicy({
+        checkInDate: reservation.checkInDate,
+        checkOutDate: reservation.checkOutDate,
+        baseRate: reservation.roomType.baseRate,
+      });
 
       // 条件付き更新で確定（find→update 間に別トランザクションがチェックインを差し込む隙をガード）。
       const updated = await tx.reservation.updateMany({
@@ -67,7 +72,7 @@ export async function POST(
         );
       }
 
-      return { reservation };
+      return { reservation, policy };
     });
 
     // キャンセル確定メール送信（失敗しても 200 を返す）。
@@ -78,6 +83,9 @@ export async function POST(
       checkInDate: result.reservation.checkInDate.toISOString().slice(0, 10),
       checkOutDate: result.reservation.checkOutDate.toISOString().slice(0, 10),
       guestCount: result.reservation.guestCount,
+      totalCharge: result.policy.totalCharge,
+      cancellationFee: result.policy.cancellationFee,
+      cancellationPolicy: result.policy.label,
     });
 
     return Response.json({
@@ -87,6 +95,9 @@ export async function POST(
         checkInDate: result.reservation.checkInDate.toISOString().slice(0, 10),
         checkOutDate: result.reservation.checkOutDate.toISOString().slice(0, 10),
         guestCount: result.reservation.guestCount,
+        totalCharge: result.policy.totalCharge,
+        cancellationFee: result.policy.cancellationFee,
+        cancellationPolicy: result.policy.label,
         status: "CANCELLED",
       },
     });
@@ -98,4 +109,3 @@ export async function POST(
     return internalServerError();
   }
 }
-

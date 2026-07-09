@@ -72,6 +72,9 @@ export async function sendReservationCancellation(
     checkInDate: string;
     checkOutDate: string;
     guestCount: number;
+    totalCharge: number;
+    cancellationFee: number;
+    cancellationPolicy: string;
   },
 ) {
   const client = getClient();
@@ -87,6 +90,9 @@ ${data.guestName} 様
 ■ チェックイン（予定）: ${data.checkInDate}
 ■ チェックアウト（予定）: ${data.checkOutDate}
 ■ 人数: ${data.guestCount}名
+■ 宿泊料金: ${yen(data.totalCharge)}
+■ キャンセルポリシー: ${data.cancellationPolicy}
+■ キャンセル料: ${yen(data.cancellationFee)}
 
 またのご利用をお待ちしております。
 
