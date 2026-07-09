@@ -1041,6 +1041,13 @@ h1 {
   text-align: center;
 }
 
+.availability-calendar-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
 .availability-calendar-nav {
   width: 34px;
   height: 34px;
@@ -1137,6 +1144,30 @@ h1 {
   gap: 10px;
   color: var(--muted);
   font-size: 0.6875rem;
+}
+
+.calendar-load-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.calendar-load-status .progress-track {
+  min-width: 120px;
+  flex: 1;
+}
+
+.availability-calendar-empty {
+  padding: 10px 12px;
+  border: 1px dashed #cfd6d4;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
 }
 
 .legend-swatch {

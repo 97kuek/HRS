@@ -49,9 +49,9 @@ export default function Home() {
         <HomeHeroGallery />
         <div className="home-hero-inner">
           <h1 className="home-title">
-            西早稲田の中心で、
+            西早稲田で、
             <br />
-            上質なご滞在を。
+            予定に合う部屋を選ぶ。
           </h1>
           <div className="home-cta">
             <Link className="btn btn-gold btn-lg" href="/reservations/new">

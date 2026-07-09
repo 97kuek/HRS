@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ConfirmTable } from "@/components/confirm-table";
 import { fieldInputClass } from "@/components/form-field";
-import { LongWaitBar } from "@/components/loading-indicator";
+import { LongWaitBar, useLongWait } from "@/components/loading-indicator";
 import { CompletionMeter } from "@/components/completion-meter";
 import { LeaveConfirmModal, useBeforeUnloadGuard } from "@/components/leave-guard";
 import { roomDetail, roomImage } from "@/components/reservations/room-display";
@@ -177,6 +177,7 @@ function Step1({
   const canLoadCalendar = !guestError && Number.isInteger(guestCountNumber);
   const calendarOffset = calendarStartOffset(calendarMonth);
   const visibleCalendarDays = canLoadCalendar ? calendarDays : [];
+  const calendarLongWait = useLongWait(calendarLoading);
 
   useEffect(() => {
     if (!canLoadCalendar) {
@@ -373,6 +374,9 @@ function Step1({
               &gt;
             </button>
           </div>
+          <p className="availability-calendar-help">
+            人数を入力すると、その人数で泊まれる日ごとの空室数が表示されます。
+          </p>
           <div className="availability-calendar-weekdays" aria-hidden="true">
             {["日", "月", "火", "水", "木", "金", "土"].map((label) => (
               <span key={label}>{label}</span>
@@ -403,9 +407,29 @@ function Step1({
               );
             })}
           </div>
-          {calendarLoading && canLoadCalendar && <p className="field-hint">空室数を取得しています…</p>}
+          {calendarLoading && canLoadCalendar && (
+            <div className="calendar-load-status" role="status" aria-live="polite">
+              {calendarLongWait ? (
+                <>
+                  <span>空室数の取得に時間がかかっています。そのままお待ちください…</span>
+                  <div className="progress-track">
+                    <div className="progress-bar" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  <span>空室数を読み込んでいます…</span>
+                </>
+              )}
+            </div>
+          )}
           {calendarError && canLoadCalendar && <span className="field-error">{calendarError}</span>}
-          {!canLoadCalendar && <span className="field-hint">人数を入力すると空室数が表示されます。</span>}
+          {!canLoadCalendar && (
+            <div className="availability-calendar-empty">
+              人数を入力すると、各日付に空室数が表示されます。
+            </div>
+          )}
           <div className="availability-calendar-legend" aria-hidden="true">
             <span>
               <i className="legend-swatch is-available" /> 空室あり
