@@ -715,14 +715,28 @@ h1 {
   padding: 20px 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 24px;
+  align-items: center;
   font-size: 0.75rem;
   color: #f7f4ed;
 }
 
+.site-footer-brand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: baseline;
+}
+
 .site-footer-note {
   color: #c7d0d2;
+}
+
+.site-footer-copyright {
+  color: #dfe7ea;
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 /* ── Card ── */
