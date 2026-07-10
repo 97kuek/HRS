@@ -65,6 +65,24 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
     expect(body.chat.links[0].href).toBe("/reservations/new");
   });
 
+  it("「明後日」を相対日付として解釈する", async () => {
+    const response = await POST(makeRequest("明後日、2人で泊まれる部屋はありますか？"));
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { chat: { toolName: string; reply: string } };
+    expect(body.chat.toolName).toBe("search_availability");
+    expect(body.chat.reply).toContain("2026-07-12");
+  });
+
+  it("漢字・ひらがなの人数表現を解釈する", async () => {
+    const response = await POST(makeRequest("2030-08-10に三人で泊まりたいです"));
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { chat: { toolName: string; reply: string } };
+    expect(body.chat.toolName).toBe("search_availability");
+    expect(body.chat.reply).toContain("3名");
+  });
+
   it("キャンセル料質問に対して一般ポリシーを返す", async () => {
     const response = await POST(makeRequest("キャンセル料のルールを教えてください"));
 

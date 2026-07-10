@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { formatYen } from "@/lib/format";
 import { getAvailabilityCalendar, searchAvailability, validateReservationCondition } from "@/lib/reservations/availability";
 import { calculateCancellationPolicy } from "@/lib/reservations/cancellation";
+import { todayInHotelTz } from "@/lib/reservations/check-in";
 
 export type ChatProvider = "gemini" | "groq" | "ollama" | "mock";
 
@@ -112,7 +113,7 @@ const UNSUPPORTED_CHAT_REPLY =
   "このチャットで確認できるのは、空室状況、部屋タイプ、料金の目安、キャンセルポリシー、予約・確認・チェックイン・チェックアウト・キャンセルの手順です。確認できる情報がない内容については、推測で回答しません。";
 
 function currentHotelDate() {
-  return new Date();
+  return todayInHotelTz();
 }
 
 function currentDateOnly() {
@@ -173,8 +174,8 @@ function normalizeToolCall(value: unknown): ChatToolCall | null {
 
 function monthTargetFromRelativeText(message: string) {
   const today = currentHotelDate();
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
+  const year = today.getUTCFullYear();
+  const month = today.getUTCMonth() + 1;
 
   if (message.includes("来月")) {
     return month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
@@ -182,6 +183,13 @@ function monthTargetFromRelativeText(message: string) {
   if (message.includes("今月") || message.includes("当月")) {
     return { year, month };
   }
+  return null;
+}
+
+function relativeDateOffsetDays(message: string): number | null {
+  if (message.includes("明後日")) return 2;
+  if (message.includes("明日")) return 1;
+  if (message.includes("今日") || message.includes("本日")) return 0;
   return null;
 }
 
@@ -193,14 +201,36 @@ function extractDate(message: string) {
   const md = message.match(/\b(\d{1,2})[/-](\d{1,2})\b/);
   if (md) {
     const now = currentHotelDate();
-    return `${now.getFullYear()}-${md[1].padStart(2, "0")}-${md[2].padStart(2, "0")}`;
+    return `${now.getUTCFullYear()}-${md[1].padStart(2, "0")}-${md[2].padStart(2, "0")}`;
+  }
+  const relativeOffset = relativeDateOffsetDays(message);
+  if (relativeOffset !== null) {
+    return addDaysToDateOnly(currentDateOnly(), relativeOffset);
   }
   return null;
 }
 
+const KANJI_DIGITS: Record<string, number> = {
+  一: 1,
+  二: 2,
+  三: 3,
+  四: 4,
+  五: 5,
+  六: 6,
+  七: 7,
+  八: 8,
+  九: 9,
+  十: 10,
+};
+
 function extractGuestCount(message: string) {
-  const match = message.match(/(\d{1,2})\s*(?:名|人)/);
-  return match ? Number(match[1]) : null;
+  const numeric = message.match(/(\d{1,2})\s*(?:名様?|人)/);
+  if (numeric) return Number(numeric[1]);
+  const kanji = message.match(/([一二三四五六七八九十])\s*(?:名様?|人)/);
+  if (kanji) return KANJI_DIGITS[kanji[1]];
+  if (message.includes("ひとり")) return 1;
+  if (message.includes("ふたり")) return 2;
+  return null;
 }
 
 function mockToolCall(message: string): ChatToolCall {
@@ -215,7 +245,7 @@ function mockToolCall(message: string): ChatToolCall {
   if (procedure) {
     return { name: "guide_procedure", arguments: { topic: procedure } };
   }
-  if (message.includes("部屋") || message.includes("客室") || message.includes("料金")) {
+  if (message.includes("部屋") || message.includes("客室") || message.includes("料金") || message.includes("泊")) {
     if (date || message.includes("空")) {
       const checkIn = date ?? addDaysToDateOnly(currentDateOnly(), 1);
       return { name: "search_availability", arguments: { checkIn, checkOut: addDaysToDateOnly(checkIn, 1), guestCount } };
@@ -227,8 +257,8 @@ function mockToolCall(message: string): ChatToolCall {
     return {
       name: "availability_calendar",
       arguments: {
-        year: relativeMonth?.year ?? target?.getUTCFullYear() ?? currentHotelDate().getFullYear(),
-        month: relativeMonth?.month ?? (target ? target.getUTCMonth() + 1 : currentHotelDate().getMonth() + 1),
+        year: relativeMonth?.year ?? target?.getUTCFullYear() ?? currentHotelDate().getUTCFullYear(),
+        month: relativeMonth?.month ?? (target ? target.getUTCMonth() + 1 : currentHotelDate().getUTCMonth() + 1),
         guestCount,
       },
     };
@@ -404,8 +434,8 @@ function stringArg(args: Record<string, unknown>, key: string) {
 
 function futureMonthArg(args: Record<string, unknown>) {
   const today = currentHotelDate();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getUTCFullYear();
+  const currentMonth = today.getUTCMonth() + 1;
   let year = numberArg(args, "year") ?? currentYear;
   const month = numberArg(args, "month") ?? currentMonth;
 
