@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LongWaitBar } from "@/components/loading-indicator";
-import { SubmitButton } from "@/components/submit-button";
 
 type ChatRole = "assistant" | "user";
 
@@ -35,13 +34,6 @@ type ChatResponse = {
 type ApiError = {
   error: { message: string };
 };
-
-const suggestions = [
-  "2名で2030-08-10に泊まれる部屋はありますか？",
-  "来月、2名で空いている日はありますか？",
-  "部屋タイプと料金を教えてください",
-  "キャンセル料のルールを教えてください",
-];
 
 type ChatConversationProps = {
   variant?: "page" | "widget";
@@ -147,20 +139,6 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
 
   return (
     <div className={`chat-conversation is-${variant}`}>
-      <div className="chat-suggestions" aria-label="質問例">
-        {suggestions.map((suggestion) => (
-          <button
-            key={suggestion}
-            type="button"
-            className="chat-suggestion"
-            onClick={() => sendMessage(suggestion)}
-            disabled={loading}
-          >
-            {suggestion}
-          </button>
-        ))}
-      </div>
-
       <div className="chat-log" aria-live="polite">
         {messages.map((message) => (
           <div key={message.id} className={`chat-message is-${message.role}`}>
@@ -228,18 +206,18 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
             className="field-input"
             value={input}
             maxLength={500}
-            placeholder="例: 2名で2030-08-10に泊まれる部屋はありますか？"
+            placeholder="空室やキャンセルポリシーについて入力"
             onChange={(event) => setInput(event.target.value)}
           />
-          <SubmitButton
-            className="btn btn-primary"
+          <button
+            aria-label="メッセージを送信"
+            aria-busy={loading}
+            className="chat-send-button"
             type="submit"
-            loading={loading}
-            loadingLabel="確認中…"
             disabled={!input.trim() || loading}
           >
-            送信
-          </SubmitButton>
+            <span aria-hidden="true">✈</span>
+          </button>
         </div>
         <LongWaitBar loading={loading} message="空室や料金を確認しています。そのままお待ちください…" />
       </form>

@@ -473,6 +473,10 @@ h1 {
   letter-spacing: 0.06em;
 }
 
+.home-title-line {
+  white-space: nowrap;
+}
+
 .home-cta {
   display: flex;
   flex-wrap: wrap;
@@ -1825,6 +1829,11 @@ h1 {
   gap: 16px;
 }
 
+.chat-conversation.is-page {
+  min-height: 420px;
+  padding-bottom: 112px;
+}
+
 .chat-conversation.is-widget {
   min-height: 0;
   flex: 1;
@@ -1834,51 +1843,6 @@ h1 {
 
 .chat-privacy-note {
   margin-bottom: 16px;
-}
-
-.chat-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.chat-conversation.is-widget .chat-suggestions {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  margin-bottom: 0;
-}
-
-.chat-suggestion {
-  min-height: 34px;
-  padding: 7px 10px;
-  border: 1px solid #c6cfcd;
-  border-radius: 4px;
-  background: #fff;
-  color: var(--ink-deep);
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
-.chat-suggestion:hover:not(:disabled),
-.chat-suggestion:focus-visible {
-  border-color: var(--accent);
-  background: #edf2f3;
-  outline: 2px solid rgba(79, 109, 122, 0.18);
-  outline-offset: 1px;
-}
-
-.chat-suggestion:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.chat-conversation.is-widget .chat-suggestion {
-  min-height: 36px;
-  padding: 8px 10px;
-  text-align: left;
 }
 
 .chat-log {
@@ -1891,8 +1855,14 @@ h1 {
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: #f8f8f5;
+  background: #edf2f3;
   margin-bottom: 16px;
+}
+
+.chat-conversation.is-page .chat-log {
+  max-height: none;
+  min-height: 420px;
+  margin-bottom: 0;
 }
 
 .chat-conversation.is-widget .chat-log {
@@ -2031,6 +2001,26 @@ h1 {
   gap: 8px;
 }
 
+.chat-conversation.is-page .chat-form {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 110;
+  width: min(760px, calc(100% - 32px));
+  padding: 14px 0 max(14px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(244, 243, 239, 0), #f4f3ef 18px, #f4f3ef 100%);
+  transform: translateX(-50%);
+}
+
+.chat-conversation.is-page .chat-form .field-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .chat-input-row {
   display: flex;
   gap: 10px;
@@ -2040,12 +2030,56 @@ h1 {
   flex: 1;
 }
 
-.chat-conversation.is-widget .chat-input-row {
-  flex-direction: column;
+.chat-conversation.is-page .chat-input-row {
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #c9d2d2;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(35, 52, 59, 0.14);
 }
 
-.chat-conversation.is-widget .chat-input-row .btn {
-  width: 100%;
+.chat-conversation.is-page .chat-input-row .field-input {
+  min-height: 42px;
+  border: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.chat-send-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink-deep);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.chat-send-button:hover:not(:disabled),
+.chat-send-button:focus-visible {
+  background: #3a525c;
+}
+
+.chat-send-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.chat-conversation.is-widget .chat-input-row {
+  align-items: center;
+}
+
+.chat-conversation.is-widget .chat-send-button {
+  width: 42px;
+  flex-basis: 42px;
 }
 
 /* ── Responsive: tablet ── */
@@ -2132,6 +2166,12 @@ h1 {
 
   .step-rail {
     padding: 12px;
+  }
+
+  .home-title {
+    font-size: clamp(1.72rem, 8.4vw, 2rem);
+    line-height: 1.45;
+    letter-spacing: 0.02em;
   }
 
   /* 入力2カラムを縦積み（date input が min-width で溢れるため広めに設定） */

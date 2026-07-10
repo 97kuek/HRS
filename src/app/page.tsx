@@ -51,7 +51,7 @@ export default function Home() {
           <h1 className="home-title">
             西早稲田で、
             <br />
-            予定に合う部屋を選ぶ。
+            <span className="home-title-line">予定に合う部屋を選ぶ。</span>
           </h1>
           <div className="home-cta">
             <Link className="btn btn-gold btn-lg" href="/reservations/new">
