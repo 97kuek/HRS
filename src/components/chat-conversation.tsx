@@ -13,6 +13,7 @@ type ChatMessage = {
   links?: { href: string; label: string }[];
   cards?: ChatCard[];
   typing?: boolean;
+  usedFallback?: boolean;
 };
 
 type ChatCard = {
@@ -28,6 +29,7 @@ type ChatResponse = {
     provider: string;
     links: { href: string; label: string }[];
     cards?: ChatCard[];
+    usedFallback?: boolean;
   };
 };
 
@@ -42,6 +44,7 @@ type ChatConversationProps = {
 export function ChatConversation({ variant = "page" }: ChatConversationProps) {
   const nextMessageId = useRef(2);
   const typingTimers = useRef<number[]>([]);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
@@ -52,6 +55,7 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const showDebug = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     return () => {
@@ -59,6 +63,10 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
       typingTimers.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+  }, [messages, loading]);
 
   function appendAssistantMessage(chat: ChatResponse["chat"]) {
     const messageId = nextMessageId.current++;
@@ -88,6 +96,7 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
                 text: nextText,
                 links: done ? chat.links : undefined,
                 cards: done ? chat.cards : undefined,
+                usedFallback: done ? chat.usedFallback : undefined,
                 typing: !done,
               }
             : messageItem,
@@ -125,7 +134,12 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
       });
       const data = (await response.json()) as ChatResponse | ApiError;
       if (!response.ok) {
-        setError((data as ApiError).error?.message ?? "チャットの応答に失敗しました。");
+        appendAssistantMessage({
+          provider: "local",
+          reply: (data as ApiError).error?.message ?? "チャットの応答に失敗しました。",
+          links: [],
+          cards: [{ title: response.status === 429 ? "送信回数の制限" : "送信エラー", tone: "warning" }],
+        });
         return;
       }
       const chat = (data as ChatResponse).chat;
@@ -139,6 +153,9 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
 
   return (
     <div className={`chat-conversation is-${variant}`}>
+      <p className="chat-scope-note">
+        空室、部屋タイプ、料金、キャンセルポリシー、予約・確認・チェックイン・チェックアウトの手順を案内できます。
+      </p>
       <div className="chat-log" aria-live="polite">
         {messages.map((message) => (
           <div key={message.id} className={`chat-message is-${message.role}`}>
@@ -183,9 +200,13 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
                   ))}
                 </div>
               )}
+              {showDebug && message.usedFallback && (
+                <p className="chat-debug-note">開発用: AI応答に失敗したためローカル判定で回答しました。</p>
+              )}
             </div>
           </div>
         ))}
+        <div ref={chatEndRef} aria-hidden="true" />
       </div>
 
       {error && <div className="error-box">{error}</div>}
@@ -216,7 +237,7 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
             type="submit"
             disabled={!input.trim() || loading}
           >
-            <span aria-hidden="true">✈</span>
+            {loading ? <span className="chat-send-spinner" aria-hidden="true" /> : <span aria-hidden="true">✈</span>}
           </button>
         </div>
         <LongWaitBar loading={loading} message="空室や料金を確認しています。そのままお待ちください…" />

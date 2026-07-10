@@ -1859,6 +1859,21 @@ h1 {
   margin-bottom: 16px;
 }
 
+.chat-scope-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #d6dfdf;
+  border-radius: 4px;
+  background: #f7faf9;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.chat-conversation.is-widget .chat-scope-note {
+  font-size: 0.6875rem;
+}
+
 .chat-log {
   display: flex;
   flex-direction: column;
@@ -1939,7 +1954,7 @@ h1 {
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: 4px;
-  background: #fbfbf8;
+  background: #fff;
 }
 
 .chat-result-card.tone-success {
@@ -1988,6 +2003,13 @@ h1 {
   font-size: 0.75rem;
   font-weight: 700;
   text-align: right;
+}
+
+.chat-debug-note {
+  margin: 10px 0 0;
+  color: #74552c;
+  font-size: 0.6875rem;
+  line-height: 1.5;
 }
 
 .chat-message.is-user .chat-bubble {
@@ -2085,6 +2107,15 @@ h1 {
 .chat-send-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.chat-send-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
 }
 
 .chat-conversation.is-widget .chat-input-row {

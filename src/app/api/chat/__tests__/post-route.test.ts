@@ -162,6 +162,32 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
     expect(body.chat.reply).toContain("チェックイン日前日まで無料");
   });
 
+  it("予約確認などの手順案内に回答できる", async () => {
+    const response = await POST(makeRequest("予約確認の方法を教えてください"));
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      chat: { toolName: string; reply: string; links: { href: string }[]; cards: { title: string }[] };
+    };
+    expect(body.chat.toolName).toBe("guide_procedure");
+    expect(body.chat.reply).toContain("予約確認画面");
+    expect(body.chat.cards[0].title).toBe("予約確認の手順");
+    expect(body.chat.links.some((link) => link.href === "/reservations/lookup")).toBe(true);
+  });
+
+  it("AI呼び出し失敗時はローカル判定へフォールバックしたことを返す", async () => {
+    process.env.CHAT_PROVIDER = "gemini";
+    process.env.GEMINI_API_KEY = "test-key";
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+    const response = await POST(makeRequest("部屋タイプと料金を教えてください"));
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { chat: { toolName: string; usedFallback?: boolean } };
+    expect(body.chat.toolName).toBe("list_room_types");
+    expect(body.chat.usedFallback).toBe(true);
+  });
+
   it("今月の空き状況は現在年月で解釈する", async () => {
     const response = await POST(makeRequest("今月の2名の空き状況を教えてください"));
 
