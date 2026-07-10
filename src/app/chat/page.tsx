@@ -9,14 +9,9 @@ export default function ChatPage() {
             H
           </div>
           <div className="chat-app-heading">
-            <p className="chat-app-kicker">HRS Assistant</p>
             <h1 className="chat-app-title">予約支援チャット</h1>
-            <p className="chat-app-subtitle">空室、料金、各種手続きの案内に対応します。</p>
           </div>
         </header>
-        <div className="chat-app-notice">
-          予約番号、氏名、メールアドレス、電話番号などの個人情報は入力しないでください。
-        </div>
         <ChatConversation />
       </section>
     </main>
