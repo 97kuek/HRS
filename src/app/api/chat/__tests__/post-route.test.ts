@@ -84,6 +84,22 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
     expect(body.chat.links.some((link) => link.href === "/reservations/lookup")).toBe(true);
   });
 
+  it("確認できる情報がない質問には推測回答しない", async () => {
+    process.env.CHAT_PROVIDER = "gemini";
+    process.env.GEMINI_API_KEY = "test-key";
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(makeRequest("朝食のメニューを教えてください"));
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(mockPrisma.roomType.findMany).not.toHaveBeenCalled();
+    const body = (await response.json()) as { chat: { reply: string; toolName?: string } };
+    expect(body.chat.toolName).toBeUndefined();
+    expect(body.chat.reply).toContain("推測で回答しません");
+  });
+
   it("DB接続不可の場合はチャット内で案内する", async () => {
     mockPrisma.roomType.findMany.mockRejectedValueOnce(new Error("Can't reach database server"));
 

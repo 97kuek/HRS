@@ -92,6 +92,8 @@ const READ_ONLY_NOTICE =
   "このチャットでは予約の作成・確認・キャンセル確定は行いません。必要な場合は画面の手続きへ進んでください。";
 const DATA_SOURCE_UNAVAILABLE_REPLY =
   "現在、空室データに接続できません。しばらくしてからもう一度お試しください。予約内容の確認やキャンセルは専用画面をご利用ください。";
+const UNSUPPORTED_CHAT_REPLY =
+  "このチャットで確認できるのは、空室状況、部屋タイプ、料金の目安、キャンセルポリシーだけです。確認できる情報がない内容については、推測で回答しません。";
 
 function currentHotelDate() {
   return new Date();
@@ -117,6 +119,12 @@ function containsSensitiveReservationInfo(message: string) {
     /HRS-\d{8}-\d{4}/i.test(message) ||
     /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(message) ||
     /(?:\+?81[-\s]?)?0\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4}/.test(message)
+  );
+}
+
+function isSupportedChatQuestion(message: string) {
+  return /空室|空き|空いて|泊ま|宿泊|部屋|客室|料金|金額|価格|定員|人数|キャンセル|取消|取り消|カレンダー|予約/.test(
+    message,
   );
 }
 
@@ -513,6 +521,17 @@ export async function answerReadOnlyChat(message: string): Promise<ChatAssistant
         "予約番号、メールアドレス、電話番号などの個人情報はこのチャットでは扱えません。予約確認やキャンセルは専用画面で行ってください。",
       links: [
         { href: "/reservations/lookup", label: "予約確認へ" },
+        { href: "/reservations/cancel", label: "キャンセル確認へ" },
+      ],
+    };
+  }
+
+  if (!isSupportedChatQuestion(normalizedMessage)) {
+    return {
+      provider,
+      reply: UNSUPPORTED_CHAT_REPLY,
+      links: [
+        { href: "/reservations/new", label: "予約画面へ" },
         { href: "/reservations/cancel", label: "キャンセル確認へ" },
       ],
     };

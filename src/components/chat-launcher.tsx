@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChatConversation } from "@/components/chat-conversation";
@@ -31,7 +32,7 @@ export function ChatLauncher() {
       )}
       <button
         type="button"
-        className={open ? "chat-launcher is-open" : "chat-launcher"}
+        className={open ? "chat-launcher chat-launcher-desktop is-open" : "chat-launcher chat-launcher-desktop"}
         aria-label={open ? "予約支援チャットを閉じる" : "予約支援チャットを開く"}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
@@ -44,6 +45,15 @@ export function ChatLauncher() {
           <span className="chat-launcher-label">チャット</span>
         </span>
       </button>
+      <Link href="/chat" className="chat-launcher chat-launcher-mobile" aria-label="予約支援チャット画面を開く">
+        <span className="chat-launcher-mark" aria-hidden="true">
+          ?
+        </span>
+        <span className="chat-launcher-text">
+          <span className="chat-launcher-kicker">予約支援</span>
+          <span className="chat-launcher-label">チャット</span>
+        </span>
+      </Link>
     </div>
   );
 }

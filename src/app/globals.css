@@ -171,6 +171,10 @@ a {
   font-weight: 700;
 }
 
+.chat-launcher-mobile {
+  display: none;
+}
+
 .chat-widget-panel {
   width: 100%;
   max-height: min(680px, calc(100vh - 112px));
@@ -2213,11 +2217,16 @@ h1 {
   .chat-widget {
     right: max(12px, env(safe-area-inset-right));
     bottom: max(12px, env(safe-area-inset-bottom));
-    width: min(360px, calc(100vw - 24px));
+    width: auto;
   }
 
+  .chat-launcher-desktop,
   .chat-widget-panel {
-    max-height: calc(100vh - 84px);
+    display: none;
+  }
+
+  .chat-launcher-mobile {
+    display: inline-flex;
   }
 
   .chat-launcher {
