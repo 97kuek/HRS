@@ -153,9 +153,6 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
 
   return (
     <div className={`chat-conversation is-${variant}`}>
-      <p className="chat-scope-note">
-        空室、部屋タイプ、料金、キャンセルポリシー、予約・確認・チェックイン・チェックアウトの手順を案内できます。
-      </p>
       <div className="chat-log" aria-live="polite">
         {messages.map((message) => (
           <div key={message.id} className={`chat-message is-${message.role}`}>
