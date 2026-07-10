@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
+import { ChatLauncher } from "@/components/chat-launcher";
 import { SiteHeader } from "@/components/site-header";
 
 const notoSerifJP = Noto_Serif_JP({
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <SiteHeader />
         {children}
+        <ChatLauncher />
         <footer className="site-footer">
           <div className="site-footer-inner">
             <span>HRS — Hotel Reservation System</span>

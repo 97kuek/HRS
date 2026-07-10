@@ -93,6 +93,7 @@ UI の検証は利便性のために行う。API は UI から呼ばれるとは
 | `GET /api/room-types` | なし | なし |
 | `GET /api/availability` | `checkIn`, `checkOut`, `guestCount`, `roomTypeId` の形式 | 宿泊条件（日付順序・人数）、空室 |
 | `GET /api/availability/calendar` | `year`, `month`, `guestCount` の形式 | 月別の日別空室数 |
+| `POST /api/chat` | 本文の `message` の形式・長さ、短時間の連続送信 | 個人情報を含む予約確認や状態変更は行わず、読み取り専用の案内に限定 |
 | `POST /api/reservations` | `guest.name`, `guest.email`, `guest.phone`, `checkInDate`, `checkOutDate`, `guestCount`, `roomTypeId` | 部屋タイプ存在、定員、空室、予約番号一意性 |
 | `GET /api/reservations/{reservationNumber}` | クエリの `familyName`, `givenName` | 予約番号と氏名の照合 |
 | `GET /api/reservations/{reservationNumber}/cancel/quote` | クエリの `familyName`, `givenName` | 予約番号と氏名の照合、キャンセル可否 |

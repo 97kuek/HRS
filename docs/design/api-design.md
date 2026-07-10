@@ -49,6 +49,7 @@
 | `GET` | `/api/room-types` | 部屋を予約する | 予約時に選択できる部屋タイプを取得する |
 | `GET` | `/api/availability` | 部屋を予約する | 宿泊条件に合う部屋タイプ別の空室と料金候補を取得する |
 | `GET` | `/api/availability/calendar` | 部屋を予約する | 対象人数で宿泊可能な日別空室数を月単位で取得する |
+| `POST` | `/api/chat` | 部屋を予約する / 予約をキャンセルする | 読み取り専用チャットで空室・部屋タイプ・キャンセルポリシーを案内する |
 | `POST` | `/api/reservations` | 部屋を予約する | 予約を作成し、予約番号を発行する |
 | `GET` | `/api/reservations/{reservationNumber}` | 予約を確認する / チェックインする / 予約をキャンセルする | 予約番号と氏名（姓・名）から予約内容と状態を取得する |
 | `GET` | `/api/reservations/{reservationNumber}/cancel/quote` | 予約をキャンセルする | キャンセル確認画面用の予約内容とキャンセル可否を返す |
@@ -178,6 +179,62 @@
 ```
 
 - `status` は `past`、`available`、`limited`、`sold_out` のいずれかを返す。
+
+## `POST /api/chat`
+
+- 読み取り専用の予約支援チャットに利用する。
+- 空室検索、日別空室数、部屋タイプ、キャンセルポリシーの一般案内だけを扱う。
+- 予約作成、予約確認、キャンセル確定、チェックイン、チェックアウトは実行しない。
+- 予約番号、氏名、メールアドレス、電話番号などの個人情報を含むメッセージは扱わず、専用画面へ誘導する。
+
+### リクエスト
+
+```json
+{
+  "message": "2名で2030-08-10に泊まれる部屋はありますか？"
+}
+```
+
+### レスポンス
+
+```json
+{
+  "chat": {
+    "reply": "2030-08-10から1泊、2名で空室があります。",
+    "provider": "gemini",
+    "toolName": "search_availability",
+    "cards": [
+      {
+        "title": "コンフォートダブル",
+        "tone": "success",
+        "rows": [
+          {
+            "label": "残室",
+            "value": "4室"
+          },
+          {
+            "label": "合計",
+            "value": "¥16,000"
+          }
+        ]
+      }
+    ],
+    "links": [
+      {
+        "href": "/reservations/new",
+        "label": "予約画面へ"
+      }
+    ]
+  }
+}
+```
+
+### 主なエラー
+
+| 条件 | ステータス | `code` |
+| --- | --- | --- |
+| メッセージが空、または長すぎる | `400` | `VALIDATION_ERROR` |
+| 短時間に送信しすぎた | `429` | `RATE_LIMIT_EXCEEDED` |
 
 ## `POST /api/reservations`
 

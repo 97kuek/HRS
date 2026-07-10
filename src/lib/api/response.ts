@@ -13,6 +13,7 @@ export type ApiErrorCode =
   | "INVALID_STAY_CONDITION"
   | "CAPACITY_EXCEEDED"
   | "PAYMENT_AMOUNT_MISMATCH"
+  | "RATE_LIMIT_EXCEEDED"
   | "INTERNAL_SERVER_ERROR";
 
 export type ApiErrorDetail = {
