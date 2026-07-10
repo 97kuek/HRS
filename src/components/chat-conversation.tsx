@@ -68,6 +68,25 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
     chatEndRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
   }, [messages, loading]);
 
+  useEffect(() => {
+    if (variant !== "page") return;
+    const targets = [document.documentElement, document.body];
+    const previous = targets.map((element) => ({
+      overflow: element.style.overflow,
+      overscrollBehavior: element.style.overscrollBehavior,
+    }));
+    targets.forEach((element) => {
+      element.style.overflow = "hidden";
+      element.style.overscrollBehavior = "none";
+    });
+    return () => {
+      targets.forEach((element, index) => {
+        element.style.overflow = previous[index].overflow;
+        element.style.overscrollBehavior = previous[index].overscrollBehavior;
+      });
+    };
+  }, [variant]);
+
   function appendAssistantMessage(chat: ChatResponse["chat"]) {
     const messageId = nextMessageId.current++;
     const characters = [...chat.reply];

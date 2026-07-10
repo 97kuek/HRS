@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { ChatLauncher } from "@/components/chat-launcher";
@@ -16,6 +16,12 @@ const notoSerifJP = Noto_Serif_JP({
 export const metadata: Metadata = {
   title: "HRS",
   description: "Hotel Reservation System",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
