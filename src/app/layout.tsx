@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Serif_JP } from "next/font/google";
 import "./globals.css";
 import { ChatLauncher } from "@/components/chat-launcher";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 const notoSerifJP = Noto_Serif_JP({
@@ -24,19 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SiteHeader />
         {children}
         <ChatLauncher />
-        <footer className="site-footer">
-          <div className="site-footer-inner">
-            <div className="site-footer-brand">
-              <span>HRS — Hotel Reservation System</span>
-              <span className="site-footer-note">
-                ソフトウェア工学A チーム開発課題（学習用のデモ環境です）
-              </span>
-            </div>
-            <small className="site-footer-copyright">
-              © 2026 Keitaro Ueki, Tomoya Hoshina, Takumi Kawasaki
-            </small>
-          </div>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );
