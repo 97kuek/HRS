@@ -87,7 +87,9 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
     const response = await POST(makeRequest("キャンセル料のルールを教えてください"));
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { chat: { reply: string; toolName: string; cards: { title: string }[] } };
+    const body = (await response.json()) as {
+      chat: { reply: string; toolName: string; cards: { title: string }[] };
+    };
     expect(body.chat.toolName).toBe("explain_cancellation_policy");
     expect(body.chat.reply).toContain("チェックイン日前日まで無料");
     expect(body.chat.cards[0].title).toBe("キャンセルポリシー");
@@ -174,7 +176,9 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
 
     expect(response.status).toBe(200);
     expect(fetchMock).not.toHaveBeenCalled();
-    const body = (await response.json()) as { chat: { provider: string; toolName: string; reply: string } };
+    const body = (await response.json()) as {
+      chat: { provider: string; toolName: string; reply: string };
+    };
     expect(body.chat.provider).toBe("gemini");
     expect(body.chat.toolName).toBe("explain_cancellation_policy");
     expect(body.chat.reply).toContain("チェックイン日前日まで無料");
@@ -185,7 +189,12 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as {
-      chat: { toolName: string; reply: string; links: { href: string }[]; cards: { title: string }[] };
+      chat: {
+        toolName: string;
+        reply: string;
+        links: { href: string }[];
+        cards: { title: string }[];
+      };
     };
     expect(body.chat.toolName).toBe("guide_procedure");
     expect(body.chat.reply).toContain("予約確認画面");
@@ -225,7 +234,14 @@ describe("POST /api/chat — 読み取り専用予約支援チャット", () => 
         candidates: [
           {
             content: {
-              parts: [{ functionCall: { name: "availability_calendar", args: { year: 2024, month: 7, guestCount: 2 } } }],
+              parts: [
+                {
+                  functionCall: {
+                    name: "availability_calendar",
+                    args: { year: 2024, month: 7, guestCount: 2 },
+                  },
+                },
+              ],
             },
           },
         ],

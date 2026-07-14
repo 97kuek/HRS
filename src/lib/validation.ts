@@ -62,8 +62,7 @@ export function validateGuestCount(count: number): ValidationResult {
 export function validateEmail(value: string): ValidationResult {
   const v = value.trim();
   if (v.length === 0) return "メールアドレスを入力してください。";
-  if (!EMAIL_RE.test(v))
-    return "メールアドレスは「sample@example.com」の形式で入力してください。";
+  if (!EMAIL_RE.test(v)) return "メールアドレスは「sample@example.com」の形式で入力してください。";
   return null;
 }
 

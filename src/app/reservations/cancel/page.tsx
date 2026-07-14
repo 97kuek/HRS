@@ -4,68 +4,27 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ConfirmTable } from "@/components/confirm-table";
-import {
-  IdentityVerificationForm,
-  type IdentityFormValue,
-} from "@/components/identity-verification-form";
+import { IdentityVerificationForm } from "@/components/identity-verification-form";
 import { LongWaitBar } from "@/components/loading-indicator";
 import { ResultPanel } from "@/components/result-panel";
 import { SubmitButton } from "@/components/submit-button";
+import { useReservationIdentityForm } from "@/components/use-reservation-identity-form";
+import type { ApiErrorResponse, CancellationQuote, CancellationResult } from "@/lib/api/contracts";
 import { formatStayRange, formatYen } from "@/lib/format";
-import { validateReservationNumber, validateName } from "@/lib/validation";
-
-interface Quote {
-  reservationNumber: string;
-  roomTypeName: string;
-  checkInDate: string;
-  checkOutDate: string;
-  guestCount: number;
-  totalCharge: number;
-  cancellationFee: number;
-  cancellationPolicy: string;
-  cancellationPolicyDescription: string;
-  status: string;
-  cancelable: boolean;
-  reason: string | null;
-}
-
-interface CancelResult {
-  reservationNumber: string;
-  roomTypeName: string;
-  checkInDate: string;
-  checkOutDate: string;
-  guestCount: number;
-  totalCharge: number;
-  cancellationFee: number;
-  cancellationPolicy: string;
-  status: string;
-}
-
-interface ApiError {
-  error: { code: string; message: string };
-}
 
 function CancelReservationPageInner() {
   const searchParams = useSearchParams();
-  const [identity, setIdentity] = useState<IdentityFormValue>({
-    reservationNumber: searchParams.get("r") ?? "",
-    familyName: "",
-    givenName: "",
-  });
-  const [touched, setTouched] = useState(false);
-  const [quote, setQuote] = useState<Quote | null>(null);
-  const [result, setResult] = useState<CancelResult | null>(null);
+  const { identity, setIdentity, touched, touch, errors, hasError } = useReservationIdentityForm(
+    searchParams.get("r") ?? "",
+  );
+  const [quote, setQuote] = useState<CancellationQuote | null>(null);
+  const [result, setResult] = useState<CancellationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const reservationNumberError = validateReservationNumber(identity.reservationNumber);
-  const familyNameError = validateName(identity.familyName, "姓");
-  const givenNameError = validateName(identity.givenName, "名");
-  const fieldError = reservationNumberError ?? familyNameError ?? givenNameError;
-
   async function fetchQuote() {
-    setTouched(true);
-    if (fieldError) return;
+    touch();
+    if (hasError) return;
     const number = identity.reservationNumber.trim().toUpperCase();
     setError(null);
     setLoading(true);
@@ -77,12 +36,12 @@ function CancelReservationPageInner() {
       const res = await fetch(
         `/api/reservations/${encodeURIComponent(number)}/cancel/quote?${params}`,
       );
-      const data = (await res.json()) as { quote: Quote } | ApiError;
+      const data = (await res.json()) as { quote: CancellationQuote } | ApiErrorResponse;
       if (!res.ok) {
-        setError((data as ApiError).error?.message ?? "予約の照会に失敗しました。");
+        setError((data as ApiErrorResponse).error?.message ?? "予約の照会に失敗しました。");
         return;
       }
-      setQuote((data as { quote: Quote }).quote);
+      setQuote((data as { quote: CancellationQuote }).quote);
     } catch {
       setError("通信エラーが発生しました。時間をおいて再度お試しください。");
     } finally {
@@ -106,12 +65,12 @@ function CancelReservationPageInner() {
           }),
         },
       );
-      const data = (await res.json()) as { cancellation: CancelResult } | ApiError;
+      const data = (await res.json()) as { cancellation: CancellationResult } | ApiErrorResponse;
       if (!res.ok) {
-        setError((data as ApiError).error?.message ?? "キャンセルに失敗しました。");
+        setError((data as ApiErrorResponse).error?.message ?? "キャンセルに失敗しました。");
         return;
       }
-      setResult((data as { cancellation: CancelResult }).cancellation);
+      setResult((data as { cancellation: CancellationResult }).cancellation);
     } catch {
       setError("通信エラーが発生しました。時間をおいて再度お試しください。");
     } finally {
@@ -242,12 +201,12 @@ function CancelReservationPageInner() {
               idPrefix="cancel"
               value={identity}
               errors={{
-                reservationNumber: reservationNumberError,
-                familyName: familyNameError,
-                givenName: givenNameError,
+                reservationNumber: errors.reservationNumber,
+                familyName: errors.familyName,
+                givenName: errors.givenName,
               }}
               touched={touched}
-              onTouched={() => setTouched(true)}
+              onTouched={touch}
               onChange={setIdentity}
             />
             {error && <div className="error-box">{error}</div>}
@@ -269,7 +228,15 @@ function CancelReservationPageInner() {
 
 export default function CancelReservationPage() {
   return (
-    <Suspense>
+    <Suspense
+      fallback={
+        <main className="page-shell">
+          <div className="page-panel" role="status">
+            予約情報を読み込んでいます…
+          </div>
+        </main>
+      }
+    >
       <CancelReservationPageInner />
     </Suspense>
   );

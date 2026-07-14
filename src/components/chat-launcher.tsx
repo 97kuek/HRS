@@ -22,17 +22,28 @@ export function ChatLauncher() {
               <p className="chat-widget-kicker">予約支援</p>
               <h2 className="chat-widget-title">チャット</h2>
             </div>
-            <button type="button" className="chat-widget-close" aria-label="予約支援チャットを閉じる" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              className="chat-widget-close"
+              aria-label="予約支援チャットを閉じる"
+              onClick={() => setOpen(false)}
+            >
               ×
             </button>
           </div>
-          <p className="chat-widget-note">予約番号・氏名・メールアドレス・電話番号は入力しないでください。</p>
+          <p className="chat-widget-note">
+            予約番号・氏名・メールアドレス・電話番号は入力しないでください。
+          </p>
           <ChatConversation variant="widget" />
         </section>
       )}
       <button
         type="button"
-        className={open ? "chat-launcher chat-launcher-desktop is-open" : "chat-launcher chat-launcher-desktop"}
+        className={
+          open
+            ? "chat-launcher chat-launcher-desktop is-open"
+            : "chat-launcher chat-launcher-desktop"
+        }
         aria-label={open ? "予約支援チャットを閉じる" : "予約支援チャットを開く"}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
@@ -45,7 +56,11 @@ export function ChatLauncher() {
           <span className="chat-launcher-label">チャット</span>
         </span>
       </button>
-      <Link href="/chat" className="chat-launcher chat-launcher-mobile" aria-label="予約支援チャット画面を開く">
+      <Link
+        href="/chat"
+        className="chat-launcher chat-launcher-mobile"
+        aria-label="予約支援チャット画面を開く"
+      >
         <span className="chat-launcher-mark" aria-hidden="true">
           ?
         </span>

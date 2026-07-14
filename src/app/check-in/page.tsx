@@ -3,48 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ConfirmTable } from "@/components/confirm-table";
-import {
-  IdentityVerificationForm,
-  type IdentityFormValue,
-} from "@/components/identity-verification-form";
+import { IdentityVerificationForm } from "@/components/identity-verification-form";
 import { LongWaitBar } from "@/components/loading-indicator";
 import { ResultPanel } from "@/components/result-panel";
 import { SubmitButton } from "@/components/submit-button";
-import { validateReservationNumber, validateName } from "@/lib/validation";
-
-interface CheckInResult {
-  reservationNumber: string;
-  roomTypeName: string;
-  roomNumber: string;
-  checkInDate: string;
-  checkOutDate: string;
-  guestCount: number;
-  checkedInAt: string;
-}
-
-interface ApiError {
-  error: { code: string; message: string };
-}
+import { useReservationIdentityForm } from "@/components/use-reservation-identity-form";
+import type { ApiErrorResponse, CheckInResult } from "@/lib/api/contracts";
 
 export default function CheckInPage() {
-  const [identity, setIdentity] = useState<IdentityFormValue>({
-    reservationNumber: "",
-    familyName: "",
-    givenName: "",
-  });
-  const [touched, setTouched] = useState(false);
+  const { identity, setIdentity, touched, touch, errors, hasError } = useReservationIdentityForm();
   const [result, setResult] = useState<CheckInResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const reservationNumberError = validateReservationNumber(identity.reservationNumber);
-  const familyNameError = validateName(identity.familyName, "姓");
-  const givenNameError = validateName(identity.givenName, "名");
-  const fieldError = reservationNumberError ?? familyNameError ?? givenNameError;
-
   async function checkIn() {
-    setTouched(true);
-    if (fieldError) return;
+    touch();
+    if (hasError) return;
     const number = identity.reservationNumber.trim().toUpperCase();
     setError(null);
     setLoading(true);
@@ -57,9 +31,9 @@ export default function CheckInPage() {
           givenName: identity.givenName.trim(),
         }),
       });
-      const data = (await res.json()) as { checkIn: CheckInResult } | ApiError;
+      const data = (await res.json()) as { checkIn: CheckInResult } | ApiErrorResponse;
       if (!res.ok) {
-        setError((data as ApiError).error?.message ?? "チェックインに失敗しました。");
+        setError((data as ApiErrorResponse).error?.message ?? "チェックインに失敗しました。");
         return;
       }
       setResult((data as { checkIn: CheckInResult }).checkIn);
@@ -112,12 +86,12 @@ export default function CheckInPage() {
               idPrefix="checkIn"
               value={identity}
               errors={{
-                reservationNumber: reservationNumberError,
-                familyName: familyNameError,
-                givenName: givenNameError,
+                reservationNumber: errors.reservationNumber,
+                familyName: errors.familyName,
+                givenName: errors.givenName,
               }}
               touched={touched}
-              onTouched={() => setTouched(true)}
+              onTouched={touch}
               onChange={setIdentity}
             />
             {error && <div className="error-box">{error}</div>}

@@ -61,7 +61,7 @@ describe("POST /api/reservations/[reservationNumber]/cancel — 結合テスト"
     it("RESERVED 予約を正しい氏名でキャンセルすると 200 と cancellation を返す", async () => {
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(200);
-      const body = await response.json() as { cancellation: Record<string, unknown> };
+      const body = (await response.json()) as { cancellation: Record<string, unknown> };
       expect(body.cancellation.status).toBe("CANCELLED");
       expect(body.cancellation.reservationNumber).toBe("HRS-20260701-0001");
       expect(body.cancellation.totalCharge).toBe(24000);
@@ -75,7 +75,7 @@ describe("POST /api/reservations/[reservationNumber]/cancel — 結合テスト"
     it("familyName が空は 400 VALIDATION_ERROR", async () => {
       const response = await POST(makeRequest("", "太郎"), makeParams());
       expect(response.status).toBe(400);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("VALIDATION_ERROR");
     });
 
@@ -91,14 +91,14 @@ describe("POST /api/reservations/[reservationNumber]/cancel — 結合テスト"
       mockTx.reservation.findUnique.mockResolvedValue(null);
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(404);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("RESERVATION_NOT_FOUND");
     });
 
     it("氏名が一致しない場合は 404 RESERVATION_NOT_FOUND", async () => {
       const response = await POST(makeRequest("佐藤", "花子"), makeParams());
       expect(response.status).toBe(404);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("RESERVATION_NOT_FOUND");
     });
   });
@@ -112,7 +112,7 @@ describe("POST /api/reservations/[reservationNumber]/cancel — 結合テスト"
       });
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(409);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("INVALID_RESERVATION_STATUS");
     });
 

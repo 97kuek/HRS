@@ -7,32 +7,9 @@ import { FormField, fieldDescribedBy, fieldInputClass } from "@/components/form-
 import { LongWaitBar } from "@/components/loading-indicator";
 import { ResultPanel } from "@/components/result-panel";
 import { SubmitButton } from "@/components/submit-button";
+import type { ApiErrorResponse, CheckOutQuote, CheckOutResult } from "@/lib/api/contracts";
 import { formatYen } from "@/lib/format";
 import { validateRoomNumber } from "@/lib/validation";
-
-interface Quote {
-  roomNumber: string;
-  reservationNumber: string;
-  roomTypeName: string;
-  checkInDate: string;
-  checkOutDate: string;
-  nights: number;
-  amount: number;
-}
-
-interface CheckOutResult {
-  roomNumber: string;
-  reservationNumber: string;
-  roomTypeName: string;
-  amount: number;
-  method: string;
-  paidAt: string;
-  checkedOutAt: string | null;
-}
-
-interface ApiError {
-  error: { code: string; message: string };
-}
 
 const PAYMENT_METHODS = ["現金", "クレジットカード"] as const;
 
@@ -40,7 +17,7 @@ export default function CheckOutPage() {
   const [roomNumber, setRoomNumber] = useState("");
   const [touched, setTouched] = useState(false);
   const [method, setMethod] = useState<string>(PAYMENT_METHODS[0]);
-  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quote, setQuote] = useState<CheckOutQuote | null>(null);
   const [result, setResult] = useState<CheckOutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,12 +32,12 @@ export default function CheckOutPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/rooms/${encodeURIComponent(number)}/check-out/quote`);
-      const data = (await res.json()) as { quote: Quote } | ApiError;
+      const data = (await res.json()) as { quote: CheckOutQuote } | ApiErrorResponse;
       if (!res.ok) {
-        setError((data as ApiError).error?.message ?? "料金の照会に失敗しました。");
+        setError((data as ApiErrorResponse).error?.message ?? "料金の照会に失敗しました。");
         return;
       }
-      setQuote((data as { quote: Quote }).quote);
+      setQuote((data as { quote: CheckOutQuote }).quote);
     } catch {
       setError("通信エラーが発生しました。時間をおいて再度お試しください。");
     } finally {
@@ -78,9 +55,9 @@ export default function CheckOutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: quote.amount, method }),
       });
-      const data = (await res.json()) as { checkOut: CheckOutResult } | ApiError;
+      const data = (await res.json()) as { checkOut: CheckOutResult } | ApiErrorResponse;
       if (!res.ok) {
-        setError((data as ApiError).error?.message ?? "チェックアウトに失敗しました。");
+        setError((data as ApiErrorResponse).error?.message ?? "チェックアウトに失敗しました。");
         return;
       }
       setResult((data as { checkOut: CheckOutResult }).checkOut);

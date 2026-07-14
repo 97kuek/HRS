@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LongWaitBar } from "@/components/loading-indicator";
+import type { ApiErrorResponse } from "@/lib/api/contracts";
 
 type ChatRole = "assistant" | "user";
 
@@ -31,10 +32,6 @@ type ChatResponse = {
     cards?: ChatCard[];
     usedFallback?: boolean;
   };
-};
-
-type ApiError = {
-  error: { message: string };
 };
 
 type ChatConversationProps = {
@@ -124,7 +121,9 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
 
       if (done) {
         window.clearInterval(timer);
-        typingTimers.current = typingTimers.current.filter((currentTimer) => currentTimer !== timer);
+        typingTimers.current = typingTimers.current.filter(
+          (currentTimer) => currentTimer !== timer,
+        );
       }
     }, 18);
 
@@ -151,13 +150,15 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
-      const data = (await response.json()) as ChatResponse | ApiError;
+      const data = (await response.json()) as ChatResponse | ApiErrorResponse;
       if (!response.ok) {
         appendAssistantMessage({
           provider: "local",
-          reply: (data as ApiError).error?.message ?? "チャットの応答に失敗しました。",
+          reply: (data as ApiErrorResponse).error?.message ?? "チャットの応答に失敗しました。",
           links: [],
-          cards: [{ title: response.status === 429 ? "送信回数の制限" : "送信エラー", tone: "warning" }],
+          cards: [
+            { title: response.status === 429 ? "送信回数の制限" : "送信エラー", tone: "warning" },
+          ],
         });
         return;
       }
@@ -190,13 +191,21 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
               {message.cards && message.cards.length > 0 && (
                 <div className="chat-result-cards">
                   {message.cards.map((card) => (
-                    <div key={`${message.id}-${card.title}`} className={`chat-result-card tone-${card.tone ?? "default"}`}>
+                    <div
+                      key={`${message.id}-${card.title}`}
+                      className={`chat-result-card tone-${card.tone ?? "default"}`}
+                    >
                       <div className="chat-result-card-title">{card.title}</div>
-                      {card.description && <p className="chat-result-card-desc">{card.description}</p>}
+                      {card.description && (
+                        <p className="chat-result-card-desc">{card.description}</p>
+                      )}
                       {card.rows && card.rows.length > 0 && (
                         <dl className="chat-result-card-rows">
                           {card.rows.map((row) => (
-                            <div key={`${card.title}-${row.label}`} className="chat-result-card-row">
+                            <div
+                              key={`${card.title}-${row.label}`}
+                              className="chat-result-card-row"
+                            >
                               <dt>{row.label}</dt>
                               <dd>{row.value}</dd>
                             </div>
@@ -217,7 +226,9 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
                 </div>
               )}
               {showDebug && message.usedFallback && (
-                <p className="chat-debug-note">開発用: AI応答に失敗したためローカル判定で回答しました。</p>
+                <p className="chat-debug-note">
+                  開発用: AI応答に失敗したためローカル判定で回答しました。
+                </p>
               )}
             </div>
           </div>
@@ -253,10 +264,17 @@ export function ChatConversation({ variant = "page" }: ChatConversationProps) {
             type="submit"
             disabled={!input.trim() || loading}
           >
-            {loading ? <span className="chat-send-spinner" aria-hidden="true" /> : <span aria-hidden="true">✈</span>}
+            {loading ? (
+              <span className="chat-send-spinner" aria-hidden="true" />
+            ) : (
+              <span aria-hidden="true">✈</span>
+            )}
           </button>
         </div>
-        <LongWaitBar loading={loading} message="空室や料金を確認しています。そのままお待ちください…" />
+        <LongWaitBar
+          loading={loading}
+          message="空室や料金を確認しています。そのままお待ちください…"
+        />
       </form>
     </div>
   );

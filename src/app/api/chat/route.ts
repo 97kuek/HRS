@@ -29,7 +29,11 @@ export async function POST(request: Request) {
     return apiError(400, "VALIDATION_ERROR", "メッセージを入力してください。");
   }
   if (message.length > MAX_MESSAGE_LENGTH) {
-    return apiError(400, "VALIDATION_ERROR", `メッセージは${MAX_MESSAGE_LENGTH}文字以内で入力してください。`);
+    return apiError(
+      400,
+      "VALIDATION_ERROR",
+      `メッセージは${MAX_MESSAGE_LENGTH}文字以内で入力してください。`,
+    );
   }
 
   const rateLimit = consumeChatRateLimit(clientKey(request));
