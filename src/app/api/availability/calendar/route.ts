@@ -19,7 +19,12 @@ export async function GET(request: Request) {
     });
 
     if (!validation.ok) {
-      return apiError(400, "VALIDATION_ERROR", "空室カレンダーの条件が正しくありません。", validation.errors);
+      return apiError(
+        400,
+        "VALIDATION_ERROR",
+        "空室カレンダーの条件が正しくありません。",
+        validation.errors,
+      );
     }
 
     const query = validation.value;

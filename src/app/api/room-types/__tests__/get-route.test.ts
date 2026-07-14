@@ -7,9 +7,7 @@ import { GET } from "@/app/api/room-types/route";
 
 describe("GET /api/room-types", () => {
   it("表示に必要な部屋タイプ一覧を返す", async () => {
-    findMany.mockResolvedValue([
-      { id: "rt-1", name: "シングル", capacity: 1, baseRate: 12000 },
-    ]);
+    findMany.mockResolvedValue([{ id: "rt-1", name: "シングル", capacity: 1, baseRate: 12000 }]);
 
     const response = await GET();
     const body = (await response.json()) as { roomTypes: unknown[] };

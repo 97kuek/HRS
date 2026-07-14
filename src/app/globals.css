@@ -415,7 +415,6 @@ h1 {
   color: #f6f4ef;
 }
 
-
 .home-gallery-dots {
   display: flex;
   align-items: center;
@@ -462,7 +461,6 @@ h1 {
   margin: 0 auto;
   padding: clamp(64px, 12vw, 124px) 0 clamp(56px, 10vw, 100px);
 }
-
 
 .home-title {
   margin: 0;

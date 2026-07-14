@@ -1,7 +1,11 @@
 import { addDaysToDateOnly } from "@/lib/date-only";
 import { prisma } from "@/lib/db/prisma";
 import { formatYen } from "@/lib/format";
-import { getAvailabilityCalendar, searchAvailability, validateReservationCondition } from "@/lib/reservations/availability";
+import {
+  getAvailabilityCalendar,
+  searchAvailability,
+  validateReservationCondition,
+} from "@/lib/reservations/availability";
 import { calculateCancellationPolicy } from "@/lib/reservations/cancellation";
 import { todayInHotelTz } from "@/lib/reservations/check-in";
 
@@ -48,7 +52,10 @@ const CHAT_TOOLS = [
       type: "object",
       properties: {
         checkIn: { type: "string", description: "チェックイン日。YYYY-MM-DD形式。" },
-        checkOut: { type: "string", description: "チェックアウト日。YYYY-MM-DD形式。省略時はチェックイン翌日。" },
+        checkOut: {
+          type: "string",
+          description: "チェックアウト日。YYYY-MM-DD形式。省略時はチェックイン翌日。",
+        },
         guestCount: { type: "integer", description: "宿泊人数。" },
       },
       required: ["checkIn", "guestCount"],
@@ -78,7 +85,8 @@ const CHAT_TOOLS = [
   },
   {
     name: "explain_cancellation_policy",
-    description: "HRSのキャンセルポリシーを説明する。日付と料金があれば概算キャンセル料を計算する。",
+    description:
+      "HRSのキャンセルポリシーを説明する。日付と料金があれば概算キャンセル料を計算する。",
     parameters: {
       type: "object",
       properties: {
@@ -91,7 +99,8 @@ const CHAT_TOOLS = [
   },
   {
     name: "guide_procedure",
-    description: "予約作成、予約確認、チェックイン、チェックアウト、キャンセルなどの画面操作手順を案内する。",
+    description:
+      "予約作成、予約確認、チェックイン、チェックアウト、キャンセルなどの画面操作手順を案内する。",
     parameters: {
       type: "object",
       properties: {
@@ -122,7 +131,12 @@ function currentDateOnly() {
 
 function resolveProvider(): ChatProvider {
   const configured = process.env.CHAT_PROVIDER?.toLowerCase();
-  if (configured === "gemini" || configured === "groq" || configured === "ollama" || configured === "mock") {
+  if (
+    configured === "gemini" ||
+    configured === "groq" ||
+    configured === "ollama" ||
+    configured === "mock"
+  ) {
     return configured;
   }
   if (process.env.GEMINI_API_KEY) return "gemini";
@@ -140,13 +154,17 @@ function containsSensitiveReservationInfo(message: string) {
 }
 
 function isSupportedChatQuestion(message: string) {
-  return /空室|空き|空いて|泊ま|宿泊|部屋|客室|料金|金額|価格|定員|人数|キャンセル|取消|取り消|カレンダー|予約|確認|照会|チェックイン|チェックアウト|支払い|支払|手順|方法|使い方/.test(message);
+  return /空室|空き|空いて|泊ま|宿泊|部屋|客室|料金|金額|価格|定員|人数|キャンセル|取消|取り消|カレンダー|予約|確認|照会|チェックイン|チェックアウト|支払い|支払|手順|方法|使い方/.test(
+    message,
+  );
 }
 
 function parseJsonObject(value: string): Record<string, unknown> | null {
   try {
     const parsed = JSON.parse(value) as unknown;
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : null;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
   } catch {
     return null;
   }
@@ -168,7 +186,10 @@ function normalizeToolCall(value: unknown): ChatToolCall | null {
   const args = object.arguments;
   return {
     name,
-    arguments: args && typeof args === "object" && !Array.isArray(args) ? (args as Record<string, unknown>) : {},
+    arguments:
+      args && typeof args === "object" && !Array.isArray(args)
+        ? (args as Record<string, unknown>)
+        : {},
   };
 }
 
@@ -245,10 +266,18 @@ function mockToolCall(message: string): ChatToolCall {
   if (procedure) {
     return { name: "guide_procedure", arguments: { topic: procedure } };
   }
-  if (message.includes("部屋") || message.includes("客室") || message.includes("料金") || message.includes("泊")) {
+  if (
+    message.includes("部屋") ||
+    message.includes("客室") ||
+    message.includes("料金") ||
+    message.includes("泊")
+  ) {
     if (date || message.includes("空")) {
       const checkIn = date ?? addDaysToDateOnly(currentDateOnly(), 1);
-      return { name: "search_availability", arguments: { checkIn, checkOut: addDaysToDateOnly(checkIn, 1), guestCount } };
+      return {
+        name: "search_availability",
+        arguments: { checkIn, checkOut: addDaysToDateOnly(checkIn, 1), guestCount },
+      };
     }
     return { name: "list_room_types", arguments: {} };
   }
@@ -257,8 +286,11 @@ function mockToolCall(message: string): ChatToolCall {
     return {
       name: "availability_calendar",
       arguments: {
-        year: relativeMonth?.year ?? target?.getUTCFullYear() ?? currentHotelDate().getUTCFullYear(),
-        month: relativeMonth?.month ?? (target ? target.getUTCMonth() + 1 : currentHotelDate().getUTCMonth() + 1),
+        year:
+          relativeMonth?.year ?? target?.getUTCFullYear() ?? currentHotelDate().getUTCFullYear(),
+        month:
+          relativeMonth?.month ??
+          (target ? target.getUTCMonth() + 1 : currentHotelDate().getUTCMonth() + 1),
         guestCount,
       },
     };
@@ -279,7 +311,10 @@ function deterministicToolCall(message: string): ChatToolCall | null {
     return { name: "guide_procedure", arguments: { topic: procedure } };
   }
   const relativeMonth = monthTargetFromRelativeText(message);
-  if (relativeMonth && (message.includes("空") || message.includes("空室") || message.includes("カレンダー"))) {
+  if (
+    relativeMonth &&
+    (message.includes("空") || message.includes("空室") || message.includes("カレンダー"))
+  ) {
     return {
       name: "availability_calendar",
       arguments: { ...relativeMonth, guestCount: extractGuestCount(message) ?? 2 },
@@ -289,10 +324,16 @@ function deterministicToolCall(message: string): ChatToolCall | null {
 }
 
 function procedureTopicFromMessage(message: string) {
-  if (message.includes("チェックアウト") || message.includes("支払い") || message.includes("支払")) return "checkout";
+  if (message.includes("チェックアウト") || message.includes("支払い") || message.includes("支払"))
+    return "checkout";
   if (message.includes("チェックイン")) return "checkin";
-  if (message.includes("予約") && (message.includes("確認") || message.includes("照会"))) return "lookup";
-  if (message.includes("予約") && (message.includes("手順") || message.includes("方法") || message.includes("やり方"))) return "reservation";
+  if (message.includes("予約") && (message.includes("確認") || message.includes("照会")))
+    return "lookup";
+  if (
+    message.includes("予約") &&
+    (message.includes("手順") || message.includes("方法") || message.includes("やり方"))
+  )
+    return "reservation";
   if (message.includes("使い方")) return "reservation";
   return null;
 }
@@ -301,45 +342,52 @@ async function getGeminiToolCall(message: string): Promise<ChatToolCall | null> 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
   const model = process.env.GEMINI_MODEL || "gemini-flash-latest";
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: {
+            text: systemInstruction(),
+          },
+        },
+        contents: {
+          role: "user",
+          parts: {
+            text: message,
+          },
+        },
+        tools: [
+          {
+            function_declarations: CHAT_TOOLS.map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              parameters: tool.parameters,
+            })),
+          },
+        ],
+        tool_config: {
+          function_calling_config: {
+            mode: "auto",
+          },
+        },
+      }),
     },
-    body: JSON.stringify({
-      system_instruction: {
-        parts: {
-          text: systemInstruction(),
-        },
-      },
-      contents: {
-        role: "user",
-        parts: {
-          text: message,
-        },
-      },
-      tools: [
-        {
-          function_declarations: CHAT_TOOLS.map((tool) => ({
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.parameters,
-          })),
-        },
-      ],
-      tool_config: {
-        function_calling_config: {
-          mode: "auto",
-        },
-      },
-    }),
-  });
+  );
   if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
   const data = (await response.json()) as {
-    candidates?: { content?: { parts?: { functionCall?: { name?: string; args?: Record<string, unknown> } }[] } }[];
+    candidates?: {
+      content?: { parts?: { functionCall?: { name?: string; args?: Record<string, unknown> } }[] };
+    }[];
   };
-  const functionCall = data.candidates?.[0]?.content?.parts?.find((part) => part.functionCall)?.functionCall;
+  const functionCall = data.candidates?.[0]?.content?.parts?.find(
+    (part) => part.functionCall,
+  )?.functionCall;
   return normalizeToolCall({ name: functionCall?.name, arguments: functionCall?.args });
 }
 
@@ -366,11 +414,16 @@ async function getGroqToolCall(message: string): Promise<ChatToolCall | null> {
   });
   if (!response.ok) throw new Error(`Groq API error: ${response.status}`);
   const data = (await response.json()) as {
-    choices?: { message?: { tool_calls?: { function?: { name?: string; arguments?: string } }[] } }[];
+    choices?: {
+      message?: { tool_calls?: { function?: { name?: string; arguments?: string } }[] };
+    }[];
   };
   const tool = data.choices?.[0]?.message?.tool_calls?.[0]?.function;
   if (!tool?.name) return null;
-  return normalizeToolCall({ name: tool.name, arguments: tool.arguments ? parseJsonObject(tool.arguments) : {} });
+  return normalizeToolCall({
+    name: tool.name,
+    arguments: tool.arguments ? parseJsonObject(tool.arguments) : {},
+  });
 }
 
 async function getOllamaToolCall(message: string): Promise<ChatToolCall | null> {
@@ -408,14 +461,29 @@ function systemInstruction() {
   ].join("\n");
 }
 
-async function getToolCall(provider: ChatProvider, message: string): Promise<{ toolCall: ChatToolCall; usedFallback: boolean }> {
+async function getToolCall(
+  provider: ChatProvider,
+  message: string,
+): Promise<{ toolCall: ChatToolCall; usedFallback: boolean }> {
   const deterministic = deterministicToolCall(message);
   if (deterministic) return { toolCall: deterministic, usedFallback: false };
 
   try {
-    if (provider === "gemini") return { toolCall: (await getGeminiToolCall(message)) ?? mockToolCall(message), usedFallback: false };
-    if (provider === "groq") return { toolCall: (await getGroqToolCall(message)) ?? mockToolCall(message), usedFallback: false };
-    if (provider === "ollama") return { toolCall: (await getOllamaToolCall(message)) ?? mockToolCall(message), usedFallback: false };
+    if (provider === "gemini")
+      return {
+        toolCall: (await getGeminiToolCall(message)) ?? mockToolCall(message),
+        usedFallback: false,
+      };
+    if (provider === "groq")
+      return {
+        toolCall: (await getGroqToolCall(message)) ?? mockToolCall(message),
+        usedFallback: false,
+      };
+    if (provider === "ollama")
+      return {
+        toolCall: (await getOllamaToolCall(message)) ?? mockToolCall(message),
+        usedFallback: false,
+      };
   } catch (error) {
     console.warn(`Chat provider ${provider} failed. Falling back to mock intent detection.`, error);
     return { toolCall: mockToolCall(message), usedFallback: true };
@@ -482,9 +550,15 @@ async function executeToolCall(toolCall: ChatToolCall): Promise<ToolExecutionRes
 
   if (toolCall.name === "search_availability") {
     const checkIn = stringArg(toolCall.arguments, "checkIn");
-    const checkOut = stringArg(toolCall.arguments, "checkOut") ?? (checkIn ? addDaysToDateOnly(checkIn, 1) : undefined);
+    const checkOut =
+      stringArg(toolCall.arguments, "checkOut") ??
+      (checkIn ? addDaysToDateOnly(checkIn, 1) : undefined);
     const guestCount = numberArg(toolCall.arguments, "guestCount");
-    const validation = validateReservationCondition({ checkInDate: checkIn, checkOutDate: checkOut, guestCount });
+    const validation = validateReservationCondition({
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      guestCount,
+    });
     if (!validation.ok) {
       return { reply: `空室検索には、未来のチェックイン日と人数が必要です。\n${READ_ONLY_NOTICE}` };
     }
@@ -519,11 +593,19 @@ async function executeToolCall(toolCall: ChatToolCall): Promise<ToolExecutionRes
     const { year, month } = futureMonthArg(toolCall.arguments);
     const guestCount = numberArg(toolCall.arguments, "guestCount") ?? 2;
     const days = await getAvailabilityCalendar(prisma, { year, month, guestCount });
-    const availableDays = days.filter((day) => day.status === "available" || day.status === "limited");
+    const availableDays = days.filter(
+      (day) => day.status === "available" || day.status === "limited",
+    );
     if (availableDays.length === 0) {
       return {
         reply: `${year}年${month}月は、${guestCount}名で泊まれる空室が見つかりませんでした。\n${READ_ONLY_NOTICE}`,
-        cards: [{ title: "空室なし", description: `${year}年${month}月 / ${guestCount}名`, tone: "warning" }],
+        cards: [
+          {
+            title: "空室なし",
+            description: `${year}年${month}月 / ${guestCount}名`,
+            tone: "warning",
+          },
+        ],
       };
     }
     return {
@@ -537,7 +619,9 @@ async function executeToolCall(toolCall: ChatToolCall): Promise<ToolExecutionRes
   }
 
   const checkIn = stringArg(toolCall.arguments, "checkIn");
-  const checkOut = stringArg(toolCall.arguments, "checkOut") ?? (checkIn ? addDaysToDateOnly(checkIn, 1) : undefined);
+  const checkOut =
+    stringArg(toolCall.arguments, "checkOut") ??
+    (checkIn ? addDaysToDateOnly(checkIn, 1) : undefined);
   const baseRate = numberArg(toolCall.arguments, "baseRate");
   if (checkIn && checkOut && baseRate) {
     const policy = calculateCancellationPolicy({
@@ -575,7 +659,11 @@ async function executeToolCall(toolCall: ChatToolCall): Promise<ToolExecutionRes
 }
 
 function linksForTool(toolName: ChatToolName) {
-  if (toolName === "search_availability" || toolName === "availability_calendar" || toolName === "list_room_types") {
+  if (
+    toolName === "search_availability" ||
+    toolName === "availability_calendar" ||
+    toolName === "list_room_types"
+  ) {
     return [{ href: "/reservations/new", label: "予約画面へ" }];
   }
   if (toolName === "guide_procedure") {
@@ -593,7 +681,8 @@ function linksForTool(toolName: ChatToolName) {
 function procedureGuideResult(topic?: string): ToolExecutionResult {
   if (topic === "lookup") {
     return {
-      reply: "予約確認は、予約確認画面で予約番号と氏名を入力して行います。このチャットでは予約内容の照会は実行しません。",
+      reply:
+        "予約確認は、予約確認画面で予約番号と氏名を入力して行います。このチャットでは予約内容の照会は実行しません。",
       cards: [
         {
           title: "予約確認の手順",
@@ -608,7 +697,8 @@ function procedureGuideResult(topic?: string): ToolExecutionResult {
   }
   if (topic === "checkin") {
     return {
-      reply: "チェックインは、チェックイン画面で予約番号と氏名を入力して行います。予約状態や日付条件は画面側で確認されます。",
+      reply:
+        "チェックインは、チェックイン画面で予約番号と氏名を入力して行います。予約状態や日付条件は画面側で確認されます。",
       cards: [
         {
           title: "チェックインの手順",
@@ -623,7 +713,8 @@ function procedureGuideResult(topic?: string): ToolExecutionResult {
   }
   if (topic === "checkout") {
     return {
-      reply: "チェックアウトは、チェックアウト画面で部屋番号を入力し、料金確認後に支払い情報を入力して行います。",
+      reply:
+        "チェックアウトは、チェックアウト画面で部屋番号を入力し、料金確認後に支払い情報を入力して行います。",
       cards: [
         {
           title: "チェックアウトの手順",
@@ -638,7 +729,8 @@ function procedureGuideResult(topic?: string): ToolExecutionResult {
   }
   if (topic === "cancel") {
     return {
-      reply: "予約キャンセルは、キャンセル確認画面で予約番号と氏名を入力し、キャンセル料を確認してから実行します。このチャットではキャンセル確定は行いません。",
+      reply:
+        "予約キャンセルは、キャンセル確認画面で予約番号と氏名を入力し、キャンセル料を確認してから実行します。このチャットではキャンセル確定は行いません。",
       cards: [
         {
           title: "キャンセルの手順",
@@ -652,7 +744,8 @@ function procedureGuideResult(topic?: string): ToolExecutionResult {
     };
   }
   return {
-    reply: "予約は、予約画面で宿泊日・人数を入力し、空室と料金を確認してから利用者情報を入力して確定します。",
+    reply:
+      "予約は、予約画面で宿泊日・人数を入力し、空室と料金を確認してから利用者情報を入力して確定します。",
     cards: [
       {
         title: "予約の手順",
@@ -703,7 +796,9 @@ export async function answerReadOnlyChat(message: string): Promise<ChatAssistant
     }
     result = {
       reply: DATA_SOURCE_UNAVAILABLE_REPLY,
-      cards: [{ title: "データ接続エラー", description: "空室データに接続できません。", tone: "warning" }],
+      cards: [
+        { title: "データ接続エラー", description: "空室データに接続できません。", tone: "warning" },
+      ],
     };
   }
   return {

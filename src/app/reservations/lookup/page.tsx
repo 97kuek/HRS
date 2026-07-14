@@ -3,35 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ConfirmTable } from "@/components/confirm-table";
-import {
-  IdentityVerificationForm,
-  type IdentityFormValue,
-} from "@/components/identity-verification-form";
+import { IdentityVerificationForm } from "@/components/identity-verification-form";
 import { LongWaitBar } from "@/components/loading-indicator";
 import { SubmitButton } from "@/components/submit-button";
+import { useReservationIdentityForm } from "@/components/use-reservation-identity-form";
+import type { ApiErrorResponse, ReservationLookup } from "@/lib/api/contracts";
 import { formatYen } from "@/lib/format";
-import { validateName, validateReservationNumber } from "@/lib/validation";
 
-interface LookupResult {
-  reservationNumber: string;
-  roomTypeName: string;
-  checkInDate: string;
-  checkOutDate: string;
-  nights: number;
-  guestCount: number;
-  guestName: string;
-  email: string;
-  phone: string | null;
-  status: "RESERVED" | "CHECKED_IN" | "CHECKED_OUT" | "CANCELLED";
-  totalCharge: number;
-  roomNumber: string | null;
-}
-
-interface ApiError {
-  error: { code: string; message: string };
-}
-
-const statusLabels: Record<LookupResult["status"], string> = {
+const statusLabels: Record<ReservationLookup["status"], string> = {
   RESERVED: "予約済（未到着）",
   CHECKED_IN: "チェックイン済み",
   CHECKED_OUT: "チェックアウト済み",
@@ -39,24 +18,14 @@ const statusLabels: Record<LookupResult["status"], string> = {
 };
 
 export default function ReservationLookupPage() {
-  const [identity, setIdentity] = useState<IdentityFormValue>({
-    reservationNumber: "",
-    familyName: "",
-    givenName: "",
-  });
-  const [touched, setTouched] = useState(false);
+  const { identity, setIdentity, touched, touch, errors, hasError } = useReservationIdentityForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<LookupResult | null>(null);
-
-  const reservationNumberError = validateReservationNumber(identity.reservationNumber);
-  const familyNameError = validateName(identity.familyName, "姓");
-  const givenNameError = validateName(identity.givenName, "名");
-  const canSearch = !reservationNumberError && !familyNameError && !givenNameError;
+  const [result, setResult] = useState<ReservationLookup | null>(null);
 
   async function search() {
-    setTouched(true);
-    if (!canSearch) return;
+    touch();
+    if (hasError) return;
 
     setLoading(true);
     setError(null);
@@ -68,12 +37,12 @@ export default function ReservationLookupPage() {
       const response = await fetch(
         `/api/reservations/${encodeURIComponent(identity.reservationNumber.trim().toUpperCase())}?${params}`,
       );
-      const data = (await response.json()) as { reservation: LookupResult } | ApiError;
+      const data = (await response.json()) as { reservation: ReservationLookup } | ApiErrorResponse;
       if (!response.ok) {
-        setError((data as ApiError).error.message);
+        setError((data as ApiErrorResponse).error.message);
         return;
       }
-      setResult((data as { reservation: LookupResult }).reservation);
+      setResult((data as { reservation: ReservationLookup }).reservation);
     } catch {
       setError("通信エラーが発生しました。時間をおいて再度お試しください。");
     } finally {
@@ -155,12 +124,12 @@ export default function ReservationLookupPage() {
               idPrefix="lookup"
               value={identity}
               errors={{
-                reservationNumber: reservationNumberError,
-                familyName: familyNameError,
-                givenName: givenNameError,
+                reservationNumber: errors.reservationNumber,
+                familyName: errors.familyName,
+                givenName: errors.givenName,
               }}
               touched={touched}
-              onTouched={() => setTouched(true)}
+              onTouched={touch}
               onChange={setIdentity}
             />
             {error && <div className="error-box">{error}</div>}

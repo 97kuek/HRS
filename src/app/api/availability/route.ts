@@ -25,7 +25,11 @@ export async function GET(request: Request) {
     const roomTypes = await searchAvailability(prisma, condition);
 
     if (roomTypes.length === 0) {
-      return apiError(404, "NO_AVAILABILITY", "条件に合う空室が見つかりませんでした。条件を変更してください。");
+      return apiError(
+        404,
+        "NO_AVAILABILITY",
+        "条件に合う空室が見つかりませんでした。条件を変更してください。",
+      );
     }
 
     return Response.json({
