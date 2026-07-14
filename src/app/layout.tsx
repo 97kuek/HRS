@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Serif_JP } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ChatLauncher } from "@/components/chat-launcher";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
-const notoSerifJP = Noto_Serif_JP({
-  subsets: ["latin"],
-  weight: ["300", "400"],
+const notoSerifJP = localFont({
+  src: "./fonts/NotoSerifJP-Regular.woff2",
   variable: "--font-mincho",
   display: "swap",
-  preload: false,
+  preload: true,
+  fallback: ["Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "serif"],
 });
 
 export const metadata: Metadata = {
