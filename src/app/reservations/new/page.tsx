@@ -23,7 +23,7 @@ import {
 const STEP_LABELS = ["日程", "客室", "宿泊者", "確認", "完了"];
 
 interface RoomTypeAvailability {
-  roomTypeId: string;
+  id: string;
   name: string;
   capacity: number;
   baseRate: number;
@@ -165,11 +165,15 @@ function Step1({
   const [error, setError] = useState<string | null>(null);
 
   const stayDateError = validateStayDates(checkIn, checkOut);
-  const dateError =
-    stayDateError ??
-    (checkIn && checkOut && checkOut !== addDaysToDateOnly(checkIn, 1)
-      ? "チェックアウト日はチェックイン日の翌日を選択してください。"
-      : null);
+  const nights =
+    checkIn && checkOut
+      ? Math.round(
+          (new Date(`${checkOut}T00:00:00.000Z`).getTime() -
+            new Date(`${checkIn}T00:00:00.000Z`).getTime()) /
+            (24 * 60 * 60 * 1000),
+        )
+      : 0;
+  const dateError = stayDateError ?? (nights > 30 ? "連泊は最大30泊までです。" : null);
   const guestCountNumber = guestCount.trim() === "" ? Number.NaN : Number(guestCount);
   const guestError = validateGuestCount(guestCountNumber);
   const completed = (dateError ? 0 : 1) + (guestError ? 0 : 1);
@@ -310,15 +314,12 @@ function Step1({
               onChange={(e) => {
                 const v = e.target.value;
                 setCheckOut(v);
-                const nextCheckIn = v ? addDaysToDateOnly(v, -1) : "";
-                setCheckIn(nextCheckIn);
-                if (nextCheckIn) setCalendarMonth(monthFromDateOnly(nextCheckIn));
               }}
             />
           </div>
         </div>
         <span className="field-hint" id="stay-dates-hint">
-          チェックインは本日以降、チェックアウトはチェックインの翌日です。
+          チェックインは本日以降、1〜30泊の範囲で選択してください。
         </span>
         {touched && dateError && <span className="field-error">{dateError}</span>}
         <div className="field" style={{ maxWidth: 180 }}>
@@ -492,7 +493,7 @@ function Step2({
 
   const shown = useMemo(() => {
     let list = [...roomTypes];
-    if (onlyFavorites) list = list.filter((r) => favorites.has(r.roomTypeId));
+    if (onlyFavorites) list = list.filter((r) => favorites.has(r.id));
     if (sort === "priceAsc") list.sort((a, b) => a.totalCharge - b.totalCharge);
     if (sort === "capacityDesc") list.sort((a, b) => b.capacity - a.capacity);
     return list;
@@ -660,10 +661,10 @@ function Step2({
       ) : (
         <div className="room-list">
           {shown.map((room) => {
-            const isFav = favorites.has(room.roomTypeId);
+            const isFav = favorites.has(room.id);
             const low = room.availableCount <= 2;
             return (
-              <div key={room.roomTypeId} className="room-card">
+              <div key={room.id} className="room-card">
                 <div className="room-photo">
                   <Image
                     src={roomImage(room.name)}
@@ -714,7 +715,7 @@ function Step2({
                       <button
                         className="btn btn-secondary room-action-btn"
                         aria-pressed={isFav}
-                        onClick={() => toggleFavorite(room.roomTypeId)}
+                        onClick={() => toggleFavorite(room.id)}
                       >
                         {isFav ? "★ 気になる" : "☆ 気になる"}
                       </button>
@@ -1006,7 +1007,7 @@ function Step4({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          roomTypeId: room.roomTypeId,
+          roomTypeId: room.id,
           checkInDate: condition.checkIn,
           checkOutDate: condition.checkOut,
           guestCount: condition.guestCount,

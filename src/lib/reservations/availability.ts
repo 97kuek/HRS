@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
 import type { ApiErrorDetail } from "@/lib/api/response";
+import { todayInHotelDate } from "@/lib/date-only";
 
 /** 予約条件として受け取りうる生の入力。 */
 export type ReservationConditionInput = {
@@ -40,12 +41,6 @@ function parseDateOnly(value: unknown): Date | null {
   return date;
 }
 
-/** 今日（UTC 00:00）を返す。過去日チェック用。 */
-function todayUtc(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-}
-
 /**
  * 予約条件のバリデーション（ユースケース E1）。
  * roomTypeId は requireRoomType=true のとき必須。
@@ -60,20 +55,32 @@ export function validateReservationCondition(
   const checkOut = parseDateOnly(input.checkOutDate);
 
   if (!checkIn) {
-    errors.push({ field: "checkInDate", message: "チェックイン日を YYYY-MM-DD 形式で指定してください。" });
+    errors.push({
+      field: "checkInDate",
+      message: "チェックイン日を YYYY-MM-DD 形式で指定してください。",
+    });
   }
   if (!checkOut) {
-    errors.push({ field: "checkOutDate", message: "チェックアウト日を YYYY-MM-DD 形式で指定してください。" });
+    errors.push({
+      field: "checkOutDate",
+      message: "チェックアウト日を YYYY-MM-DD 形式で指定してください。",
+    });
   }
-  if (checkIn && checkIn < todayUtc()) {
-    errors.push({ field: "checkInDate", message: "チェックイン日には本日以降の日付を指定してください。" });
+  if (checkIn && checkIn < todayInHotelDate()) {
+    errors.push({
+      field: "checkInDate",
+      message: "チェックイン日には本日以降の日付を指定してください。",
+    });
   }
 
   let nights = 0;
   if (checkIn && checkOut) {
     nights = Math.round((checkOut.getTime() - checkIn.getTime()) / MS_PER_DAY);
     if (nights < 1) {
-      errors.push({ field: "checkOutDate", message: "チェックアウト日はチェックイン日より後にしてください。" });
+      errors.push({
+        field: "checkOutDate",
+        message: "チェックアウト日はチェックイン日より後にしてください。",
+      });
     } else if (nights > MAX_NIGHTS) {
       errors.push({ field: "checkOutDate", message: `連泊は最大 ${MAX_NIGHTS} 泊までです。` });
     }
@@ -135,7 +142,7 @@ async function countOverlappingReservations(
 }
 
 export type RoomTypeAvailability = {
-  roomTypeId: string;
+  id: string;
   name: string;
   capacity: number;
   baseRate: number;
@@ -168,14 +175,18 @@ export async function searchAvailability(
     include: { _count: { select: { rooms: true } } },
   });
 
-  const overlapping = await countOverlappingReservations(client, condition.checkIn, condition.checkOut);
+  const overlapping = await countOverlappingReservations(
+    client,
+    condition.checkIn,
+    condition.checkOut,
+  );
 
   const result: RoomTypeAvailability[] = [];
   for (const rt of roomTypes) {
     const availableCount = rt._count.rooms - (overlapping.get(rt.id) ?? 0);
     if (availableCount > 0) {
       result.push({
-        roomTypeId: rt.id,
+        id: rt.id,
         name: rt.name,
         capacity: rt.capacity,
         baseRate: rt.baseRate,
@@ -195,7 +206,9 @@ export function validateAvailabilityCalendarQuery(input: {
   year?: unknown;
   month?: unknown;
   guestCount?: unknown;
-}): { ok: true; value: { year: number; month: number; guestCount: number } } | { ok: false; errors: ApiErrorDetail[] } {
+}):
+  | { ok: true; value: { year: number; month: number; guestCount: number } }
+  | { ok: false; errors: ApiErrorDetail[] } {
   const errors: ApiErrorDetail[] = [];
   const year = Number(input.year);
   const month = Number(input.month);
@@ -208,7 +221,10 @@ export function validateAvailabilityCalendarQuery(input: {
     errors.push({ field: "month", message: "月は 1〜12 の整数で指定してください。" });
   }
   if (!Number.isInteger(guestCount) || guestCount < 1 || guestCount > MAX_GUEST_COUNT) {
-    errors.push({ field: "guestCount", message: `人数は 1〜${MAX_GUEST_COUNT} 名で指定してください。` });
+    errors.push({
+      field: "guestCount",
+      message: `人数は 1〜${MAX_GUEST_COUNT} 名で指定してください。`,
+    });
   }
 
   if (errors.length > 0) return { ok: false, errors };
@@ -224,7 +240,9 @@ export async function getAvailabilityCalendar(
   query: { year: number; month: number; guestCount: number },
 ): Promise<AvailabilityCalendarDay[]> {
   const firstDay = new Date(Date.UTC(query.year, query.month - 1, 1));
-  const lastStayEnd = new Date(Date.UTC(query.year, query.month - 1, daysInMonthUtc(query.year, query.month) + 1));
+  const lastStayEnd = new Date(
+    Date.UTC(query.year, query.month - 1, daysInMonthUtc(query.year, query.month) + 1),
+  );
 
   const roomTypes = await client.roomType.findMany({
     where: { capacity: { gte: query.guestCount } },
@@ -246,7 +264,7 @@ export async function getAvailabilityCalendar(
     },
   });
 
-  const today = todayUtc();
+  const today = todayInHotelDate();
   const days: AvailabilityCalendarDay[] = [];
   const dayCount = daysInMonthUtc(query.year, query.month);
 

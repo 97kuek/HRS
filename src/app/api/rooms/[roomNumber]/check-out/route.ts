@@ -4,6 +4,7 @@ import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/check-out";
 import { sendCheckOutReceipt } from "@/lib/email/send";
+import { validateRoomNumber } from "@/lib/validation";
 
 type CheckOutBody = { amount?: unknown; method?: unknown };
 
@@ -17,8 +18,11 @@ export async function POST(
   { params }: { params: Promise<{ roomNumber: string }> },
 ) {
   const { roomNumber } = await params;
-  if (!roomNumber) {
-    return apiError(400, "VALIDATION_ERROR", "部屋番号が指定されていません。");
+  const roomNumberError = validateRoomNumber(roomNumber ?? "");
+  if (roomNumberError) {
+    return apiError(400, "VALIDATION_ERROR", "入力内容を確認してください。", [
+      { field: "roomNumber", message: roomNumberError },
+    ]);
   }
 
   let body: CheckOutBody;
@@ -40,9 +44,15 @@ export async function POST(
       { field: "method", message: "「現金」または「クレジットカード」を選択してください。" },
     ]);
   }
-  const submittedAmount = Number(body.amount);
-  if (!Number.isInteger(submittedAmount) || submittedAmount < 0) {
-    return apiError(400, "VALIDATION_ERROR", "支払い金額が不正です。");
+  const submittedAmount = body.amount;
+  if (
+    typeof submittedAmount !== "number" ||
+    !Number.isInteger(submittedAmount) ||
+    submittedAmount < 0
+  ) {
+    return apiError(400, "VALIDATION_ERROR", "支払い金額が不正です。", [
+      { field: "amount", message: "支払い金額は0以上の整数で指定してください。" },
+    ]);
   }
 
   try {
@@ -109,10 +119,7 @@ export async function POST(
     });
 
     // チェックアウト後メール送信（失敗しても 200 を返す）。
-    const nights = calculateNights(
-      result.reservation.checkInDate,
-      result.reservation.checkOutDate,
-    );
+    const nights = calculateNights(result.reservation.checkInDate, result.reservation.checkOutDate);
     void sendCheckOutReceipt(result.reservation.guest.email, {
       guestName: result.reservation.guest.name,
       reservationNumber: result.reservation.reservationNumber,
@@ -150,4 +157,3 @@ export async function POST(
     return internalServerError();
   }
 }
-

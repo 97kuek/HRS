@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { evaluateCheckIn, pickAssignableRoom, todayInHotelTz } from "@/lib/reservations/check-in";
+import { matchesReservationGuest, validateReservationIdentity } from "@/lib/reservations/identity";
 
 /**
  * POST /api/reservations/[reservationNumber]/check-in
@@ -13,38 +14,35 @@ export async function POST(
   { params }: { params: Promise<{ reservationNumber: string }> },
 ) {
   const { reservationNumber } = await params;
-  if (!reservationNumber) {
-    return apiError(400, "VALIDATION_ERROR", "予約番号が指定されていません。");
-  }
-
-  let familyName = "";
-  let givenName = "";
+  let body: unknown;
   try {
-    const body = (await request.json()) as { familyName?: string; givenName?: string };
-    familyName = body.familyName?.trim() ?? "";
-    givenName = body.givenName?.trim() ?? "";
+    body = await request.json();
   } catch {
-    // body なしは空文字のまま、下の validation で弾く。
+    return apiError(400, "VALIDATION_ERROR", "リクエスト本文が不正です。");
   }
-
-  if (!familyName || !givenName) {
-    return apiError(400, "VALIDATION_ERROR", "姓と名を入力してください。");
+  const fields = body && typeof body === "object" && !Array.isArray(body) ? body : {};
+  const validation = validateReservationIdentity({
+    reservationNumber,
+    familyName: (fields as Record<string, unknown>).familyName,
+    givenName: (fields as Record<string, unknown>).givenName,
+  });
+  if (!validation.ok) {
+    return apiError(400, "VALIDATION_ERROR", "入力内容を確認してください。", validation.errors);
   }
+  const identity = validation.value;
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       // msg3: 予約を特定する（E1 予約番号無効）。
       const reservation = await tx.reservation.findUnique({
-        where: { reservationNumber },
+        where: { reservationNumber: identity.reservationNumber },
         include: {
           guest: { select: { name: true } },
           roomType: { select: { name: true } },
         },
       });
 
-      const inputName = `${familyName} ${givenName}`.replace(/\s+/g, " ").trim();
-      const storedName = reservation?.guest.name.replace(/\s+/g, " ").trim();
-      if (!reservation || storedName !== inputName) {
+      if (!reservation || !matchesReservationGuest(reservation.guest.name, identity)) {
         throw new DomainError(
           "RESERVATION_NOT_FOUND",
           404,
@@ -121,4 +119,3 @@ export async function POST(
     return internalServerError();
   }
 }
-

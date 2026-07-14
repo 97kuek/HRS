@@ -1,6 +1,7 @@
 import type { ReservationStatus } from "@prisma/client";
 
 import type { ApiErrorCode } from "@/lib/api/response";
+import { todayInHotelDate } from "@/lib/date-only";
 
 /** キャンセル不可の理由（RESERVED 以外）。 */
 export type CancellationRejection = {
@@ -69,7 +70,7 @@ export function calculateCancellationPolicy({
   checkInDate,
   checkOutDate,
   baseRate,
-  today = new Date(),
+  today = todayInHotelDate(),
 }: {
   checkInDate: Date;
   checkOutDate: Date;

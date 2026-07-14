@@ -1,5 +1,6 @@
 import { apiError, internalServerError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
+import { matchesReservationGuest, validateReservationIdentity } from "@/lib/reservations/identity";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -9,16 +10,19 @@ export async function GET(
 ) {
   const { reservationNumber } = await params;
   const searchParams = new URL(request.url).searchParams;
-  const familyName = searchParams.get("familyName")?.trim() ?? "";
-  const givenName = searchParams.get("givenName")?.trim() ?? "";
-
-  if (!reservationNumber || !familyName || !givenName) {
-    return apiError(400, "VALIDATION_ERROR", "予約番号、姓、名をすべて入力してください。");
+  const validation = validateReservationIdentity({
+    reservationNumber,
+    familyName: searchParams.get("familyName"),
+    givenName: searchParams.get("givenName"),
+  });
+  if (!validation.ok) {
+    return apiError(400, "VALIDATION_ERROR", "入力内容を確認してください。", validation.errors);
   }
+  const identity = validation.value;
 
   try {
     const reservation = await prisma.reservation.findUnique({
-      where: { reservationNumber: reservationNumber.toUpperCase() },
+      where: { reservationNumber: identity.reservationNumber },
       include: {
         guest: { select: { name: true, email: true, phone: true } },
         roomType: { select: { name: true, baseRate: true } },
@@ -26,9 +30,7 @@ export async function GET(
       },
     });
 
-    const inputName = `${familyName} ${givenName}`.replace(/\s+/g, " ").trim();
-    const storedName = reservation?.guest.name.replace(/\s+/g, " ").trim();
-    if (!reservation || storedName !== inputName) {
+    if (!reservation || !matchesReservationGuest(reservation.guest.name, identity)) {
       return apiError(
         404,
         "RESERVATION_NOT_FOUND",

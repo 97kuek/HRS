@@ -98,6 +98,13 @@ src/app/api/<route>/__tests__/<METHOD>.test.ts
 | `POST /api/reservations` | `reservations/__tests__/post-route.test.ts` | ✓ | E1/E3/E4・定員超過・部屋なし |
 | `POST /api/reservations/[number]/cancel` | `cancel/__tests__/post-route.test.ts` | ✓ | E1・E2（全ステータス）・競合更新 |
 | `POST /api/reservations/[number]/check-in` | `check-in/__tests__/post-route.test.ts` | ✓ | E1・E2・E3・E4 |
+| `GET /api/availability` | `availability/__tests__/get-route.test.ts` | ✓ | 入力不正 |
+| `GET /api/availability/calendar` | `availability/calendar/__tests__/get-route.test.ts` | ✓ | 入力不正 |
+| `GET /api/room-types` | `room-types/__tests__/get-route.test.ts` | ✓ | — |
+| `GET /api/reservations/[number]` | `[reservationNumber]/__tests__/get-route.test.ts` | ✓ | 入力不正・照合失敗 |
+| `GET /api/reservations/[number]/cancel/quote` | `cancel/quote/__tests__/get-route.test.ts` | ✓ | 入力不正・照合失敗 |
+| `GET/POST /api/rooms/[number]/check-out` | `check-out/__tests__/route-validation.test.ts` | — | 入力不正 |
+| `GET /api/cron/check-in-reminder` | `check-in-reminder/__tests__/get-route.test.ts` | ✓ | 認証失敗・送信失敗 |
 
 ---
 

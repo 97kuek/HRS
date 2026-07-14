@@ -2,6 +2,7 @@ import { apiError, internalServerError, DomainError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { calculateCancellationPolicy, evaluateCancellation } from "@/lib/reservations/cancellation";
 import { sendReservationCancellation } from "@/lib/email/send";
+import { matchesReservationGuest, validateReservationIdentity } from "@/lib/reservations/identity";
 
 /**
  * POST /api/reservations/[reservationNumber]/cancel
@@ -13,28 +14,28 @@ export async function POST(
   { params }: { params: Promise<{ reservationNumber: string }> },
 ) {
   const { reservationNumber } = await params;
-  if (!reservationNumber) {
-    return apiError(400, "VALIDATION_ERROR", "予約番号が指定されていません。");
-  }
-
-  let familyName = "";
-  let givenName = "";
+  let body: unknown;
   try {
-    const body = (await request.json()) as { familyName?: string; givenName?: string };
-    familyName = body.familyName?.trim() ?? "";
-    givenName = body.givenName?.trim() ?? "";
+    body = await request.json();
   } catch {
-    // body なしは空文字のまま、下の validation で弾く。
+    return apiError(400, "VALIDATION_ERROR", "リクエスト本文が不正です。");
   }
-  if (!familyName || !givenName) {
-    return apiError(400, "VALIDATION_ERROR", "姓と名を入力してください。");
+  const fields = body && typeof body === "object" && !Array.isArray(body) ? body : {};
+  const validation = validateReservationIdentity({
+    reservationNumber,
+    familyName: (fields as Record<string, unknown>).familyName,
+    givenName: (fields as Record<string, unknown>).givenName,
+  });
+  if (!validation.ok) {
+    return apiError(400, "VALIDATION_ERROR", "入力内容を確認してください。", validation.errors);
   }
+  const identity = validation.value;
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       // 予約を特定する（E1）。
       const reservation = await tx.reservation.findUnique({
-        where: { reservationNumber },
+        where: { reservationNumber: identity.reservationNumber },
         include: {
           guest: { select: { name: true, email: true } },
           roomType: { select: { name: true, baseRate: true } },
@@ -42,10 +43,12 @@ export async function POST(
       });
 
       // 名前照合（quote と同じロジック）。
-      const inputName = `${familyName} ${givenName}`.replace(/\s+/g, " ").trim();
-      const storedName = reservation?.guest.name.replace(/\s+/g, " ").trim();
-      if (!reservation || storedName !== inputName) {
-        throw new DomainError("RESERVATION_NOT_FOUND", 404, "入力内容に一致する予約が見つかりませんでした。");
+      if (!reservation || !matchesReservationGuest(reservation.guest.name, identity)) {
+        throw new DomainError(
+          "RESERVATION_NOT_FOUND",
+          404,
+          "入力内容に一致する予約が見つかりませんでした。",
+        );
       }
 
       // 状態を確認する（キャンセル済み / チェックイン済み等）。
@@ -61,7 +64,7 @@ export async function POST(
 
       // 条件付き更新で確定（find→update 間に別トランザクションがチェックインを差し込む隙をガード）。
       const updated = await tx.reservation.updateMany({
-        where: { reservationNumber, status: "RESERVED" },
+        where: { reservationNumber: identity.reservationNumber, status: "RESERVED" },
         data: { status: "CANCELLED" },
       });
       if (updated.count === 0) {

@@ -1,6 +1,7 @@
 import type { ReservationStatus } from "@prisma/client";
 
 import type { ApiErrorCode } from "@/lib/api/response";
+import { todayInHotelDate } from "@/lib/date-only";
 
 /** チェックイン不可の理由（#10 msg4「状態を確認する」で弾かれるケース）。 */
 export type CheckInRejection = {
@@ -52,7 +53,7 @@ export function evaluateCheckIn(params: {
     return {
       ok: false,
       code: "NOT_CHECKIN_DATE",
-      status: 400,
+      status: 409,
       message: "本日はチェックイン日ではありません。予約開始日にお越しください。",
     };
   }
@@ -66,9 +67,7 @@ export function evaluateCheckIn(params: {
  * デプロイ環境が UTC でも、日本のホテルの当日判定として一貫させる意図。
  */
 export function todayInHotelTz(): Date {
-  const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
-  const nowJst = new Date(Date.now() + JST_OFFSET_MS);
-  return new Date(Date.UTC(nowJst.getUTCFullYear(), nowJst.getUTCMonth(), nowJst.getUTCDate()));
+  return todayInHotelDate();
 }
 
 /**

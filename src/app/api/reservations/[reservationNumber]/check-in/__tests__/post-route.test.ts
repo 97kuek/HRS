@@ -39,7 +39,7 @@ const RESERVED_RESERVATION = {
   reservationNumber: "HRS-20260705-0001",
   id: "res-001",
   status: "RESERVED" as const,
-  checkInDate: TODAY_UTC,  // 今日がチェックイン日
+  checkInDate: TODAY_UTC, // 今日がチェックイン日
   checkOutDate: TOMORROW_UTC,
   guestCount: 1,
   roomTypeId: "rt-standard",
@@ -78,7 +78,7 @@ describe("POST /api/reservations/[reservationNumber]/check-in — 結合テス�
     it("今日がチェックイン日で部屋があれば 200 と部屋番号を返す", async () => {
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(200);
-      const body = await response.json() as { checkIn: Record<string, unknown> };
+      const body = (await response.json()) as { checkIn: Record<string, unknown> };
       expect(body.checkIn.roomNumber).toBe("101");
       expect(body.checkIn.reservationNumber).toBe("HRS-20260705-0001");
     });
@@ -89,7 +89,7 @@ describe("POST /api/reservations/[reservationNumber]/check-in — 結合テス�
     it("familyName が空は 400 VALIDATION_ERROR", async () => {
       const response = await POST(makeRequest("", "太郎"), makeParams());
       expect(response.status).toBe(400);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("VALIDATION_ERROR");
     });
   });
@@ -100,7 +100,7 @@ describe("POST /api/reservations/[reservationNumber]/check-in — 結合テス�
       mockTx.reservation.findUnique.mockResolvedValue(null);
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(404);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("RESERVATION_NOT_FOUND");
     });
 
@@ -112,14 +112,14 @@ describe("POST /api/reservations/[reservationNumber]/check-in — 結合テス�
 
   // ── 例外系列 E2: 当日がチェックイン可能日でない ───────────────
   describe("E2: 当日がチェックイン可能日でない", () => {
-    it("チェックイン日が明日の予約は 400 NOT_CHECKIN_DATE", async () => {
+    it("チェックイン日が明日の予約は 409 NOT_CHECKIN_DATE", async () => {
       mockTx.reservation.findUnique.mockResolvedValue({
         ...RESERVED_RESERVATION,
         checkInDate: TOMORROW_UTC, // 明日がチェックイン日
       });
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
-      expect(response.status).toBe(400);
-      const json = await response.json() as { error: { code: string } };
+      expect(response.status).toBe(409);
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("NOT_CHECKIN_DATE");
     });
   });
@@ -133,7 +133,7 @@ describe("POST /api/reservations/[reservationNumber]/check-in — 結合テス�
       });
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(409);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("INVALID_RESERVATION_STATUS");
     });
 
@@ -153,7 +153,7 @@ describe("POST /api/reservations/[reservationNumber]/check-in — 結合テス�
       mockTx.room.findMany.mockResolvedValue([]); // 空き部屋なし
       const response = await POST(makeRequest("山田", "太郎"), makeParams());
       expect(response.status).toBe(409);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("NO_ASSIGNABLE_ROOM");
     });
   });
