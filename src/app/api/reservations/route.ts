@@ -1,6 +1,11 @@
 import { Prisma } from "@prisma/client";
 
-import { apiError, internalServerError, DomainError, type ApiErrorDetail } from "@/lib/api/response";
+import {
+  apiError,
+  internalServerError,
+  DomainError,
+  type ApiErrorDetail,
+} from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import {
   hasAvailabilityForRoomType,
@@ -8,6 +13,7 @@ import {
 } from "@/lib/reservations/availability";
 import { generateReservationNumber } from "@/lib/reservations/reservation-number";
 import { sendReservationConfirmation } from "@/lib/email/send";
+import { validateEmail, validateName, validatePhone } from "@/lib/validation";
 
 const RESERVATION_NUMBER_MAX_RETRIES = 5;
 
@@ -22,28 +28,12 @@ function validateGuest(
   const email = typeof input.email === "string" ? input.email.trim() : "";
   const phone = typeof input.phone === "string" ? input.phone.trim() : "";
 
-  if (name.length === 0) {
-    errors.push({ field: "guest.name", message: "氏名を入力してください。" });
-  } else if (name.length > 100) {
-    errors.push({ field: "guest.name", message: "氏名は 100 文字以内で入力してください。" });
-  }
-  if (email.length === 0) {
-    errors.push({ field: "guest.email", message: "メールアドレスを入力してください。" });
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    errors.push({
-      field: "guest.email",
-      message: "メールアドレスの形式が正しくありません。",
-    });
-  }
-  if (phone.length > 0) {
-    const digits = phone.replace(/[-\s]/g, "");
-    if (!/^0\d{9,10}$/.test(digits)) {
-      errors.push({
-        field: "guest.phone",
-        message: "電話番号は市外局番から半角数字で入力してください（例: 090-1234-5678）。",
-      });
-    }
-  }
+  const nameError = validateName(name);
+  if (nameError) errors.push({ field: "guest.name", message: nameError });
+  const emailError = validateEmail(email);
+  if (emailError) errors.push({ field: "guest.email", message: emailError });
+  const phoneError = validatePhone(phone);
+  if (phoneError) errors.push({ field: "guest.phone", message: phoneError });
 
   return errors.length > 0 ? errors : { name, email, phone: phone || null };
 }
@@ -54,20 +44,24 @@ function validateGuest(
  * body: { roomTypeId, checkInDate, checkOutDate, guestCount, guest: { name, email, phone? } }
  */
 export async function POST(request: Request) {
-  let body: Record<string, unknown>;
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
     return apiError(400, "VALIDATION_ERROR", "リクエスト本文が不正です。");
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return apiError(400, "VALIDATION_ERROR", "リクエスト本文が不正です。");
+  }
+  const fields = body as Record<string, unknown>;
 
   // 入力条件のバリデーション（E1）。予約登録では部屋タイプ必須。
   const conditionResult = validateReservationCondition(
     {
-      checkInDate: body.checkInDate,
-      checkOutDate: body.checkOutDate,
-      guestCount: body.guestCount,
-      roomTypeId: body.roomTypeId,
+      checkInDate: fields.checkInDate,
+      checkOutDate: fields.checkOutDate,
+      guestCount: fields.guestCount,
+      roomTypeId: fields.roomTypeId,
     },
     { requireRoomType: true },
   );
@@ -83,7 +77,11 @@ export async function POST(request: Request) {
   const roomTypeId = condition.roomTypeId!;
 
   // 利用者情報のバリデーション（E4）。
-  const guestResult = validateGuest((body.guest ?? {}) as GuestInput);
+  const guestInput =
+    fields.guest && typeof fields.guest === "object" && !Array.isArray(fields.guest)
+      ? (fields.guest as GuestInput)
+      : {};
+  const guestResult = validateGuest(guestInput);
   if (Array.isArray(guestResult)) {
     return apiError(400, "VALIDATION_ERROR", "利用者情報が正しくありません。", guestResult);
   }
@@ -201,4 +199,3 @@ export async function POST(request: Request) {
     return internalServerError();
   }
 }
-

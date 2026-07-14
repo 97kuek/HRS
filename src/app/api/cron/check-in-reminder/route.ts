@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     },
   });
 
-  await Promise.allSettled(
+  const results = await Promise.allSettled(
     reservations.map((r) =>
       sendCheckInReminder(r.guest.email, {
         guestName: r.guest.name,
@@ -51,5 +51,6 @@ export async function GET(request: Request) {
     ),
   );
 
-  return Response.json({ sent: reservations.length, date: tomorrow });
+  const sent = results.filter((result) => result.status === "fulfilled" && result.value.ok).length;
+  return Response.json({ sent, date: tomorrow });
 }

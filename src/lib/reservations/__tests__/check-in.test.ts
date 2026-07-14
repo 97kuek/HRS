@@ -15,7 +15,7 @@ describe("evaluateCheckIn", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.code).toBe("NOT_CHECKIN_DATE");
-      expect(result.status).toBe(400);
+      expect(result.status).toBe(409);
     }
   });
 

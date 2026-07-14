@@ -78,7 +78,7 @@ describe("POST /api/reservations — 結合テスト", () => {
     it("有効な入力で 201 と予約情報を返す", async () => {
       const response = await POST(makeRequest(VALID_BODY));
       expect(response.status).toBe(201);
-      const body = await response.json() as { reservation: Record<string, unknown> };
+      const body = (await response.json()) as { reservation: Record<string, unknown> };
       expect(body.reservation.reservationNumber).toMatch(/^HRS-\d{8}-\d{4}$/);
       expect(body.reservation.nights).toBe(2);
       expect(body.reservation.totalCharge).toBe(20000); // 10000 × 2泊
@@ -95,12 +95,26 @@ describe("POST /api/reservations — 結合テスト", () => {
 
   // ── 例外系列 E1: 入力条件が不正 ──────────────────────────────
   describe("E1: 入力条件が不正", () => {
+    it("null のJSON本文は400 VALIDATION_ERROR", async () => {
+      const response = await POST(
+        new Request("http://localhost/api/reservations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: "null",
+        }),
+      );
+
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { error: { code: string } };
+      expect(body.error.code).toBe("VALIDATION_ERROR");
+    });
+
     it("roomTypeId なしは 400 VALIDATION_ERROR", async () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { roomTypeId, ...body } = VALID_BODY;
       const response = await POST(makeRequest(body));
       expect(response.status).toBe(400);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("VALIDATION_ERROR");
     });
 
@@ -110,9 +124,7 @@ describe("POST /api/reservations — 結合テスト", () => {
     });
 
     it("checkOutDate が checkInDate と同日は 400 VALIDATION_ERROR", async () => {
-      const response = await POST(
-        makeRequest({ ...VALID_BODY, checkOutDate: CHECK_IN }),
-      );
+      const response = await POST(makeRequest({ ...VALID_BODY, checkOutDate: CHECK_IN }));
       expect(response.status).toBe(400);
     });
   });
@@ -120,11 +132,9 @@ describe("POST /api/reservations — 結合テスト", () => {
   // ── 例外系列 E4: 利用者情報が不正 ────────────────────────────
   describe("E4: 利用者情報が不正", () => {
     it("guest.email なしは 400 VALIDATION_ERROR", async () => {
-      const response = await POST(
-        makeRequest({ ...VALID_BODY, guest: { name: "山田 太郎" } }),
-      );
+      const response = await POST(makeRequest({ ...VALID_BODY, guest: { name: "山田 太郎" } }));
       expect(response.status).toBe(400);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("VALIDATION_ERROR");
     });
 
@@ -149,7 +159,7 @@ describe("POST /api/reservations — 結合テスト", () => {
       mockTx.roomType.findUnique.mockResolvedValue(null);
       const response = await POST(makeRequest(VALID_BODY));
       expect(response.status).toBe(404);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("ROOM_TYPE_NOT_FOUND");
     });
 
@@ -162,7 +172,7 @@ describe("POST /api/reservations — 結合テスト", () => {
       });
       const response = await POST(makeRequest(VALID_BODY));
       expect(response.status).toBe(400);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("CAPACITY_EXCEEDED");
     });
 
@@ -171,7 +181,7 @@ describe("POST /api/reservations — 結合テスト", () => {
       mockTx.reservation.count.mockResolvedValue(2); // 全部屋が予約済み
       const response = await POST(makeRequest(VALID_BODY));
       expect(response.status).toBe(409);
-      const json = await response.json() as { error: { code: string } };
+      const json = (await response.json()) as { error: { code: string } };
       expect(json.error.code).toBe("NO_AVAILABILITY");
     });
   });

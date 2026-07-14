@@ -72,11 +72,7 @@ export default function CheckInPage() {
 
   if (result) {
     return (
-      <ResultPanel
-        title="チェックイン完了"
-        description="お部屋の準備ができました。"
-        secondaryDescription="ご登録のメールアドレスに確認メールをお送りしました。"
-      >
+      <ResultPanel title="チェックイン完了" description="お部屋の準備ができました。">
         <p className="section-heading" style={{ textAlign: "center" }}>
           お部屋番号
         </p>

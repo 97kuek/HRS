@@ -39,6 +39,15 @@ describe("GET /api/reservations/[reservationNumber] — 結合テスト", () => 
   });
 
   describe("正常系", () => {
+    it("小文字の予約番号を大文字へ正規化して検索する", async () => {
+      const response = await GET(makeRequest(), makeParams("hrs-20260705-0001"));
+
+      expect(response.status).toBe(200);
+      expect(mockPrisma.reservation.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { reservationNumber: "HRS-20260705-0001" } }),
+      );
+    });
+
     it("予約番号と氏名が一致すると予約詳細を返す", async () => {
       const response = await GET(makeRequest(), makeParams());
 
@@ -89,6 +98,13 @@ describe("GET /api/reservations/[reservationNumber] — 結合テスト", () => 
   });
 
   describe("入力バリデーション", () => {
+    it("予約番号の形式が不正な場合はDBを検索しない", async () => {
+      const response = await GET(makeRequest(), makeParams("invalid"));
+
+      expect(response.status).toBe(400);
+      expect(mockPrisma.reservation.findUnique).not.toHaveBeenCalled();
+    });
+
     it("姓が空の場合は 400 VALIDATION_ERROR", async () => {
       const response = await GET(makeRequest("", "太郎"), makeParams());
 

@@ -1,6 +1,7 @@
 import { apiError, internalServerError } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
 import { calculateCharge, calculateNights, classifyMissingStay } from "@/lib/stays/check-out";
+import { validateRoomNumber } from "@/lib/validation";
 
 /**
  * GET /api/rooms/[roomNumber]/check-out/quote
@@ -11,8 +12,11 @@ export async function GET(
   { params }: { params: Promise<{ roomNumber: string }> },
 ) {
   const { roomNumber } = await params;
-  if (!roomNumber) {
-    return apiError(400, "VALIDATION_ERROR", "部屋番号が指定されていません。");
+  const roomNumberError = validateRoomNumber(roomNumber ?? "");
+  if (roomNumberError) {
+    return apiError(400, "VALIDATION_ERROR", "入力内容を確認してください。", [
+      { field: "roomNumber", message: roomNumberError },
+    ]);
   }
 
   try {
